@@ -1,5 +1,4 @@
 import React from 'react'
-import Container from '../components/container'
 import Layout from '../components/layout'
 import Head from 'next/head'
 
@@ -13,9 +12,7 @@ const Playing = () => {
         <Head>
           <title>Street Fighter II</title>
         </Head>
-        <Container>
-          <h1>Playing Page</h1>
-        </Container>
+        <h1>Playing Page</h1>
       </Layout>
     </React.Fragment>
   )

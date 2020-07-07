@@ -1,30 +1,18 @@
 import React from 'react'
-import Container from '../components/container'
-import Layout from '../components/layout'
-import Head from 'next/head'
-
-type Props = {
-}
+import { ServerResponse } from 'http'
 
 const Index = () => {
   return (
     <React.Fragment>
-      <Layout>
-        <Head>
-          <title>Welcome to Oraksil!</title>
-        </Head>
-        <Container>
-          <h1>Landing Page</h1>
-        </Container>
-      </Layout>
+      Landing.. must not reach here..
     </React.Fragment>
   )
 }
 
 export default Index
 
-export const getStaticProps = async () => {
-  return {
-    props: {},
-  }
+export const getServerSideProps = async ({ res }: { res: ServerResponse }) => {
+  res.writeHead(301, { Location: "catalog" })
+  res.end()
+  return {}
 }

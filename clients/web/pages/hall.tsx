@@ -1,5 +1,4 @@
 import React from 'react'
-import Container from '../components/container'
 import Layout from '../components/layout'
 import Head from 'next/head'
 
@@ -13,9 +12,7 @@ const Hall = () => {
         <Head>
           <title>52 Games are running!</title>
         </Head>
-        <Container>
-          <h1>Hall Page</h1>
-        </Container>
+        <h1>Hall Page</h1>
       </Layout>
     </React.Fragment>
   )

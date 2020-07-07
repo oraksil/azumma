@@ -1,6 +1,9 @@
 module.exports = {
   purge: ['./components/**/*.tsx', './pages/**/*.tsx'],
   theme: {
+    container: {
+      center: true,
+    },
     extend: {
       colors: {
         'accent-1': '#FAFAFA',
