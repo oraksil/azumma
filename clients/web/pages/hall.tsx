@@ -1,20 +1,26 @@
-import React from 'react'
-import Layout from '../components/layout'
 import Head from 'next/head'
-
-type Props = {
-}
+import Layout from '../components/layout'
+import JoinableGameCard from '../components/joinable-game-card'
 
 const Hall = () => {
+  const joinableGames = [1, 2, 3, 4, 5, 6, 7, 8]
   return (
-    <React.Fragment>
-      <Layout>
-        <Head>
-          <title>52 Games are running!</title>
-        </Head>
-        <h1>Hall Page</h1>
-      </Layout>
-    </React.Fragment>
+    <Layout>
+      <Head>
+        <title>52 Games are running!</title>
+      </Head>
+      <div className="container pt-32">
+        <div className="flex justify-center">
+          <div className="grid grid-cols-5 gap-8">
+            {joinableGames.map((_, i) => ( 
+              <div key={i}>
+                <JoinableGameCard />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </Layout>
   )
 }
 
