@@ -1,20 +1,19 @@
-import React from 'react'
 import Layout from '../components/layout'
 import Head from 'next/head'
-
-type Props = {
-}
+import GamePlayer from '../components/game-player'
 
 const Playing = () => {
   return (
-    <React.Fragment>
-      <Layout>
-        <Head>
-          <title>Street Fighter II</title>
-        </Head>
-        <h1>Playing Page</h1>
-      </Layout>
-    </React.Fragment>
+    <Layout>
+      <Head>
+        <title>Street Fighter II</title>
+      </Head>
+      <div className="container pt-32">
+        <div className="flex justify-center">
+          <GamePlayer />
+        </div>
+      </div>
+    </Layout>
   )
 }
 

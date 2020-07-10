@@ -1,15 +1,15 @@
 .card-frame {
-  @apply inline-block w-40 border-solid border-gray-200 border-2
+  @apply inline-block w-40 border-solid border-gray-200 border-2;
 }
 
 .btn-container {
-  @apply absolute w-full h-full flex justify-center items-center 
+  @apply absolute w-full h-full flex justify-center items-center;
 }
 
 .btn {
-  @apply opacity-0 px-6 py-2 rounded-sm text-xs font-semibold bg-yellow-400 shadow-md
+  @apply opacity-0 px-6 py-2 rounded-sm text-xs font-semibold bg-yellow-400 shadow-md;
 }
 
 .btn:hover {
-  @apply opacity-100
+  @apply opacity-100;
 }
