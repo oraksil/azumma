@@ -4,15 +4,9 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"oraksil.com/sil/internal/domain/models"
 	"oraksil.com/sil/internal/domain/usecases"
 	"oraksil.com/sil/internal/presenter/web"
 )
-
-type GameFetchUseCase interface {
-	GetAvailableGames(page, size int) []*models.Game
-	GetRunningGames(page, size int) []*models.RunningGame
-}
 
 type GameController struct {
 	GameFetchUseCase *usecases.GameFetchUseCase
