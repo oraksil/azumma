@@ -30,6 +30,6 @@ func (ctrl *GameController) getAvailableGames(c *gin.Context) {
 
 func (ctrl *GameController) Routes() []web.Route {
 	return []web.Route{
-		{Method: web.GET, Url: "/api/v1/games/available", Handler: ctrl.getAvailableGames},
+		{Spec: "GET /api/v1/games/available", Handler: ctrl.getAvailableGames},
 	}
 }

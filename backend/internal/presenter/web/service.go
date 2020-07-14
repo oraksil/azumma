@@ -3,6 +3,7 @@ package web
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -39,6 +40,7 @@ func (w *WebService) Run(port string) {
 func (w *WebService) AddController(ctrl Controller) {
 	w.controllers = append(w.controllers, ctrl)
 	for _, r := range ctrl.Routes() {
-		w.routes.Handle(r.Method.toString(), r.Url, r.Handler)
+		splits := strings.Split(r.Spec, " ")
+		w.routes.Handle(splits[0], splits[1], r.Handler)
 	}
 }
