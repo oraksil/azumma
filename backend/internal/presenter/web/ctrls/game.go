@@ -5,6 +5,7 @@ import (
 
 	"clevergo.tech/jsend"
 	"github.com/gin-gonic/gin"
+	"github.com/mitchellh/mapstructure"
 	"oraksil.com/sil/internal/domain/usecases"
 	"oraksil.com/sil/internal/presenter/web"
 	"oraksil.com/sil/internal/presenter/web/ctrls/dto"
@@ -19,7 +20,11 @@ func (ctrl *GameController) getAvailableGames(c *gin.Context) {
 	c.Bind(&p)
 
 	games := ctrl.GameFetchUseCase.GetAvailableGames(p.Page, p.Size)
-	c.JSON(http.StatusOK, jsend.New(games))
+
+	var gamesDto []dto.AvailableGame
+	mapstructure.Decode(games, &gamesDto)
+
+	c.JSON(http.StatusOK, jsend.New(gamesDto))
 }
 
 func (ctrl *GameController) Routes() []web.Route {

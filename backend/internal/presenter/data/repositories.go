@@ -2,7 +2,9 @@ package data
 
 import (
 	"github.com/jmoiron/sqlx"
+	"github.com/mitchellh/mapstructure"
 	"oraksil.com/sil/internal/domain/models"
+	"oraksil.com/sil/internal/presenter/data/dto"
 )
 
 type GameRepositoryMySqlImpl struct {
@@ -10,8 +12,16 @@ type GameRepositoryMySqlImpl struct {
 }
 
 func (r *GameRepositoryMySqlImpl) FindAvailableGames(offset, limit int) []*models.Game {
-	games := []*models.Game{}
-	r.DB.Select(&games, "select * from game limit ? offset ?", limit, offset)
+	result := []dto.GameData{}
+	r.DB.Select(&result, "select * from game limit ? offset ?", limit, offset)
+
+	var games []*models.Game
+	mapstructure.Decode(result, &games)
+
+	for _, g := range games {
+		g.Maker = "unknown"
+	}
+
 	return games
 }
 

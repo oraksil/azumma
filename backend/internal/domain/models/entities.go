@@ -1,10 +1,11 @@
 package models
 
 type Game struct {
-	Id          int64  `db:"id" json:"id"`
-	Title       string `db:"title" json:"title"`
-	Description string `db:"description" json:"description"`
-	MaxPlayers  int    `db:"max_players" json:"max_players"`
+	Id          int64
+	Title       string
+	Description string
+	Maker       string
+	MaxPlayers  int
 }
 
 type Player struct {
