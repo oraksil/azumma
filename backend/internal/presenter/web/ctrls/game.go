@@ -3,6 +3,7 @@ package ctrls
 import (
 	"net/http"
 
+	"clevergo.tech/jsend"
 	"github.com/gin-gonic/gin"
 	"oraksil.com/sil/internal/domain/usecases"
 	"oraksil.com/sil/internal/presenter/web"
@@ -18,10 +19,7 @@ func (ctrl *GameController) getAvailableGames(c *gin.Context) {
 	c.Bind(&p)
 
 	games := ctrl.GameFetchUseCase.GetAvailableGames(p.Page, p.Size)
-	c.JSON(http.StatusOK, gin.H{
-		"status": "success",
-		"data":   games,
-	})
+	c.JSON(http.StatusOK, jsend.New(games))
 }
 
 func (ctrl *GameController) Routes() []web.Route {
