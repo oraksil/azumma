@@ -6,19 +6,15 @@ import (
 	"github.com/gin-gonic/gin"
 	"oraksil.com/sil/internal/domain/usecases"
 	"oraksil.com/sil/internal/presenter/web"
+	"oraksil.com/sil/internal/presenter/web/ctrls/dto"
 )
-
-type Pagination struct {
-	Page int `form:"page"`
-	Size int `form:"size"`
-}
 
 type GameController struct {
 	GameFetchUseCase *usecases.GameFetchUseCase
 }
 
 func (ctrl *GameController) getAvailableGames(c *gin.Context) {
-	p := Pagination{Page: 0, Size: 10}
+	p := dto.Pagination{Page: 0, Size: 10}
 	c.Bind(&p)
 
 	games := ctrl.GameFetchUseCase.GetAvailableGames(p.Page, p.Size)
