@@ -12,7 +12,7 @@ type MockGameRepository struct {
 	mock.Mock
 }
 
-func (m *MockGameRepository) GetAllAvailableGames(offset, limit int) []*models.Game {
+func (m *MockGameRepository) FindAvailableGames(offset, limit int) []*models.Game {
 	m.Called(offset, limit)
 	return []*models.Game{
 		{Id: 1, Title: "Cadilacs", Description: "Game", MaxPlayers: 3},
@@ -20,7 +20,7 @@ func (m *MockGameRepository) GetAllAvailableGames(offset, limit int) []*models.G
 	}
 }
 
-func (m *MockGameRepository) GetAllRunningGames(offset, limit int) []*models.RunningGame {
+func (m *MockGameRepository) FindRunningGames(offset, limit int) []*models.RunningGame {
 	return nil
 }
 
@@ -29,12 +29,12 @@ func TestGameFetchUseCase(t *testing.T) {
 
 	useCase := GameFetchUseCase{GameRepository: mockRepo}
 
-	mockRepo.On("GetAllAvailableGames", 0, 2).Return(mock.Anything)
+	mockRepo.On("FindAvailableGames", 0, 2).Return(mock.Anything)
 	games := useCase.GetAvailableGames(0, 2)
 	assert.Equal(t, len(games), 2)
 	mockRepo.AssertExpectations(t)
 
-	mockRepo.On("GetAllAvailableGames", 2, 2).Return(mock.Anything)
+	mockRepo.On("FindAvailableGames", 2, 2).Return(mock.Anything)
 	games = useCase.GetAvailableGames(1, 2)
 	assert.Equal(t, len(games), 2)
 	mockRepo.AssertExpectations(t)
