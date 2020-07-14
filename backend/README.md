@@ -13,7 +13,7 @@ $ docker run -d --name oraksil-azuma -v $PWD/temp/data:/var/lib/mysql -p 3306:33
 
 ### Connect to shell and initialize db
 ```
-$ docker run -it oraksil-azuma bash
+$ docker exec -it oraksil-azuma bash
 # mysql -u root -p
 ...
 ...
