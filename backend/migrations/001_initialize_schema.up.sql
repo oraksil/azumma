@@ -1,5 +1,5 @@
 create table game (
-    id int not null,
+    id int not null auto_increment,
     title varchar(64) not null,
     description text,
     max_players int, 
@@ -8,7 +8,7 @@ create table game (
 ) character set utf8mb4 collate utf8mb4_unicode_ci;
 
 create table player (
-    id bigint not null,
+    id bigint not null auto_increment,
     name varchar(64) not null,
     total_coins int,
 
@@ -16,7 +16,7 @@ create table player (
 ) character set utf8mb4 collate utf8mb4_unicode_ci;
 
 create table running_game (
-    id bigint not null,
+    id bigint not null auto_increment,
     game_id int not null,
     owner_player_id bigint not null,
     joined_player_ids varchar(128),

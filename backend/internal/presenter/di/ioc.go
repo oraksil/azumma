@@ -6,6 +6,7 @@ import (
 )
 
 func InitContainer() {
+	container.Singleton(newMySqlDb)
 	container.Singleton(newGameRepository)
 	container.Singleton(newGameFetchUseCase)
 	container.Singleton(newGameController)

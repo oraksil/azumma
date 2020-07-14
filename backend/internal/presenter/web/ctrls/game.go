@@ -8,13 +8,24 @@ import (
 	"oraksil.com/sil/internal/presenter/web"
 )
 
+type Pagination struct {
+	Page int `form:"page"`
+	Size int `form:"size"`
+}
+
 type GameController struct {
 	GameFetchUseCase *usecases.GameFetchUseCase
 }
 
 func (ctrl *GameController) getAvailableGames(c *gin.Context) {
-	ctrl.GameFetchUseCase.GetAvailableGames(0, 10)
-	c.JSON(http.StatusOK, gin.H{"say": "world"})
+	p := Pagination{Page: 0, Size: 10}
+	c.Bind(&p)
+
+	games := ctrl.GameFetchUseCase.GetAvailableGames(p.Page, p.Size)
+	c.JSON(http.StatusOK, gin.H{
+		"status": "success",
+		"data":   games,
+	})
 }
 
 func (ctrl *GameController) Routes() []web.Route {

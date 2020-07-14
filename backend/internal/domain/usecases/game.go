@@ -7,5 +7,5 @@ type GameFetchUseCase struct {
 }
 
 func (uc *GameFetchUseCase) GetAvailableGames(page, size int) []*models.Game {
-	return uc.GameRepository.GetAllAvailableGames(page*size, size)
+	return uc.GameRepository.FindAvailableGames(page*size, size)
 }

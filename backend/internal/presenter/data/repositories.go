@@ -1,14 +1,20 @@
 package data
 
-import "oraksil.com/sil/internal/domain/models"
+import (
+	"github.com/jmoiron/sqlx"
+	"oraksil.com/sil/internal/domain/models"
+)
 
-type GameRepositoryImpl struct {
+type GameRepositoryMySqlImpl struct {
+	DB *sqlx.DB
 }
 
-func (r *GameRepositoryImpl) GetAllAvailableGames(offset, limit int) []*models.Game {
-	return nil
+func (r *GameRepositoryMySqlImpl) FindAvailableGames(offset, limit int) []*models.Game {
+	games := []*models.Game{}
+	r.DB.Select(&games, "select * from game limit ? offset ?", limit, offset)
+	return games
 }
 
-func (r *GameRepositoryImpl) GetAllRunningGames(offset, limit int) []*models.RunningGame {
+func (r *GameRepositoryMySqlImpl) FindRunningGames(offset, limit int) []*models.RunningGame {
 	return nil
 }

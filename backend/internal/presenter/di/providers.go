@@ -1,15 +1,27 @@
 package di
 
 import (
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/golobby/container"
+	"github.com/jmoiron/sqlx"
 	"oraksil.com/sil/internal/domain/models"
 	"oraksil.com/sil/internal/domain/usecases"
 	"oraksil.com/sil/internal/presenter/data"
 	"oraksil.com/sil/internal/presenter/web/ctrls"
 )
 
+func newMySqlDb() *sqlx.DB {
+	db, _ := sqlx.Open("mysql", "oraksil:qlqjswha!@(localhost:3306)/oraksil")
+	db.DB.SetMaxOpenConns(10)
+	_ = db.Ping()
+	return db
+}
+
 func newGameRepository() models.GameRepository {
-	return &data.GameRepositoryImpl{}
+	var db *sqlx.DB
+	container.Make(&db)
+
+	return &data.GameRepositoryMySqlImpl{DB: db}
 }
 
 func newGameFetchUseCase() *usecases.GameFetchUseCase {

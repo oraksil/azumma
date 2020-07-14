@@ -1,10 +1,10 @@
 package models
 
 type Game struct {
-	Id          int64
-	Title       string
-	Description string
-	MaxPlayers  int
+	Id          int64  `db:"id" json:"id"`
+	Title       string `db:"title" json:"title"`
+	Description string `db:"description" json:"description"`
+	MaxPlayers  int    `db:"max_players" json:"max_players"`
 }
 
 type Player struct {
@@ -21,6 +21,6 @@ type RunningGame struct {
 }
 
 type GameRepository interface {
-	GetAllAvailableGames(offset, limit int) []*Game
-	GetAllRunningGames(offset, limit int) []*RunningGame
+	FindAvailableGames(offset, limit int) []*Game
+	FindRunningGames(offset, limit int) []*RunningGame
 }
