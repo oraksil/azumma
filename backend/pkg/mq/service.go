@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/mitchellh/mapstructure"
+	"github.com/segmentio/ksuid"
 	"github.com/streadway/amqp"
 )
 
@@ -124,9 +125,12 @@ type MqService struct {
 	handlerFuncs map[string]HandlerFunc
 }
 
-func (mq *MqService) Run() {
-	// generate unique peer name per host
-	mq.peerName = "generated" // routing key
+func (mq *MqService) Run(seedName string, hash string) {
+	// generate unique peer name
+	if hash == "" {
+		hash = ksuid.New().String()
+	}
+	mq.peerName = fmt.Sprintf("%s-%s", seedName, hash) // routing key
 
 	// declare queue, it will create queue only if it doesn't exist
 	mq.queueP2P = mq.enusureQueue(
