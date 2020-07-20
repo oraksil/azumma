@@ -172,7 +172,7 @@ func (mq *MqService) consumerP2PQueue() {
 			var recv Message
 			mapstructure.Decode(m, &recv)
 
-			if recv.ReplyTo != "" {
+			if recv.ReplyTo == mq.peerName {
 				if _, ok := mq.recvMsgChannelsRpc[recv.ReplyTo]; !ok {
 					panic("p2p channel must be created at sending.")
 				}

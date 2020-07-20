@@ -27,16 +27,10 @@ type GameCtrlUseCase struct {
 }
 
 func (uc *GameCtrlUseCase) CreateNewGame() {
-	temp1 := map[string]string{
-		"abcdcdcd": "broadcast",
+	temp := map[string]string{
+		"hello": "world",
 	}
-
-	temp2 := map[string]string{
-		"abcdcdcd": "p2p",
-	}
-	uc.MessageService.Broadcast(models.MSG_HELLO, temp1)
-	uc.MessageService.Send("generated", models.MSG_HELLO, temp2)
-	resp := uc.MessageService.Request("generated", models.MSG_HELLO, temp2)
+	resp := uc.MessageService.Request("orakki-temp", models.MSG_HELLO, temp)
 	fmt.Println(resp)
 }
 
