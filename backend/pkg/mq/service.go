@@ -58,22 +58,6 @@ func (m *DefaultMessageServiceImpl) Response(against Message, payload interface{
 	m.replyMessage(m.MqService.exchangeP2P, against, payload)
 }
 
-func receiveMessageWithTimeout(ch chan Message, timeoutInSecs time.Duration) Message {
-	timeout := make(chan bool, 1)
-	go func() {
-		time.Sleep(timeoutInSecs * time.Second)
-		timeout <- true
-	}()
-
-	var recvMsg Message
-	select {
-	case recvMsg = <-ch:
-	case <-timeout:
-	}
-
-	return recvMsg
-}
-
 func (m *DefaultMessageServiceImpl) Broadcast(msgType string, payload interface{}) {
 	m.publishMessage(m.MqService.exchangeBroadcast, "", msgType, payload, false)
 }
@@ -110,7 +94,7 @@ func (m *DefaultMessageServiceImpl) publishMessage(
 
 	var recvMsg Message
 	if needReply && instantChannel != nil {
-		recvMsg = receiveMessageWithTimeout(instantChannel, 5)
+		recvMsg = receiveMessageWithTimeout(instantChannel, 360)
 		delete(m.MqService.recvMsgChannelsRpc, msg.MessageId)
 		close(instantChannel)
 	}
@@ -141,11 +125,27 @@ func (m *DefaultMessageServiceImpl) replyMessage(
 	)
 }
 
-type Context struct {
-	message *Message
+func receiveMessageWithTimeout(ch chan Message, timeoutInSecs time.Duration) Message {
+	timeout := make(chan bool, 1)
+	go func() {
+		time.Sleep(timeoutInSecs * time.Second)
+		timeout <- true
+	}()
+
+	var recvMsg Message
+	select {
+	case recvMsg = <-ch:
+	case <-timeout:
+	}
+
+	return recvMsg
 }
 
-func (c *Context) GetMessage() *Message {
+type Context struct {
+	message Message
+}
+
+func (c *Context) GetMessage() Message {
 	return c.message
 }
 
@@ -217,11 +217,11 @@ func (mq *MqService) consumerP2PQueue() {
 			var recv Message
 			mapstructure.Decode(m, &recv)
 
-			if recv.ReplyTo == mq.peerName {
+			if recv.Type == "reply" {
 				if _, ok := mq.recvMsgChannelsRpc[recv.MessageId]; !ok {
 					panic("p2p channel must be created at sending.")
 				}
-				mq.recvMsgChannelsRpc[m.ReplyTo] <- recv
+				mq.recvMsgChannelsRpc[m.MessageId] <- recv
 			} else {
 				mq.recvMsgChannel <- recv
 			}
@@ -254,7 +254,7 @@ func (mq *MqService) messageHandler() {
 	func() {
 		for msg := range mq.recvMsgChannel {
 			if handlerFunc, ok := mq.handlerFuncs[msg.Type]; ok {
-				handlerFunc(&Context{message: &msg})
+				handlerFunc(&Context{message: msg})
 			}
 		}
 	}()

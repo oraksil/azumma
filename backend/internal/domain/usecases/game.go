@@ -1,6 +1,7 @@
 package usecases
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"gitlab.com/oraksil/sil/backend/internal/domain/models"
@@ -31,7 +32,10 @@ func (uc *GameCtrlUseCase) CreateNewGame() {
 		"hello": "world",
 	}
 	resp := uc.MessageService.Request("orakki-temp", models.MSG_HELLO, temp)
-	fmt.Println(resp)
+
+	var value map[string]string
+	json.Unmarshal(resp.Payload, &value)
+	fmt.Println(value)
 }
 
 func (uc *GameCtrlUseCase) JoinGame() {
