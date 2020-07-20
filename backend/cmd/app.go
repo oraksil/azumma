@@ -9,7 +9,7 @@ func main() {
 
 	mqSvc := di.InjectMqService()
 	mqSvc.AddHandler(di.InjectHelloHandler())
-	go func() { mqSvc.Run("sil", "") }()
+	go func() { mqSvc.Run("sil-temp") }()
 
 	webSvc := di.InjectWebService()
 	webSvc.AddController(di.InjectGameController())

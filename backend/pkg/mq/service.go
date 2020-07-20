@@ -125,12 +125,12 @@ type MqService struct {
 	handlerFuncs map[string]HandlerFunc
 }
 
-func (mq *MqService) Run(seedName string, hash string) {
+func (mq *MqService) Run(peerName string) {
 	// generate unique peer name
-	if hash == "" {
-		hash = ksuid.New().String()
+	if peerName == "" {
+		peerName = ksuid.New().String()
 	}
-	mq.peerName = fmt.Sprintf("%s-%s", seedName, hash) // routing key
+	mq.peerName = peerName // routing key
 
 	// declare queue, it will create queue only if it doesn't exist
 	mq.queueP2P = mq.enusureQueue(
