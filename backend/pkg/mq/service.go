@@ -12,6 +12,8 @@ import (
 	"github.com/streadway/amqp"
 )
 
+const MSG_TYPE_RESERVED_REPLY = "reply"
+
 type Message struct {
 	ReplyTo string // application use - address to reply to (ex: RPC)
 	// CorrelationId string    // application use - correlation identifier
@@ -29,9 +31,9 @@ type MessageService interface {
 	AllParticipants() []string
 
 	Send(to string, msgType string, payload interface{})
+	Broadcast(msgType string, payload interface{})
 	Request(to string, msgType string, payload interface{}) Message
 	Response(against Message, payload interface{})
-	Broadcast(msgType string, payload interface{})
 }
 
 type DefaultMessageServiceImpl struct {
@@ -47,42 +49,36 @@ func (m *DefaultMessageServiceImpl) AllParticipants() []string {
 }
 
 func (m *DefaultMessageServiceImpl) Send(to string, msgType string, payload interface{}) {
-	m.publishMessage(m.MqService.exchangeP2P, to, msgType, payload, false)
-}
-
-func (m *DefaultMessageServiceImpl) Request(to string, msgType string, payload interface{}) Message {
-	return m.publishMessage(m.MqService.exchangeP2P, to, msgType, payload, true)
-}
-
-func (m *DefaultMessageServiceImpl) Response(against Message, payload interface{}) {
-	m.replyMessage(m.MqService.exchangeP2P, against, payload)
+	m.fireAndForget(m.MqService.exchangeP2P, to, msgType, payload)
 }
 
 func (m *DefaultMessageServiceImpl) Broadcast(msgType string, payload interface{}) {
-	m.publishMessage(m.MqService.exchangeBroadcast, "", msgType, payload, false)
+	m.fireAndForget(m.MqService.exchangeBroadcast, "", msgType, payload)
 }
 
-func (m *DefaultMessageServiceImpl) publishMessage(
-	exchange, routingKey string,
-	msgType string,
-	payload interface{},
-	needReply bool) Message {
+func (m *DefaultMessageServiceImpl) Request(to string, msgType string, payload interface{}) Message {
+	return m.sendAndWaitReply(m.MqService.exchangeP2P, to, msgType, payload)
+}
 
-	body, _ := json.Marshal(payload)
+func (m *DefaultMessageServiceImpl) Response(against Message, payload interface{}) {
+	m.reply(m.MqService.exchangeP2P, against, payload)
+}
 
-	msg := amqp.Publishing{
-		MessageId:   uuid.NewV4().String(),
-		ContentType: "application/json",
-		Type:        msgType,
-		Body:        body,
-	}
+func (m *DefaultMessageServiceImpl) fireAndForget(exchange, routingKey string, msgType string, payload interface{}) {
+	m.MqService.channel.Publish(
+		exchange,
+		routingKey,
+		false, // mandatory
+		false, // immediate
+		composeMessage("", msgType, "", payload),
+	)
+}
 
-	var instantChannel chan Message
-	if needReply {
-		msg.ReplyTo = m.MqService.peerName
-		instantChannel = make(chan Message)
-		m.MqService.recvMsgChannelsRpc[msg.MessageId] = instantChannel
-	}
+func (m *DefaultMessageServiceImpl) sendAndWaitReply(exchange, routingKey string, msgType string, payload interface{}) Message {
+	msg := composeMessage("", msgType, m.MqService.peerName, payload)
+
+	instantChannel := make(chan Message)
+	m.MqService.recvMsgChannelsRpc[msg.MessageId] = instantChannel
 
 	m.MqService.channel.Publish(
 		exchange,
@@ -92,37 +88,44 @@ func (m *DefaultMessageServiceImpl) publishMessage(
 		msg,
 	)
 
-	var recvMsg Message
-	if needReply && instantChannel != nil {
-		recvMsg = receiveMessageWithTimeout(instantChannel, 5)
-		delete(m.MqService.recvMsgChannelsRpc, msg.MessageId)
-		close(instantChannel)
-	}
+	recvMsg := receiveMessageWithTimeout(instantChannel, 5)
+	delete(m.MqService.recvMsgChannelsRpc, msg.MessageId)
+	close(instantChannel)
 
 	return recvMsg
 }
 
-func (m *DefaultMessageServiceImpl) replyMessage(
-	exchange string,
-	origMsg Message,
-	payload interface{}) {
-
-	body, _ := json.Marshal(payload)
-
-	msg := amqp.Publishing{
-		MessageId:   origMsg.MessageId,
-		ContentType: "application/json",
-		Type:        "reply",
-		Body:        body,
-	}
-
+func (m *DefaultMessageServiceImpl) reply(exchange string, origMsg Message, payload interface{}) {
 	m.MqService.channel.Publish(
 		exchange,
 		origMsg.ReplyTo,
 		false, // mandatory
 		false, // immediate
-		msg,
+		composeMessage(origMsg.MessageId, "", "", payload),
 	)
+}
+
+func composeMessage(msgId, msgType, replyTo string, payload interface{}) amqp.Publishing {
+	if msgId == "" {
+		msgId = uuid.NewV4().String()
+	} else { // assume it's for reply
+		msgType = MSG_TYPE_RESERVED_REPLY
+	}
+
+	body, _ := json.Marshal(payload)
+
+	msg := amqp.Publishing{
+		MessageId:   msgId,
+		ContentType: "application/json",
+		Type:        msgType,
+		Body:        body,
+	}
+
+	if replyTo != "" {
+		msg.ReplyTo = replyTo
+	}
+
+	return msg
 }
 
 func receiveMessageWithTimeout(ch chan Message, timeoutInSecs time.Duration) Message {
@@ -217,7 +220,7 @@ func (mq *MqService) consumerP2PQueue() {
 			var recv Message
 			mapstructure.Decode(m, &recv)
 
-			if recv.Type == "reply" {
+			if recv.Type == MSG_TYPE_RESERVED_REPLY {
 				if _, ok := mq.recvMsgChannelsRpc[recv.MessageId]; !ok {
 					panic("p2p channel must be created at sending.")
 				}
