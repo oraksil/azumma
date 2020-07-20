@@ -3,9 +3,9 @@ package usecases
 import (
 	"fmt"
 
-	"oraksil.com/sil/internal/domain/models"
-	"oraksil.com/sil/internal/domain/services"
-	"oraksil.com/sil/pkg/mq"
+	"gitlab.com/oraksil/sil/backend/internal/domain/models"
+	"gitlab.com/oraksil/sil/backend/internal/domain/services"
+	"gitlab.com/oraksil/sil/backend/pkg/mq"
 )
 
 type GameFetchUseCase struct {

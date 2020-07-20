@@ -1,4 +1,4 @@
-module oraksil.com/sil
+module gitlab.com/oraksil/sil/backend
 
 go 1.14
 

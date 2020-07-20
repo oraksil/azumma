@@ -6,9 +6,9 @@ import (
 	"clevergo.tech/jsend"
 	"github.com/gin-gonic/gin"
 	"github.com/mitchellh/mapstructure"
-	"oraksil.com/sil/internal/domain/usecases"
-	"oraksil.com/sil/internal/presenter/web"
-	"oraksil.com/sil/internal/presenter/web/ctrls/dto"
+	"gitlab.com/oraksil/sil/backend/internal/domain/usecases"
+	"gitlab.com/oraksil/sil/backend/internal/presenter/web"
+	"gitlab.com/oraksil/sil/backend/internal/presenter/web/ctrls/dto"
 )
 
 type GameController struct {

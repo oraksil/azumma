@@ -3,8 +3,8 @@ package data
 import (
 	"github.com/jmoiron/sqlx"
 	"github.com/mitchellh/mapstructure"
-	"oraksil.com/sil/internal/domain/models"
-	"oraksil.com/sil/internal/presenter/data/dto"
+	"gitlab.com/oraksil/sil/backend/internal/domain/models"
+	"gitlab.com/oraksil/sil/backend/internal/presenter/data/dto"
 )
 
 type GameRepositoryMySqlImpl struct {

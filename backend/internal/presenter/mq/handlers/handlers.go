@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"oraksil.com/sil/internal/domain/models"
-	"oraksil.com/sil/internal/domain/usecases"
-	"oraksil.com/sil/pkg/mq"
+	"gitlab.com/oraksil/sil/backend/internal/domain/models"
+	"gitlab.com/oraksil/sil/backend/internal/domain/usecases"
+	"gitlab.com/oraksil/sil/backend/pkg/mq"
 )
 
 type HelloHandler struct {

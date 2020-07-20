@@ -5,7 +5,7 @@ import (
 
 	"github.com/mitchellh/mapstructure"
 	"github.com/stretchr/testify/assert"
-	"oraksil.com/sil/internal/domain/models"
+	"gitlab.com/oraksil/sil/backend/internal/domain/models"
 )
 
 func TestMapGameEntityToDto(t *testing.T) {

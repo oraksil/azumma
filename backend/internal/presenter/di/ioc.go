@@ -2,10 +2,10 @@ package di
 
 import (
 	"github.com/golobby/container"
-	"oraksil.com/sil/internal/presenter/mq/handlers"
-	"oraksil.com/sil/internal/presenter/web"
-	"oraksil.com/sil/internal/presenter/web/ctrls"
-	"oraksil.com/sil/pkg/mq"
+	"gitlab.com/oraksil/sil/backend/internal/presenter/mq/handlers"
+	"gitlab.com/oraksil/sil/backend/internal/presenter/web"
+	"gitlab.com/oraksil/sil/backend/internal/presenter/web/ctrls"
+	"gitlab.com/oraksil/sil/backend/pkg/mq"
 )
 
 func InitContainer() {
