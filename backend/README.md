@@ -8,7 +8,12 @@ $ go test ./...
 
 ### Run `mariadb`
 ```
-$ docker run -d --name oraksil-azuma -v $PWD/temp/data:/var/lib/mysql -p 3306:3306 -e MYSQL_ROOT_PASSWORD=<root-password> mariadb:10.5.4
+$ docker run -d \
+    --name oraksil-azuma \
+    -v $PWD/temp/data:/var/lib/mysql \
+    -p 3306:3306 \
+    -e MYSQL_ROOT_PASSWORD=<root-password> \
+    mariadb:10.5.4
 ```
 
 ### Connect to shell and initialize db
@@ -45,4 +50,45 @@ $ migrate -path ./migrations -database "mysql://oraksil:<oraksil-password>@(loca
 #### Migrate to specific version
 ```
 $ migrate -path ./migrations -database "mysql://oraksil:<oraksil-password>@(localhost:3306)/oraksil" up 001
+```
+
+
+## Message Queue (RabbitMQ)
+
+### Run `rabbitmq`
+```
+$ docker run -d \
+    --name oraksil-mq \
+    --hostname oraksil-mq \
+    -v $PWD/temp/mq:/var/lib/rabbitmq \
+    -e RABBITMQ_DEFAULT_USER=oraksil \
+    -e RABBITMQ_DEFAULT_PASS=oraksil \
+    -p 5672:5672 \
+    -p 15672:15672 \
+    rabbitmq:3.8.5-management
+```
+
+### Declare `exchanges`
+```
+$ docker exec -it oraksil-mq bash
+root@oraksil-mq:/# rabbitmqadmin -u oraksil -p oraksil declare exchange name=oraksil.mq.direct type=direct
+exchange declared
+
+root@oraksil-mq:/# rabbitmqadmin -u oraksil -p oraksil declare exchange name=oraksil.mq.broadcast type=fanout
+exchange declared
+
+root@oraksil-mq:/# rabbitmqadmin -u oraksil -p oraksil list exchanges
++----------------------+---------+
+|         name         |  type   |
++----------------------+---------+
+|                      | direct  |
+| amq.direct           | direct  |
+| amq.fanout           | fanout  |
+| amq.headers          | headers |
+| amq.match            | headers |
+| amq.rabbitmq.trace   | topic   |
+| amq.topic            | topic   |
+| oraksil.mq.broadcast | fanout  |
+| oraksil.mq.direct    | direct  |
++----------------------+---------+
 ```

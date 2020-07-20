@@ -2,14 +2,17 @@ package main
 
 import (
 	"oraksil.com/sil/internal/presenter/di"
-	"oraksil.com/sil/internal/presenter/web"
 )
 
 func main() {
 	di.InitContainer()
 
-	w := web.NewWebService()
-	w.AddController(di.InjectGameController())
+	mqSvc := di.InjectMqService()
+	mqSvc.AddHandler(di.InjectHelloHandler())
 
-	w.Run("8000")
+	go func() { mqSvc.Run() }()
+
+	webSvc := di.InjectWebService()
+	webSvc.AddController(di.InjectGameController())
+	webSvc.Run("8000")
 }

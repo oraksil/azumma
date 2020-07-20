@@ -13,6 +13,7 @@ import (
 
 type GameController struct {
 	GameFetchUseCase *usecases.GameFetchUseCase
+	GameCtrlUseCase  *usecases.GameCtrlUseCase
 }
 
 func (ctrl *GameController) getAvailableGames(c *gin.Context) {
@@ -27,8 +28,18 @@ func (ctrl *GameController) getAvailableGames(c *gin.Context) {
 	c.JSON(http.StatusOK, jsend.New(gamesDto))
 }
 
+func (ctrl *GameController) createNewGame(c *gin.Context) {
+	ctrl.GameCtrlUseCase.CreateNewGame()
+
+	empty := map[string]string{
+		"aaa": "bbb",
+	}
+	c.JSON(http.StatusOK, jsend.New(empty))
+}
+
 func (ctrl *GameController) Routes() []web.Route {
 	return []web.Route{
 		{Spec: "GET /api/v1/games/available", Handler: ctrl.getAvailableGames},
+		{Spec: "POST /api/v1/games/new", Handler: ctrl.createNewGame},
 	}
 }

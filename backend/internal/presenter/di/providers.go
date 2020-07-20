@@ -7,8 +7,26 @@ import (
 	"oraksil.com/sil/internal/domain/models"
 	"oraksil.com/sil/internal/domain/usecases"
 	"oraksil.com/sil/internal/presenter/data"
+	"oraksil.com/sil/internal/presenter/mq/handlers"
+	"oraksil.com/sil/internal/presenter/web"
 	"oraksil.com/sil/internal/presenter/web/ctrls"
+	"oraksil.com/sil/pkg/mq"
 )
+
+func newWebService() *web.WebService {
+	return web.NewWebService()
+}
+
+func newMqService() *mq.MqService {
+	return mq.NewMqService("amqp://oraksil:oraksil@localhost:5672/", "oraksil.mq.p2p", "oraksil.mq.broadcast")
+}
+
+func newMessageService() mq.MessageService {
+	var mqService *mq.MqService
+	container.Make(&mqService)
+
+	return &mq.DefaultMessageServiceImpl{MqService: mqService}
+}
 
 func newMySqlDb() *sqlx.DB {
 	db, _ := sqlx.Open("mysql", "oraksil:qlqjswha!@(localhost:3306)/oraksil")
@@ -31,9 +49,34 @@ func newGameFetchUseCase() *usecases.GameFetchUseCase {
 	return &usecases.GameFetchUseCase{GameRepository: repo}
 }
 
+func newGameCtrlUseCase() *usecases.GameCtrlUseCase {
+	var repo models.GameRepository
+	container.Make(&repo)
+
+	var msgService mq.MessageService
+	container.Make(&msgService)
+
+	return &usecases.GameCtrlUseCase{GameRepository: repo, MessageService: msgService}
+}
+
 func newGameController() *ctrls.GameController {
 	var gameFetchUseCase *usecases.GameFetchUseCase
 	container.Make(&gameFetchUseCase)
 
-	return &ctrls.GameController{GameFetchUseCase: gameFetchUseCase}
+	var gameCtrlUseCase *usecases.GameCtrlUseCase
+	container.Make(&gameCtrlUseCase)
+
+	return &ctrls.GameController{
+		GameFetchUseCase: gameFetchUseCase,
+		GameCtrlUseCase:  gameCtrlUseCase,
+	}
+}
+
+func newHelloHandler() *handlers.HelloHandler {
+	var gameCtrlUseCase *usecases.GameCtrlUseCase
+	container.Make(&gameCtrlUseCase)
+
+	return &handlers.HelloHandler{
+		GameCtrlUseCase: gameCtrlUseCase,
+	}
 }
