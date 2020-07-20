@@ -30,6 +30,7 @@ type MessageService interface {
 
 	Send(to string, msgType string, payload interface{})
 	Request(to string, msgType string, payload interface{}) Message
+	Response(against Message, payload interface{})
 	Broadcast(msgType string, payload interface{})
 }
 
@@ -51,6 +52,10 @@ func (m *DefaultMessageServiceImpl) Send(to string, msgType string, payload inte
 
 func (m *DefaultMessageServiceImpl) Request(to string, msgType string, payload interface{}) Message {
 	return m.publishMessage(m.MqService.exchangeP2P, to, msgType, payload, true)
+}
+
+func (m *DefaultMessageServiceImpl) Response(against Message, payload interface{}) {
+	m.replyMessage(m.MqService.exchangeP2P, against, payload)
 }
 
 func receiveMessageWithTimeout(ch chan Message, timeoutInSecs time.Duration) Message {
@@ -111,6 +116,29 @@ func (m *DefaultMessageServiceImpl) publishMessage(
 	}
 
 	return recvMsg
+}
+
+func (m *DefaultMessageServiceImpl) replyMessage(
+	exchange string,
+	origMsg Message,
+	payload interface{}) {
+
+	body, _ := json.Marshal(payload)
+
+	msg := amqp.Publishing{
+		MessageId:   origMsg.MessageId,
+		ContentType: "application/json",
+		Type:        "reply",
+		Body:        body,
+	}
+
+	m.MqService.channel.Publish(
+		exchange,
+		origMsg.ReplyTo,
+		false, // mandatory
+		false, // immediate
+		msg,
+	)
 }
 
 type Context struct {
