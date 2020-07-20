@@ -94,7 +94,7 @@ func (m *DefaultMessageServiceImpl) publishMessage(
 
 	var recvMsg Message
 	if needReply && instantChannel != nil {
-		recvMsg = receiveMessageWithTimeout(instantChannel, 360)
+		recvMsg = receiveMessageWithTimeout(instantChannel, 5)
 		delete(m.MqService.recvMsgChannelsRpc, msg.MessageId)
 		close(instantChannel)
 	}
