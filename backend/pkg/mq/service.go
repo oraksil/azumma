@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/mitchellh/mapstructure"
+	uuid "github.com/satori/go.uuid"
 	"github.com/segmentio/ksuid"
 	"github.com/streadway/amqp"
 )
@@ -14,7 +15,7 @@ import (
 type Message struct {
 	ReplyTo string // application use - address to reply to (ex: RPC)
 	// CorrelationId string    // application use - correlation identifier
-	// MessageId     string    // application use - message identifier
+	MessageId string    // application use - message identifier
 	Timestamp time.Time // application use - message timestamp
 	Type      string    // application use - message type name
 	// UserId        string    // application use - creating user - should be authenticated user
@@ -49,14 +50,21 @@ func (m *DefaultMessageServiceImpl) Send(to string, msgType string, payload inte
 }
 
 func (m *DefaultMessageServiceImpl) Request(to string, msgType string, payload interface{}) Message {
-	instantChannel := make(chan Message)
-	m.MqService.recvMsgChannelsRpc[to] = instantChannel
+	return m.publishMessage(m.MqService.exchangeP2P, to, msgType, payload, true)
+}
 
-	m.publishMessage(m.MqService.exchangeP2P, to, msgType, payload, true)
+func receiveMessageWithTimeout(ch chan Message, timeoutInSecs time.Duration) Message {
+	timeout := make(chan bool, 1)
+	go func() {
+		time.Sleep(timeoutInSecs * time.Second)
+		timeout <- true
+	}()
 
-	recvMsg := <-instantChannel
-	delete(m.MqService.recvMsgChannelsRpc, to)
-	close(instantChannel)
+	var recvMsg Message
+	select {
+	case recvMsg = <-ch:
+	case <-timeout:
+	}
 
 	return recvMsg
 }
@@ -69,21 +77,25 @@ func (m *DefaultMessageServiceImpl) publishMessage(
 	exchange, routingKey string,
 	msgType string,
 	payload interface{},
-	needReply bool) {
+	needReply bool) Message {
 
 	body, _ := json.Marshal(payload)
 
 	msg := amqp.Publishing{
+		MessageId:   uuid.NewV4().String(),
 		ContentType: "application/json",
 		Type:        msgType,
 		Body:        body,
 	}
 
+	var instantChannel chan Message
 	if needReply {
 		msg.ReplyTo = m.MqService.peerName
+		instantChannel = make(chan Message)
+		m.MqService.recvMsgChannelsRpc[msg.MessageId] = instantChannel
 	}
 
-	err := m.MqService.channel.Publish(
+	m.MqService.channel.Publish(
 		exchange,
 		routingKey,
 		false, // mandatory
@@ -91,9 +103,14 @@ func (m *DefaultMessageServiceImpl) publishMessage(
 		msg,
 	)
 
-	if err != nil {
-		panic(err)
+	var recvMsg Message
+	if needReply && instantChannel != nil {
+		recvMsg = receiveMessageWithTimeout(instantChannel, 5)
+		delete(m.MqService.recvMsgChannelsRpc, msg.MessageId)
+		close(instantChannel)
 	}
+
+	return recvMsg
 }
 
 type Context struct {
@@ -173,7 +190,7 @@ func (mq *MqService) consumerP2PQueue() {
 			mapstructure.Decode(m, &recv)
 
 			if recv.ReplyTo == mq.peerName {
-				if _, ok := mq.recvMsgChannelsRpc[recv.ReplyTo]; !ok {
+				if _, ok := mq.recvMsgChannelsRpc[recv.MessageId]; !ok {
 					panic("p2p channel must be created at sending.")
 				}
 				mq.recvMsgChannelsRpc[m.ReplyTo] <- recv
