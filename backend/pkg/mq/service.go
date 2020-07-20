@@ -3,6 +3,7 @@ package mq
 import (
 	"encoding/json"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/mitchellh/mapstructure"
@@ -144,6 +145,11 @@ func (mq *MqService) Run() {
 
 	// message handler
 	go mq.messageHandler()
+
+	// wait forever
+	wg := &sync.WaitGroup{}
+	wg.Add(1)
+	wg.Wait()
 }
 
 func (mq *MqService) consumerP2PQueue() {

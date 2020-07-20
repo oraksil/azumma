@@ -9,7 +9,6 @@ func main() {
 
 	mqSvc := di.InjectMqService()
 	mqSvc.AddHandler(di.InjectHelloHandler())
-
 	go func() { mqSvc.Run() }()
 
 	webSvc := di.InjectWebService()
