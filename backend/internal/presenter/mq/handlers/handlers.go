@@ -13,10 +13,12 @@ type HelloHandler struct {
 	GameCtrlUseCase *usecases.GameCtrlUseCase
 }
 
-func (h *HelloHandler) handleHello(ctx *mq.Context) {
+func (h *HelloHandler) handleHello(ctx *mq.Context) interface{} {
 	var temp map[string]string
 	json.Unmarshal(ctx.GetMessage().Payload, &temp)
 	fmt.Println(temp)
+
+	return nil
 }
 
 func (h *HelloHandler) Routes() []mq.Route {

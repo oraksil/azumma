@@ -33,7 +33,6 @@ type MessageService interface {
 	Send(to string, msgType string, payload interface{})
 	Broadcast(msgType string, payload interface{})
 	Request(to string, msgType string, payload interface{}) Message
-	Response(against Message, payload interface{})
 }
 
 type DefaultMessageServiceImpl struct {
@@ -48,100 +47,16 @@ func (m *DefaultMessageServiceImpl) AllParticipants() []string {
 	return nil
 }
 
-func (m *DefaultMessageServiceImpl) Send(to string, msgType string, payload interface{}) {
-	m.fireAndForget(m.MqService.exchangeP2P, to, msgType, payload)
+func (m *DefaultMessageServiceImpl) Send(to, msgType string, payload interface{}) {
+	m.MqService.fireAndForget(to, msgType, payload)
 }
 
 func (m *DefaultMessageServiceImpl) Broadcast(msgType string, payload interface{}) {
-	m.fireAndForget(m.MqService.exchangeBroadcast, "", msgType, payload)
+	m.MqService.fireAndForget("", msgType, payload)
 }
 
-func (m *DefaultMessageServiceImpl) Request(to string, msgType string, payload interface{}) Message {
-	return m.sendAndWaitReply(m.MqService.exchangeP2P, to, msgType, payload)
-}
-
-func (m *DefaultMessageServiceImpl) Response(against Message, payload interface{}) {
-	m.reply(m.MqService.exchangeP2P, against, payload)
-}
-
-func (m *DefaultMessageServiceImpl) fireAndForget(exchange, routingKey string, msgType string, payload interface{}) {
-	m.MqService.channel.Publish(
-		exchange,
-		routingKey,
-		false, // mandatory
-		false, // immediate
-		composeMessage("", msgType, "", payload),
-	)
-}
-
-func (m *DefaultMessageServiceImpl) sendAndWaitReply(exchange, routingKey string, msgType string, payload interface{}) Message {
-	msg := composeMessage("", msgType, m.MqService.peerName, payload)
-
-	instantChannel := make(chan Message)
-	m.MqService.recvMsgChannelsRpc[msg.MessageId] = instantChannel
-
-	m.MqService.channel.Publish(
-		exchange,
-		routingKey,
-		false, // mandatory
-		false, // immediate
-		msg,
-	)
-
-	recvMsg := receiveMessageWithTimeout(instantChannel, 5)
-	delete(m.MqService.recvMsgChannelsRpc, msg.MessageId)
-	close(instantChannel)
-
-	return recvMsg
-}
-
-func (m *DefaultMessageServiceImpl) reply(exchange string, origMsg Message, payload interface{}) {
-	m.MqService.channel.Publish(
-		exchange,
-		origMsg.ReplyTo,
-		false, // mandatory
-		false, // immediate
-		composeMessage(origMsg.MessageId, "", "", payload),
-	)
-}
-
-func composeMessage(msgId, msgType, replyTo string, payload interface{}) amqp.Publishing {
-	if msgId == "" {
-		msgId = uuid.NewV4().String()
-	} else { // assume it's for reply
-		msgType = MSG_TYPE_RESERVED_REPLY
-	}
-
-	body, _ := json.Marshal(payload)
-
-	msg := amqp.Publishing{
-		MessageId:   msgId,
-		ContentType: "application/json",
-		Type:        msgType,
-		Body:        body,
-	}
-
-	if replyTo != "" {
-		msg.ReplyTo = replyTo
-	}
-
-	return msg
-}
-
-func receiveMessageWithTimeout(ch chan Message, timeoutInSecs time.Duration) Message {
-	timeout := make(chan bool, 1)
-	go func() {
-		time.Sleep(timeoutInSecs * time.Second)
-		timeout <- true
-	}()
-
-	var recvMsg Message
-	select {
-	case recvMsg = <-ch:
-	case <-timeout:
-	}
-
-	return recvMsg
+func (m *DefaultMessageServiceImpl) Request(to, msgType string, payload interface{}) Message {
+	return m.MqService.sendAndWaitReply(to, msgType, payload)
 }
 
 type Context struct {
@@ -152,7 +67,7 @@ func (c *Context) GetMessage() Message {
 	return c.message
 }
 
-type HandlerFunc func(ctx *Context)
+type HandlerFunc func(ctx *Context) interface{}
 
 type MessageHandler interface {
 	Routes() []Route
@@ -257,7 +172,10 @@ func (mq *MqService) messageHandler() {
 	func() {
 		for msg := range mq.recvMsgChannel {
 			if handlerFunc, ok := mq.handlerFuncs[msg.Type]; ok {
-				handlerFunc(&Context{message: msg})
+				retPayload := handlerFunc(&Context{message: msg})
+				if msg.ReplyTo != "" {
+					mq.reply(mq.exchangeP2P, msg, retPayload)
+				}
 			}
 		}
 	}()
@@ -283,6 +201,93 @@ func (mq *MqService) bindQueue(q *amqp.Queue, exchange string, routingKey string
 	if err != nil {
 		panic(err)
 	}
+}
+
+func (mq *MqService) fireAndForget(routingKey string, msgType string, payload interface{}) {
+	var exchange string
+	if routingKey != "" {
+		exchange = mq.exchangeP2P
+	} else {
+		exchange = mq.exchangeBroadcast
+	}
+
+	mq.channel.Publish(
+		exchange,
+		routingKey,
+		false, // mandatory
+		false, // immediate
+		composeMessage("", msgType, "", payload),
+	)
+}
+
+func (mq *MqService) sendAndWaitReply(routingKey string, msgType string, payload interface{}) Message {
+	msg := composeMessage("", msgType, mq.peerName, payload)
+
+	instantChannel := make(chan Message)
+	mq.recvMsgChannelsRpc[msg.MessageId] = instantChannel
+
+	mq.channel.Publish(
+		mq.exchangeP2P,
+		routingKey,
+		false, // mandatory
+		false, // immediate
+		msg,
+	)
+
+	recvMsg := receiveMessageWithTimeout(instantChannel, 5)
+	delete(mq.recvMsgChannelsRpc, msg.MessageId)
+	close(instantChannel)
+
+	return recvMsg
+}
+
+func (mq *MqService) reply(exchange string, origMsg Message, payload interface{}) {
+	mq.channel.Publish(
+		exchange,
+		origMsg.ReplyTo,
+		false, // mandatory
+		false, // immediate
+		composeMessage(origMsg.MessageId, "", "", payload),
+	)
+}
+
+func composeMessage(msgId, msgType, replyTo string, payload interface{}) amqp.Publishing {
+	if msgId == "" {
+		msgId = uuid.NewV4().String()
+	} else { // assume it's for reply
+		msgType = MSG_TYPE_RESERVED_REPLY
+	}
+
+	body, _ := json.Marshal(payload)
+
+	msg := amqp.Publishing{
+		MessageId:   msgId,
+		ContentType: "application/json",
+		Type:        msgType,
+		Body:        body,
+	}
+
+	if replyTo != "" {
+		msg.ReplyTo = replyTo
+	}
+
+	return msg
+}
+
+func receiveMessageWithTimeout(ch chan Message, timeoutInSecs time.Duration) Message {
+	timeout := make(chan bool, 1)
+	go func() {
+		time.Sleep(timeoutInSecs * time.Second)
+		timeout <- true
+	}()
+
+	var recvMsg Message
+	select {
+	case recvMsg = <-ch:
+	case <-timeout:
+	}
+
+	return recvMsg
 }
 
 func (mq *MqService) AddHandler(handler MessageHandler) {
