@@ -4,13 +4,13 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/golobby/container"
 	"github.com/jmoiron/sqlx"
-	"gitlab.com/oraksil/sil/backend/internal/domain/models"
-	"gitlab.com/oraksil/sil/backend/internal/domain/usecases"
-	"gitlab.com/oraksil/sil/backend/internal/presenter/data"
-	"gitlab.com/oraksil/sil/backend/internal/presenter/mq/handlers"
-	"gitlab.com/oraksil/sil/backend/internal/presenter/web"
-	"gitlab.com/oraksil/sil/backend/internal/presenter/web/ctrls"
-	"gitlab.com/oraksil/sil/backend/pkg/mq"
+	"github.com/sangwonl/go-mq-rpc"
+	"gitlab.com/oraksil/azumma/internal/domain/models"
+	"gitlab.com/oraksil/azumma/internal/domain/usecases"
+	"gitlab.com/oraksil/azumma/internal/presenter/data"
+	"gitlab.com/oraksil/azumma/internal/presenter/mq/handlers"
+	"gitlab.com/oraksil/azumma/internal/presenter/web"
+	"gitlab.com/oraksil/azumma/internal/presenter/web/ctrls"
 )
 
 func newWebService() *web.WebService {

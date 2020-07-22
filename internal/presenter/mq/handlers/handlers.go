@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"gitlab.com/oraksil/sil/backend/internal/domain/models"
-	"gitlab.com/oraksil/sil/backend/internal/domain/usecases"
-	"gitlab.com/oraksil/sil/backend/pkg/mq"
+	"gitlab.com/oraksil/azumma/internal/domain/models"
+	"gitlab.com/oraksil/azumma/internal/domain/usecases"
+	"github.com/sangwonl/go-mq-rpc"
 )
 
 type HelloHandler struct {

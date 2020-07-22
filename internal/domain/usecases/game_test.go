@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"gitlab.com/oraksil/sil/backend/internal/domain/models"
+	"gitlab.com/oraksil/azumma/internal/domain/models"
 )
 
 type MockGameRepository struct {

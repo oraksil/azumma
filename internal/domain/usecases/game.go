@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"gitlab.com/oraksil/sil/backend/internal/domain/models"
-	"gitlab.com/oraksil/sil/backend/internal/domain/services"
-	"gitlab.com/oraksil/sil/backend/pkg/mq"
+	"github.com/sangwonl/go-mq-rpc"
+	"gitlab.com/oraksil/azumma/internal/domain/models"
+	"gitlab.com/oraksil/azumma/internal/domain/services"
 )
 
 type GameFetchUseCase struct {

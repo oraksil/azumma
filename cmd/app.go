@@ -1,7 +1,7 @@
 package main
 
 import (
-	"gitlab.com/oraksil/sil/backend/internal/presenter/di"
+	"gitlab.com/oraksil/azumma/internal/presenter/di"
 )
 
 func main() {
