@@ -54,7 +54,7 @@ func newGameCtrlUseCase() *usecases.GameCtrlUseCase {
 	var repo models.GameRepository
 	container.Make(&repo)
 
-	var msgService mqrpc.MessageService
+	var msgService services.MessageService
 	container.Make(&msgService)
 
 	return &usecases.GameCtrlUseCase{GameRepository: repo, MessageService: msgService}
