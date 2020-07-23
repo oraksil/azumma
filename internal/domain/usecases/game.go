@@ -1,10 +1,8 @@
 package usecases
 
 import (
-	"encoding/json"
 	"fmt"
 
-	"github.com/sangwonl/go-mq-rpc"
 	"gitlab.com/oraksil/azumma/internal/domain/models"
 	"gitlab.com/oraksil/azumma/internal/domain/services"
 )
@@ -24,7 +22,7 @@ func (uc *GameFetchUseCase) GetRunningGames(page, size int) []*models.RunningGam
 type GameCtrlUseCase struct {
 	GameRepository models.GameRepository
 	OrakkiDriver   services.OrakkiDriver
-	MessageService mq.MessageService
+	MessageService services.MessageService
 }
 
 func (uc *GameCtrlUseCase) CreateNewGame() {
@@ -32,10 +30,7 @@ func (uc *GameCtrlUseCase) CreateNewGame() {
 		"hello": "world",
 	}
 	resp := uc.MessageService.Request("orakki-temp", models.MSG_HELLO, temp)
-
-	var value map[string]string
-	json.Unmarshal(resp.Payload, &value)
-	fmt.Println(value)
+	fmt.Println(resp)
 }
 
 func (uc *GameCtrlUseCase) JoinGame() {

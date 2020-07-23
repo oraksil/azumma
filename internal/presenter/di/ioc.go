@@ -2,7 +2,7 @@ package di
 
 import (
 	"github.com/golobby/container"
-	"github.com/sangwonl/go-mq-rpc"
+	"github.com/sangwonl/mqrpc"
 	"gitlab.com/oraksil/azumma/internal/presenter/mq/handlers"
 	"gitlab.com/oraksil/azumma/internal/presenter/web"
 	"gitlab.com/oraksil/azumma/internal/presenter/web/ctrls"
@@ -26,8 +26,8 @@ func InjectWebService() *web.WebService {
 	return svc
 }
 
-func InjectMqService() *mq.MqService {
-	var svc *mq.MqService
+func InjectMqService() *mqrpc.MqService {
+	var svc *mqrpc.MqService
 	container.Make(&svc)
 	return svc
 }

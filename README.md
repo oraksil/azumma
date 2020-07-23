@@ -73,24 +73,24 @@ $ docker run -d \
 ### Declare `exchanges`
 ```
 $ docker exec -it oraksil-mq bash
-root@oraksil-mq:/# rabbitmqadmin -u oraksil -p oraksil declare exchange name=oraksil.mq.direct type=direct
+root@oraksil-mq:/# rabbitmqadmin -u oraksil -p oraksil declare exchange name=mqrpc.oraksil.p2p type=direct
 exchange declared
 
-root@oraksil-mq:/# rabbitmqadmin -u oraksil -p oraksil declare exchange name=oraksil.mq.broadcast type=fanout
+root@oraksil-mq:/# rabbitmqadmin -u oraksil -p oraksil declare exchange name=mqrpc.oraksil.broadcast type=fanout
 exchange declared
 
 root@oraksil-mq:/# rabbitmqadmin -u oraksil -p oraksil list exchanges
-+----------------------+---------+
-|         name         |  type   |
-+----------------------+---------+
-|                      | direct  |
-| amq.direct           | direct  |
-| amq.fanout           | fanout  |
-| amq.headers          | headers |
-| amq.match            | headers |
-| amq.rabbitmq.trace   | topic   |
-| amq.topic            | topic   |
-| oraksil.mq.broadcast | fanout  |
-| oraksil.mq.direct    | direct  |
-+----------------------+---------+
++---------------------------+---------+
+|         name              |  type   |
++---------------------------+---------+
+|                           | direct  |
+| amqrpc.direct             | direct  |
+| amqrpc.fanout             | fanout  |
+| amqrpc.headers            | headers |
+| amqrpc.match              | headers |
+| amqrpc.rabbitmqrpc.trace  | topic   |
+| amqrpc.topic              | topic   |
+| mqrpc.oraksil.broadcast   | fanout  |
+| mqrpc.oraksil.p2p         | direct  |
++---------------------------+---------+
 ```

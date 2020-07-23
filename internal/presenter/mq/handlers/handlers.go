@@ -4,16 +4,16 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/sangwonl/mqrpc"
 	"gitlab.com/oraksil/azumma/internal/domain/models"
 	"gitlab.com/oraksil/azumma/internal/domain/usecases"
-	"github.com/sangwonl/go-mq-rpc"
 )
 
 type HelloHandler struct {
 	GameCtrlUseCase *usecases.GameCtrlUseCase
 }
 
-func (h *HelloHandler) handleHello(ctx *mq.Context) interface{} {
+func (h *HelloHandler) handleHello(ctx *mqrpc.Context) interface{} {
 	var temp map[string]string
 	json.Unmarshal(ctx.GetMessage().Payload, &temp)
 	fmt.Println(temp)
@@ -21,8 +21,8 @@ func (h *HelloHandler) handleHello(ctx *mq.Context) interface{} {
 	return nil
 }
 
-func (h *HelloHandler) Routes() []mq.Route {
-	return []mq.Route{
+func (h *HelloHandler) Routes() []mqrpc.Route {
+	return []mqrpc.Route{
 		{MsgType: models.MSG_HELLO, Handler: h.handleHello},
 	}
 }

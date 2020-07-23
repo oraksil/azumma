@@ -4,8 +4,9 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/golobby/container"
 	"github.com/jmoiron/sqlx"
-	"github.com/sangwonl/go-mq-rpc"
+	"github.com/sangwonl/mqrpc"
 	"gitlab.com/oraksil/azumma/internal/domain/models"
+	"gitlab.com/oraksil/azumma/internal/domain/services"
 	"gitlab.com/oraksil/azumma/internal/domain/usecases"
 	"gitlab.com/oraksil/azumma/internal/presenter/data"
 	"gitlab.com/oraksil/azumma/internal/presenter/mq/handlers"
@@ -17,15 +18,15 @@ func newWebService() *web.WebService {
 	return web.NewWebService()
 }
 
-func newMqService() *mq.MqService {
-	return mq.NewMqService("amqp://oraksil:oraksil@localhost:5672/", "oraksil.mq.p2p", "oraksil.mq.broadcast")
+func newMqService() *mqrpc.MqService {
+	return mqrpc.NewMqService("amqp://oraksil:oraksil@localhost:5672/", "oraksil")
 }
 
-func newMessageService() mq.MessageService {
-	var mqService *mq.MqService
+func newMessageService() services.MessageService {
+	var mqService *mqrpc.MqService
 	container.Make(&mqService)
 
-	return &mq.DefaultMessageServiceImpl{MqService: mqService}
+	return &mqrpc.DefaultMessageServiceImpl{MqService: mqService}
 }
 
 func newMySqlDb() *sqlx.DB {
@@ -53,7 +54,7 @@ func newGameCtrlUseCase() *usecases.GameCtrlUseCase {
 	var repo models.GameRepository
 	container.Make(&repo)
 
-	var msgService mq.MessageService
+	var msgService mqrpc.MessageService
 	container.Make(&msgService)
 
 	return &usecases.GameCtrlUseCase{GameRepository: repo, MessageService: msgService}
