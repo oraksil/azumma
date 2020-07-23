@@ -24,6 +24,4 @@ before_script:
 unit_tests:
   stage: test
   script:
-    - go test -v ./...
-  script:
     - go test -v ./... -coverprofile .testCoverage.txt
