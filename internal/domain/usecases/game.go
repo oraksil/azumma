@@ -29,7 +29,7 @@ func (uc *GameCtrlUseCase) CreateNewGame() {
 	temp := map[string]string{
 		"hello": "world",
 	}
-	resp := uc.MessageService.Request("orakki-temp", models.MSG_HELLO, temp)
+	resp, _ := uc.MessageService.Request("orakki-temp", models.MSG_HELLO, temp)
 	fmt.Println(resp)
 }
 

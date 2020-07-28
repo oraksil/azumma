@@ -19,7 +19,8 @@ func newWebService() *web.WebService {
 }
 
 func newMqService() *mqrpc.MqService {
-	return mqrpc.NewMqService("amqp://oraksil:oraksil@localhost:5672/", "oraksil")
+	svc, _ := mqrpc.NewMqService("amqp://oraksil:oraksil@localhost:5672/", "oraksil")
+	return svc
 }
 
 func newMessageService() services.MessageService {
