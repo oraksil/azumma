@@ -12,7 +12,12 @@ import (
 	"gitlab.com/oraksil/azumma/internal/presenter/mq/handlers"
 	"gitlab.com/oraksil/azumma/internal/presenter/web"
 	"gitlab.com/oraksil/azumma/internal/presenter/web/ctrls"
+	"gitlab.com/oraksil/azumma/pkg/drivers"
 )
+
+func newOrakkiDriver() services.OrakkiDriver {
+	return &drivers.K8SOrakkiDriver{}
+}
 
 func newWebService() *web.WebService {
 	return web.NewWebService()
@@ -31,7 +36,7 @@ func newMessageService() services.MessageService {
 }
 
 func newMySqlDb() *sqlx.DB {
-	db, _ := sqlx.Open("mysql", "oraksil:qlqjswha!@(localhost:3306)/oraksil")
+	db, _ := sqlx.Open("mysql", "oraksil:oraksil@(localhost:3306)/oraksil")
 	db.DB.SetMaxOpenConns(10)
 	_ = db.Ping()
 	return db
@@ -58,7 +63,14 @@ func newGameCtrlUseCase() *usecases.GameCtrlUseCase {
 	var msgService services.MessageService
 	container.Make(&msgService)
 
-	return &usecases.GameCtrlUseCase{GameRepository: repo, MessageService: msgService}
+	var orakkiDrv services.OrakkiDriver
+	container.Make(&orakkiDrv)
+
+	return &usecases.GameCtrlUseCase{
+		GameRepository: repo,
+		MessageService: msgService,
+		OrakkiDriver:   orakkiDrv,
+	}
 }
 
 func newGameController() *ctrls.GameController {

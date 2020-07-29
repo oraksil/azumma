@@ -11,7 +11,7 @@ $ go test ./...
 ### Run `mariadb`
 ```
 $ docker run -d \
-    --name oraksil-azuma \
+    --name oraksil-db \
     -v $PWD/temp/data:/var/lib/mysql \
     -p 3306:3306 \
     -e MYSQL_ROOT_PASSWORD=<root-password> \
@@ -20,7 +20,7 @@ $ docker run -d \
 
 ### Connect to shell and initialize db
 ```
-$ docker exec -it oraksil-azuma bash
+$ docker exec -it oraksil-db bash
 # mysql -u root -p
 ...
 ...

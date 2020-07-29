@@ -12,6 +12,10 @@ type MockGameRepository struct {
 	mock.Mock
 }
 
+func (r *MockGameRepository) GetGameById(id int) (*models.Game, error) {
+	return nil, nil
+}
+
 func (m *MockGameRepository) FindAvailableGames(offset, limit int) []*models.Game {
 	m.Called(offset, limit)
 	return []*models.Game{
@@ -22,6 +26,10 @@ func (m *MockGameRepository) FindAvailableGames(offset, limit int) []*models.Gam
 
 func (m *MockGameRepository) FindRunningGames(offset, limit int) []*models.RunningGame {
 	return nil
+}
+
+func (r *MockGameRepository) SaveRunningGame(game *models.RunningGame) (*models.RunningGame, error) {
+	return nil, nil
 }
 
 func TestGameFetchUseCase(t *testing.T) {

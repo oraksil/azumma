@@ -9,6 +9,7 @@ import (
 )
 
 func InitContainer() {
+	container.Singleton(newOrakkiDriver)
 	container.Singleton(newWebService)
 	container.Singleton(newMqService)
 	container.Singleton(newMessageService)
