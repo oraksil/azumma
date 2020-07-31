@@ -6,6 +6,11 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"gitlab.com/oraksil/azumma/internal/domain/models"
 	"gitlab.com/oraksil/azumma/internal/domain/services"
+
+	"encoding/base64"
+	"encoding/json"
+
+	"github.com/pion/webrtc/v2"
 )
 
 type GameFetchUseCase struct {
@@ -118,4 +123,22 @@ func (uc *GameCtrlUseCase) postProvisionHandler(runningGame *models.RunningGame)
 
 func (uc *GameCtrlUseCase) JoinGame() {
 
+}
+
+func (uc *GameCtrlUseCase) NewUserSdp(gameId string, sdpString string) (int, error) {
+	// validation
+	offer := webrtc.SessionDescription{}
+
+	b, err := base64.StdEncoding.DecodeString(sdpString)
+
+	if err != nil {
+		return -1, err
+	} else {
+		err = json.Unmarshal(b, &offer)
+	}
+
+	// store user's sdp into db
+
+	// return
+	return 0, err
 }
