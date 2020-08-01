@@ -8,7 +8,7 @@ import (
 )
 
 func TestOrakkiPodObject(t *testing.T) {
-	drv, err := NewK8SOrakkiDriver("", "busybox")
+	drv, err := NewK8SOrakkiDriver("../../configs/kube/config.local", "busybox")
 	assert.Nil(t, err)
 	assert.NotNil(t, drv)
 	assert.Equal(t, "orakki", drv.baseAppName)

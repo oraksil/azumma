@@ -75,12 +75,11 @@ func (d *K8SOrakkiDriver) createOrakkiPod(podName, peerName string) *core.Pod {
 }
 
 func NewK8SOrakkiDriver(kubeConfigPath, orakkiImage string) (*K8SOrakkiDriver, error) {
-	var configPath string
 	if kubeConfigPath == "" {
-		configPath = filepath.Join(homedir.HomeDir(), ".kube", "config")
+		kubeConfigPath = filepath.Join(homedir.HomeDir(), ".kube", "config")
 	}
 
-	config, err := clientcmd.BuildConfigFromFlags("", configPath)
+	config, err := clientcmd.BuildConfigFromFlags("", kubeConfigPath)
 	if err != nil {
 		return nil, err
 	}
@@ -91,7 +90,7 @@ func NewK8SOrakkiDriver(kubeConfigPath, orakkiImage string) (*K8SOrakkiDriver, e
 	}
 
 	return &K8SOrakkiDriver{
-		kubeConfigPath: configPath,
+		kubeConfigPath: kubeConfigPath,
 		orakkiImage:    orakkiImage,
 		namespace:      "oraksil-dev",
 		baseAppName:    "orakki",
