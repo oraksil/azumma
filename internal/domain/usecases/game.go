@@ -1,6 +1,9 @@
 package usecases
 
 import (
+	"fmt"
+
+	gonanoid "github.com/matoous/go-nanoid"
 	"gitlab.com/oraksil/azumma/internal/domain/models"
 	"gitlab.com/oraksil/azumma/internal/domain/services"
 )
@@ -76,7 +79,8 @@ func (uc *GameCtrlUseCase) provisionOrakki() (*models.Orakki, error) {
 }
 
 func generateNewPeerName(prefix string) string {
-	return "orakki-cfea2hea"
+	id, _ := gonanoid.Generate("abcdef", 7)
+	return fmt.Sprintf("%s-%s", prefix, id)
 }
 
 func (uc *GameCtrlUseCase) JoinGame() {

@@ -24,7 +24,7 @@ type K8SOrakkiDriver struct {
 }
 
 func (d *K8SOrakkiDriver) RunInstance(peerName string) (string, error) {
-	id, _ := gonanoid.Generate("0123456789abcdef", 13)
+	id, _ := gonanoid.Generate("abcdef", 7)
 	podName := fmt.Sprintf("%s-%s", d.baseAppName, id)
 	podObj := d.createOrakkiPod(podName, peerName)
 
