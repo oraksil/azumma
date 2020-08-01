@@ -24,8 +24,7 @@ type K8SOrakkiDriver struct {
 }
 
 func (d *K8SOrakkiDriver) RunInstance(peerName string) (string, error) {
-	id, _ := gonanoid.Generate("abcdef", 7)
-	podName := fmt.Sprintf("%s-%s", d.baseAppName, id)
+	podName := d.newOrakkiPodName()
 	podObj := d.createOrakkiPod(podName, peerName)
 
 	_, err := d.kubeOpSet.CoreV1().Pods(d.namespace).Create(podObj)
@@ -48,6 +47,11 @@ func (d *K8SOrakkiDriver) DeleteInstance(id string) error {
 	}
 
 	return nil
+}
+
+func (d *K8SOrakkiDriver) newOrakkiPodName() string {
+	id, _ := gonanoid.Generate("abcdef", 7)
+	return fmt.Sprintf("%s-%s", d.baseAppName, id)
 }
 
 func (d *K8SOrakkiDriver) createOrakkiPod(podName, peerName string) *core.Pod {

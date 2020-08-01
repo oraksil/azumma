@@ -34,7 +34,7 @@ func (uc *GameCtrlUseCase) CreateNewGame(gameId int, firstPlayer *models.Player)
 	}
 
 	// provision orakki
-	newOrakki, err := uc.provisionOrakki()
+	newOrakki, err := uc.provisionOrakki(newPeerName("orakki"))
 	if err != nil {
 		return nil, err
 	}
@@ -61,12 +61,8 @@ func (uc *GameCtrlUseCase) CreateNewGame(gameId int, firstPlayer *models.Player)
 	return saved, nil
 }
 
-func (uc *GameCtrlUseCase) provisionOrakki() (*models.Orakki, error) {
-	// TODO: generate unique and not too long orakki peer name
-	newPeerName := generateNewPeerName("orakki")
-
-	// provisioning new orakki
-	newOrakkiId, err := uc.OrakkiDriver.RunInstance(newPeerName)
+func (uc *GameCtrlUseCase) provisionOrakki(peerName string) (*models.Orakki, error) {
+	newOrakkiId, err := uc.OrakkiDriver.RunInstance(peerName)
 	if err != nil {
 		return nil, err
 	}
@@ -74,11 +70,11 @@ func (uc *GameCtrlUseCase) provisionOrakki() (*models.Orakki, error) {
 	return &models.Orakki{
 		Id:       newOrakkiId,
 		State:    models.ORAKKI_STATE_INIT,
-		PeerName: newPeerName,
+		PeerName: peerName,
 	}, nil
 }
 
-func generateNewPeerName(prefix string) string {
+func newPeerName(prefix string) string {
 	id, _ := gonanoid.Generate("abcdef", 7)
 	return fmt.Sprintf("%s-%s", prefix, id)
 }
