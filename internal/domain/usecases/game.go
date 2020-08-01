@@ -36,6 +36,13 @@ func (uc *GameCtrlUseCase) CreateNewGame(gameId int, firstPlayer *models.Player)
 		return nil, err
 	}
 
+	// healthcheck if orakki instance is ready
+	go func() {
+		// for {
+		// resp, _ := uc.MessageService.Request(newPeerName, "msg-fetch-state", "")
+		// }
+	}()
+
 	// persist orakki context
 	runningGame := models.RunningGame{
 		Orakki:  newOrakki,
@@ -44,6 +51,7 @@ func (uc *GameCtrlUseCase) CreateNewGame(gameId int, firstPlayer *models.Player)
 	}
 	saved, err := uc.GameRepository.SaveRunningGame(&runningGame)
 	if err != nil {
+		uc.OrakkiDriver.DeleteInstance(newOrakki.Id)
 		return nil, err
 	}
 
@@ -59,13 +67,6 @@ func (uc *GameCtrlUseCase) provisionOrakki() (*models.Orakki, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	// healthcheck if orakki instance is ready
-	go func() {
-		// for {
-		// resp, _ := uc.MessageService.Request(newPeerName, "msg-fetch-state", "")
-		// }
-	}()
 
 	return &models.Orakki{
 		Id:       newOrakkiId,

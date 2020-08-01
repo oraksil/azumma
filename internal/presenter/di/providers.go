@@ -16,7 +16,11 @@ import (
 )
 
 func newOrakkiDriver() services.OrakkiDriver {
-	return &drivers.K8SOrakkiDriver{}
+	drv, err := drivers.NewK8SOrakkiDriver("", "orakki:latest")
+	if err != nil {
+		panic(err)
+	}
+	return drv
 }
 
 func newWebService() *web.WebService {
@@ -24,7 +28,10 @@ func newWebService() *web.WebService {
 }
 
 func newMqService() *mqrpc.MqService {
-	svc, _ := mqrpc.NewMqService("amqp://oraksil:oraksil@localhost:5672/", "oraksil")
+	svc, err := mqrpc.NewMqService("amqp://oraksil:oraksil@localhost:5672/", "oraksil")
+	if err != nil {
+		panic(err)
+	}
 	return svc
 }
 
@@ -36,7 +43,11 @@ func newMessageService() services.MessageService {
 }
 
 func newMySqlDb() *sqlx.DB {
-	db, _ := sqlx.Open("mysql", "oraksil:oraksil@(localhost:3306)/oraksil")
+	db, err := sqlx.Open("mysql", "oraksil:oraksil@(localhost:3306)/oraksil")
+	if err != nil {
+		panic(err)
+	}
+
 	db.DB.SetMaxOpenConns(10)
 	_ = db.Ping()
 	return db
