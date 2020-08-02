@@ -2,6 +2,7 @@ package usecases
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -47,6 +48,35 @@ func (d *MockK8SOrakkiDriver) DeleteInstance(id string) error {
 	return args.Error(0)
 }
 
+type MockMessageService struct {
+	mock.Mock
+}
+
+func (m *MockMessageService) Identifier() string {
+	args := m.Called()
+	return args.String(0)
+}
+
+func (m *MockMessageService) Send(to, msgType string, payload interface{}) error {
+	args := m.Called(to, msgType, payload)
+	return args.Error(0)
+}
+
+func (m *MockMessageService) SendToAny(msgType string, payload interface{}) error {
+	args := m.Called(msgType, payload)
+	return args.Error(0)
+}
+
+func (m *MockMessageService) Broadcast(msgType string, payload interface{}) error {
+	args := m.Called(msgType, payload)
+	return args.Error(0)
+}
+
+func (m *MockMessageService) Request(to, msgType string, payload interface{}, timeout time.Duration) (interface{}, error) {
+	args := m.Called(to, msgType, payload, timeout)
+	return args.Get(0), args.Error(1)
+}
+
 func TestGameFetchUseCaseFindAvailableGames(t *testing.T) {
 	// given
 	mockRepo := new(MockGameRepository)
@@ -80,6 +110,7 @@ func TestGameCtrlUseCaseCreateNewGame(t *testing.T) {
 	// given
 	mockRepo := new(MockGameRepository)
 	mockDriver := new(MockK8SOrakkiDriver)
+	mockMsgSvc := new(MockMessageService)
 
 	mockPlayer := models.Player{
 		Id:         1,
@@ -100,16 +131,36 @@ func TestGameCtrlUseCaseCreateNewGame(t *testing.T) {
 	mockDriver.On("RunInstance", mock.Anything).Return("orakki-id", nil)
 
 	// when
-	useCase := GameCtrlUseCase{GameRepository: mockRepo, OrakkiDriver: mockDriver}
+	useCase := GameCtrlUseCase{
+		GameRepository: mockRepo,
+		OrakkiDriver:   mockDriver,
+		MessageService: mockMsgSvc,
+	}
 	runningGame, err := useCase.CreateNewGame(1, &mockPlayer)
 
 	// then
 	assert.NotNil(t, runningGame)
 	assert.Nil(t, err)
 	assert.Equal(t, "orakki-id", runningGame.Orakki.Id)
+	assert.Equal(t, models.ORAKKI_STATE_INIT, runningGame.Orakki.State)
 	assert.Equal(t, 1, len(runningGame.Players))
 	assert.Equal(t, &mockPlayer, runningGame.Players[0])
 
 	mockRepo.AssertExpectations(t)
 	mockDriver.AssertExpectations(t)
+
+	// given
+	mockState := models.OrakkiState{
+		OrakkiId: runningGame.Orakki.Id,
+		State:    models.ORAKKI_STATE_READY,
+	}
+	mockMsgSvc.
+		On("Request", mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+		Return(mockState, nil)
+
+	// when
+	useCase.postProvisionHandler(runningGame)
+
+	// then
+	assert.Equal(t, models.ORAKKI_STATE_READY, runningGame.Orakki.State)
 }

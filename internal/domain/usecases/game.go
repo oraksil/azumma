@@ -53,38 +53,7 @@ func (uc *GameCtrlUseCase) CreateNewGame(gameId int, firstPlayer *models.Player)
 	}
 
 	// healthcheck if orakki instance is ready
-	go func() {
-		maxWaitTime := 30 * time.Second
-		startTime := time.Now()
-		for {
-			time.Sleep(5 * time.Second)
-
-			resp, _ := uc.MessageService.Request(
-				newOrakki.PeerName,
-				models.MSG_FETCH_ORAKKI_STATE,
-				"",
-				5*time.Second,
-			)
-
-			var orakkiState models.OrakkiState
-			mapstructure.Decode(resp, &orakkiState)
-
-			if orakkiState.State == models.ORAKKI_STATE_READY {
-				runningGame.Orakki.State = models.ORAKKI_STATE_READY
-				uc.GameRepository.SaveRunningGame(&runningGame)
-				break
-			}
-
-			elapsedTime := time.Since(startTime)
-			if elapsedTime > maxWaitTime {
-				uc.OrakkiDriver.DeleteInstance(newOrakki.Id)
-
-				runningGame.Orakki.State = models.ORAKKI_STATE_PANIC
-				uc.GameRepository.SaveRunningGame(&runningGame)
-				break
-			}
-		}
-	}()
+	go uc.postProvisionHandler(&runningGame)
 
 	return saved, nil
 }
@@ -109,6 +78,42 @@ func (uc *GameCtrlUseCase) provisionOrakki() (*models.Orakki, error) {
 		PeerName: newPeerName,
 		State:    models.ORAKKI_STATE_INIT,
 	}, nil
+}
+
+func (uc *GameCtrlUseCase) postProvisionHandler(runningGame *models.RunningGame) {
+	newOrakki := runningGame.Orakki
+
+	maxWaitTime := 30 * time.Second
+	startTime := time.Now()
+
+	for {
+		resp, _ := uc.MessageService.Request(
+			newOrakki.PeerName,
+			models.MSG_FETCH_ORAKKI_STATE,
+			"",
+			5*time.Second,
+		)
+
+		var orakkiState models.OrakkiState
+		mapstructure.Decode(resp, &orakkiState)
+
+		if orakkiState.State == models.ORAKKI_STATE_READY {
+			runningGame.Orakki.State = models.ORAKKI_STATE_READY
+			uc.GameRepository.SaveRunningGame(runningGame)
+			break
+		}
+
+		elapsedTime := time.Since(startTime)
+		if elapsedTime > maxWaitTime {
+			uc.OrakkiDriver.DeleteInstance(newOrakki.Id)
+
+			runningGame.Orakki.State = models.ORAKKI_STATE_PANIC
+			uc.GameRepository.SaveRunningGame(runningGame)
+			break
+		}
+
+		time.Sleep(5 * time.Second)
+	}
 }
 
 func (uc *GameCtrlUseCase) JoinGame() {
