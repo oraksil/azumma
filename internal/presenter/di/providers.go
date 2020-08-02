@@ -18,8 +18,8 @@ import (
 
 func newServiceConfig() services.ServiceConfig {
 	return services.ServiceConfig{
-		UseStaticOrakki:      utils.GetBoolEnv("USE_STATIC_ORAKKI", false),
-		StaticOrakkiPeerName: utils.GetStrEnv("STATIC_ORAKKI_PEER_NAME", "orakki-static"),
+		UseStaticOrakki: utils.GetBoolEnv("USE_STATIC_ORAKKI", false),
+		StaticOrakkiId:  utils.GetStrEnv("STATIC_ORAKKI_ID", "orakki-static"),
 	}
 }
 

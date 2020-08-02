@@ -59,6 +59,9 @@ func (d *K8SOrakkiDriver) createOrakkiPod(podName, peerName string) *core.Pod {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      podName,
 			Namespace: d.namespace,
+			Labels: map[string]string{
+				"app": d.baseAppName,
+			},
 		},
 		Spec: core.PodSpec{
 			Containers: []core.Container{

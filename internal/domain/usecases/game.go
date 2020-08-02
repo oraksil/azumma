@@ -6,7 +6,6 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"gitlab.com/oraksil/azumma/internal/domain/models"
 	"gitlab.com/oraksil/azumma/internal/domain/services"
-	"gitlab.com/oraksil/azumma/pkg/utils"
 )
 
 type GameFetchUseCase struct {
@@ -55,14 +54,16 @@ func (uc *GameCtrlUseCase) CreateNewGame(gameId int, firstPlayer *models.Player)
 
 	// healthcheck if orakki instance is ready
 	go func() {
+		maxWaitTime := 30 * time.Second
+		startTime := time.Now()
 		for {
-			time.Sleep(1 * time.Second)
+			time.Sleep(5 * time.Second)
 
 			resp, _ := uc.MessageService.Request(
 				newOrakki.PeerName,
 				models.MSG_FETCH_ORAKKI_STATE,
 				"",
-				10*time.Second,
+				5*time.Second,
 			)
 
 			var orakkiState models.OrakkiState
@@ -70,6 +71,15 @@ func (uc *GameCtrlUseCase) CreateNewGame(gameId int, firstPlayer *models.Player)
 
 			if orakkiState.State == models.ORAKKI_STATE_READY {
 				runningGame.Orakki.State = models.ORAKKI_STATE_READY
+				uc.GameRepository.SaveRunningGame(&runningGame)
+				break
+			}
+
+			elapsedTime := time.Since(startTime)
+			if elapsedTime > maxWaitTime {
+				uc.OrakkiDriver.DeleteInstance(newOrakki.Id)
+
+				runningGame.Orakki.State = models.ORAKKI_STATE_PANIC
 				uc.GameRepository.SaveRunningGame(&runningGame)
 				break
 			}
@@ -83,15 +93,15 @@ func (uc *GameCtrlUseCase) provisionOrakki() (*models.Orakki, error) {
 	var newOrakkiId, newPeerName string
 
 	if uc.ServiceConfig.UseStaticOrakki {
-		newPeerName = uc.ServiceConfig.StaticOrakkiPeerName
-		newOrakkiId = newPeerName
+		newOrakkiId = uc.ServiceConfig.StaticOrakkiId
+		newPeerName = newOrakkiId
 	} else {
-		newPeerName = utils.NewId("orakki")
 		orakkiId, err := uc.OrakkiDriver.RunInstance(newPeerName)
 		if err != nil {
 			return nil, err
 		}
 		newOrakkiId = orakkiId
+		newPeerName = newOrakkiId
 	}
 
 	return &models.Orakki{
