@@ -64,16 +64,24 @@ func (r *GameRepositoryMySqlImpl) SaveRunningGame(game *models.RunningGame) (*mo
 	data.JoinedPlayerIds = strings.Join(playerNames, ",")
 
 	// insert and return id aware model
-	insertQuery := `insert into running_game (
-		peer_name,
-		orakki_id,
-		orakki_state,
-		game_id,
-		first_player_id,
-		joined_player_ids,
-		created_at) values (?, ?, ?, ?, ?, ?, ?)`
+	insertQuery := `
+		insert into running_game (
+			peer_name,
+			orakki_id,
+			orakki_state,
+			game_id,
+			first_player_id,
+			joined_player_ids,
+			created_at)
+		values
+			(?, ?, ?, ?, ?, ?, ?)
+		on duplicate key update
+			orakki_state = ?,
+			first_player_id = ?,
+			joined_player_ids = ?`
 
 	result, err := r.DB.Exec(
+		// insert args
 		insertQuery,
 		data.PeerName,
 		data.OrakkiId,
@@ -82,6 +90,10 @@ func (r *GameRepositoryMySqlImpl) SaveRunningGame(game *models.RunningGame) (*mo
 		data.FirstPlayerId,
 		data.JoinedPlayerIds,
 		data.CreatedAt,
+		// update args on duplicate key
+		data.OrakkiState,
+		data.FirstPlayerId,
+		data.JoinedPlayerIds,
 	)
 
 	if err != nil {

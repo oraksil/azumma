@@ -16,15 +16,6 @@ type Player struct {
 	TotalCoins int
 }
 
-const (
-	ORAKKI_STATE_INIT = iota
-	ORAKKI_STATE_READY
-	ORAKKI_STATE_SIGNALING
-	ORAKKI_STATE_SIGNALING_SDP
-	ORAKKI_STATE_SIGNALING_ICE
-	ORAKKI_STATE_PLAYING
-)
-
 type Orakki struct {
 	Id       string
 	State    int

@@ -1,6 +1,9 @@
 package usecases
 
 import (
+	"time"
+
+	"github.com/mitchellh/mapstructure"
 	"gitlab.com/oraksil/azumma/internal/domain/models"
 	"gitlab.com/oraksil/azumma/internal/domain/services"
 	"gitlab.com/oraksil/azumma/pkg/utils"
@@ -38,13 +41,6 @@ func (uc *GameCtrlUseCase) CreateNewGame(gameId int, firstPlayer *models.Player)
 		return nil, err
 	}
 
-	// healthcheck if orakki instance is ready
-	go func() {
-		// for {
-		// resp, _ := uc.MessageService.Request(newPeerName, "msg-fetch-state", "")
-		// }
-	}()
-
 	// persist orakki context
 	runningGame := models.RunningGame{
 		Orakki:  newOrakki,
@@ -56,6 +52,28 @@ func (uc *GameCtrlUseCase) CreateNewGame(gameId int, firstPlayer *models.Player)
 		uc.OrakkiDriver.DeleteInstance(newOrakki.Id)
 		return nil, err
 	}
+
+	// healthcheck if orakki instance is ready
+	go func() {
+		for {
+			time.Sleep(1 * time.Second)
+
+			resp, _ := uc.MessageService.Request(
+				newOrakki.PeerName,
+				models.MSG_FETCH_ORAKKI_STATE,
+				"",
+			)
+
+			var orakkiState models.OrakkiState
+			mapstructure.Decode(resp, &orakkiState)
+
+			if orakkiState.State == models.ORAKKI_STATE_READY {
+				runningGame.Orakki.State = models.ORAKKI_STATE_READY
+				uc.GameRepository.SaveRunningGame(&runningGame)
+				break
+			}
+		}
+	}()
 
 	return saved, nil
 }
