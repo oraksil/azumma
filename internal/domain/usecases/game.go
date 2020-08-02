@@ -62,6 +62,7 @@ func (uc *GameCtrlUseCase) CreateNewGame(gameId int, firstPlayer *models.Player)
 				newOrakki.PeerName,
 				models.MSG_FETCH_ORAKKI_STATE,
 				"",
+				10*time.Second,
 			)
 
 			var orakkiState models.OrakkiState
