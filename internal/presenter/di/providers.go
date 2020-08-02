@@ -13,7 +13,15 @@ import (
 	"gitlab.com/oraksil/azumma/internal/presenter/web"
 	"gitlab.com/oraksil/azumma/internal/presenter/web/ctrls"
 	"gitlab.com/oraksil/azumma/pkg/drivers"
+	"gitlab.com/oraksil/azumma/pkg/utils"
 )
+
+func newServiceConfig() services.ServiceConfig {
+	return services.ServiceConfig{
+		UseStaticOrakki:      utils.GetBoolEnv("USE_STATIC_ORAKKI", false),
+		StaticOrakkiPeerName: utils.GetStrEnv("STATIC_ORAKKI_PEER_NAME", "orakki-static"),
+	}
+}
 
 func newOrakkiDriver() services.OrakkiDriver {
 	drv, err := drivers.NewK8SOrakkiDriver("", "orakki:latest")
@@ -77,10 +85,14 @@ func newGameCtrlUseCase() *usecases.GameCtrlUseCase {
 	var orakkiDrv services.OrakkiDriver
 	container.Make(&orakkiDrv)
 
+	var serviceConf services.ServiceConfig
+	container.Make(&serviceConf)
+
 	return &usecases.GameCtrlUseCase{
 		GameRepository: repo,
 		MessageService: msgService,
 		OrakkiDriver:   orakkiDrv,
+		ServiceConfig:  serviceConf,
 	}
 }
 

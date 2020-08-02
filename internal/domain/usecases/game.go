@@ -1,11 +1,9 @@
 package usecases
 
 import (
-	"fmt"
-
-	gonanoid "github.com/matoous/go-nanoid"
 	"gitlab.com/oraksil/azumma/internal/domain/models"
 	"gitlab.com/oraksil/azumma/internal/domain/services"
+	"gitlab.com/oraksil/azumma/pkg/utils"
 )
 
 type GameFetchUseCase struct {
@@ -24,6 +22,7 @@ type GameCtrlUseCase struct {
 	GameRepository models.GameRepository
 	OrakkiDriver   services.OrakkiDriver
 	MessageService services.MessageService
+	ServiceConfig  services.ServiceConfig
 }
 
 func (uc *GameCtrlUseCase) CreateNewGame(gameId int, firstPlayer *models.Player) (*models.RunningGame, error) {
@@ -34,7 +33,7 @@ func (uc *GameCtrlUseCase) CreateNewGame(gameId int, firstPlayer *models.Player)
 	}
 
 	// provision orakki
-	newOrakki, err := uc.provisionOrakki(newPeerName("orakki"))
+	newOrakki, err := uc.provisionOrakki()
 	if err != nil {
 		return nil, err
 	}
@@ -61,22 +60,26 @@ func (uc *GameCtrlUseCase) CreateNewGame(gameId int, firstPlayer *models.Player)
 	return saved, nil
 }
 
-func (uc *GameCtrlUseCase) provisionOrakki(peerName string) (*models.Orakki, error) {
-	newOrakkiId, err := uc.OrakkiDriver.RunInstance(peerName)
-	if err != nil {
-		return nil, err
+func (uc *GameCtrlUseCase) provisionOrakki() (*models.Orakki, error) {
+	var newOrakkiId, newPeerName string
+
+	if uc.ServiceConfig.UseStaticOrakki {
+		newPeerName = uc.ServiceConfig.StaticOrakkiPeerName
+		newOrakkiId = newPeerName
+	} else {
+		newPeerName = utils.NewId("orakki")
+		orakkiId, err := uc.OrakkiDriver.RunInstance(newPeerName)
+		if err != nil {
+			return nil, err
+		}
+		newOrakkiId = orakkiId
 	}
 
 	return &models.Orakki{
 		Id:       newOrakkiId,
+		PeerName: newPeerName,
 		State:    models.ORAKKI_STATE_INIT,
-		PeerName: peerName,
 	}, nil
-}
-
-func newPeerName(prefix string) string {
-	id, _ := gonanoid.Generate("abcdef", 7)
-	return fmt.Sprintf("%s-%s", prefix, id)
 }
 
 func (uc *GameCtrlUseCase) JoinGame() {
