@@ -109,6 +109,24 @@ func newGameController() *ctrls.GameController {
 	}
 }
 
+func newSignalingUseCases() *usecases.SignalingUseCase {
+	var repo models.GameRepository
+	container.Make(&repo)
+
+	return &usecases.SignalingUseCase{
+		GameRepository: repo,
+	}
+}
+
+func newSignalingController() *ctrls.SignalingController {
+	var signalingUseCase *usecases.SignalingUseCase
+	container.Make(&signalingUseCase)
+
+	return &ctrls.SignalingController{
+		SignalingUseCase: signalingUseCase,
+	}
+}
+
 func newHelloHandler() *handlers.HelloHandler {
 	var gameCtrlUseCase *usecases.GameCtrlUseCase
 	container.Make(&gameCtrlUseCase)

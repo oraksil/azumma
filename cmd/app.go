@@ -13,5 +13,6 @@ func main() {
 
 	webSvc := di.InjectWebService()
 	webSvc.AddController(di.InjectGameController())
+	webSvc.AddController(di.InjectSignalingController())
 	webSvc.Run("8000")
 }

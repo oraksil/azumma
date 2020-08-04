@@ -31,3 +31,14 @@ create table running_game (
     foreign key (game_id) references game(id),
     foreign key (first_player_id) references player(id)
 ) character set utf8mb4 collate utf8mb4_unicode_ci;
+
+create table connection_info (
+    id bigint not null auto_increment,
+    orakki_id varchar(128) not null,
+    player_id bigint not null,
+    state int not null,
+    server_data varchar(8196),
+
+    primary key (id),
+    foreign key (player_id) references player(id)
+) character set utf8mb4 collate utf8mb4_unicode_ci;

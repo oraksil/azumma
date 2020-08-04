@@ -9,7 +9,11 @@ type GameData struct {
 	Description string `db:"description"`
 	MaxPlayers  int    `db:"max_players"`
 }
-
+type PlayerData struct {
+	Id         int64  `db:"id"`
+	Name       string `db:"name"`
+	TotalCoins int    `db:"total_coins`
+}
 type RunningGameData struct {
 	Id              int64     `db:"id"`
 	OrakkiId        string    `db:"orakki_id"`
@@ -19,4 +23,13 @@ type RunningGameData struct {
 	FirstPlayerId   int64     `db:"first_player_id"`
 	JoinedPlayerIds string    `db:"joined_player_ids"`
 	CreatedAt       time.Time `db:"created_at"`
+}
+
+// ConnectionDescriptionData : record info of connection for each player, such as signaling state
+type ConnectionInfoData struct {
+	ID         int64  `db:"id"`
+	OrakkiID   string `db:"orakki_id"`
+	PlayerID   int64  `db:"player_id`
+	State      int    `db:"state"`
+	ServerData string `db:"server_data"`
 }

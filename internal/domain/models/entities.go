@@ -30,6 +30,22 @@ type RunningGame struct {
 	CreatedAt time.Time
 }
 
+const (
+	ConnectionStateInit = iota
+	ConnectionStateOfferRequested
+	ConnectionStateOfferAccepted
+	ConnectionStateWaitForAnswer
+	ConnectionStateIceExchging
+	ConnectionStateCompleted
+)
+
+// ConnectionState : record info of connection for each player
+type ConnectionInfo struct {
+	Id       int64
+	OrakkiId string
+	PlayerId int64
+	State    int
+}
 type GameRepository interface {
 	GetGameById(id int) (*Game, error)
 
@@ -37,4 +53,9 @@ type GameRepository interface {
 	FindRunningGames(offset, limit int) []*RunningGame
 
 	SaveRunningGame(game *RunningGame) (*RunningGame, error)
+
+	GetPlayerById(id int64) (*Player, error)
+	SaveConnectionInfo(connectionState *ConnectionInfo) (*ConnectionInfo, error)
+
+	GetOrakkiById(id string) (*Orakki, error)
 }

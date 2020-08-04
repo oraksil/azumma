@@ -20,6 +20,8 @@ func InitContainer() {
 	container.Singleton(newGameCtrlUseCase)
 	container.Singleton(newGameController)
 	container.Singleton(newHelloHandler)
+	container.Singleton(newSignalingUseCases)
+	container.Singleton(newSignalingController)
 }
 
 func InjectWebService() *web.WebService {
@@ -42,6 +44,12 @@ func InjectHelloHandler() *handlers.HelloHandler {
 
 func InjectGameController() *ctrls.GameController {
 	var ctrl *ctrls.GameController
+	container.Make(&ctrl)
+	return ctrl
+}
+
+func InjectSignalingController() *ctrls.SignalingController {
+	var ctrl *ctrls.SignalingController
 	container.Make(&ctrl)
 	return ctrl
 }

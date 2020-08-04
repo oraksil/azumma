@@ -106,3 +106,56 @@ func (r *GameRepositoryMySqlImpl) SaveRunningGame(game *models.RunningGame) (*mo
 
 	return game, nil
 }
+
+func (r *GameRepositoryMySqlImpl) GetPlayerById(id int64) (*models.Player, error) {
+	var player *models.Player
+
+	result := dto.PlayerData{}
+	err := r.DB.Get(&result, "select * from player where id = ? limit 1", id)
+	if err != nil {
+		return nil, err
+	}
+
+	mapstructure.Decode(result, &player)
+
+	return player, nil
+}
+
+func (r *GameRepositoryMySqlImpl) SaveConnectionInfo(connectionInfo *models.ConnectionInfo) (*models.ConnectionInfo, error) {
+	data := dto.ConnectionInfoData{
+		OrakkiID: connectionInfo.OrakkiId,
+		PlayerID: connectionInfo.PlayerId,
+		State:    connectionInfo.State,
+	}
+
+	insertQuery := `insert into connection_info (
+		orakki_id,
+		player_id,
+		state,
+		server_data) values (?, ?, ?, ?)`
+
+	result, err := r.DB.Exec(insertQuery, data.OrakkiID, data.PlayerID, data.State, data.ServerData)
+
+	if err != nil {
+		return nil, err
+	}
+
+	LastInsertId, _ := result.LastInsertId()
+	connectionInfo.Id = LastInsertId
+
+	return connectionInfo, err
+}
+
+func (r *GameRepositoryMySqlImpl) GetOrakkiById(id string) (*models.Orakki, error) {
+	var orakki *models.Orakki
+
+	result := dto.PlayerData{}
+	err := r.DB.Get(&result, "select * from orakki where id = ? limit 1", id)
+	if err != nil {
+		return nil, err
+	}
+
+	mapstructure.Decode(result, &orakki)
+
+	return orakki, nil
+}

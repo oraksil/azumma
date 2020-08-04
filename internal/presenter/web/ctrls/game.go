@@ -3,7 +3,6 @@ package ctrls
 import (
 	"net/http"
 	"reflect"
-	"strconv"
 	"time"
 
 	"clevergo.tech/jsend"
@@ -67,20 +66,9 @@ func (ctrl *GameController) createNewGame(c *gin.Context) {
 	c.JSON(http.StatusOK, jsend.New(dto.RunningGameToDto(runningGame)))
 }
 
-func (ctrl *GameController) sdpHandler(c *gin.Context) {
-	gameid := c.Param("gameid")
-	status, _ := ctrl.GameCtrlUseCase.NewUserSdp(gameid, "")
-
-	empty := map[string]string{
-		"status": strconv.Itoa(status),
-	}
-	c.JSON(http.StatusOK, jsend.New(empty))
-}
-
 func (ctrl *GameController) Routes() []web.Route {
 	return []web.Route{
 		{Spec: "GET /api/v1/games/available", Handler: ctrl.getAvailableGames},
 		{Spec: "POST /api/v1/newgame", Handler: ctrl.createNewGame},
-		{Spec: "POST /api/v1/games/:gameid/signaling/sdp", Handler: ctrl.sdpHandler},
 	}
 }
