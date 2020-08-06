@@ -30,15 +30,6 @@ type RunningGame struct {
 	CreatedAt time.Time
 }
 
-const (
-	ConnectionStateInit = iota
-	ConnectionStateOfferRequested
-	ConnectionStateOfferAccepted
-	ConnectionStateWaitForAnswer
-	ConnectionStateIceExchging
-	ConnectionStateCompleted
-)
-
 // ConnectionState : record info of connection for each player
 type ConnectionInfo struct {
 	Id       int64

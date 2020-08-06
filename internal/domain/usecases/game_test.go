@@ -34,6 +34,21 @@ func (r *MockGameRepository) SaveRunningGame(game *models.RunningGame) (*models.
 	return game, args.Error(1)
 }
 
+func (r *MockGameRepository) SaveConnectionInfo(connectionInfo *models.ConnectionInfo) (*models.ConnectionInfo, error) {
+	args := r.Called(connectionInfo)
+	return connectionInfo, args.Error(1)
+}
+
+func (r *MockGameRepository) GetPlayerById(id int64) (*models.Player, error) {
+	args := r.Called(id)
+	return args.Get(0).(*models.Player), args.Error(1)
+}
+
+func (r *MockGameRepository) GetOrakkiById(id string) (*models.Orakki, error) {
+	args := r.Called(id)
+	return args.Get(0).(*models.Orakki), args.Error(1)
+}
+
 type MockK8SOrakkiDriver struct {
 	mock.Mock
 }

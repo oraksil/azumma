@@ -34,7 +34,7 @@ func (uc *SignalingUseCase) NewOffer(orakkiId string, playerId int64, sdpString 
 	connectionInfo := models.ConnectionInfo{
 		OrakkiId: orakkiId,
 		PlayerId: playerId,
-		State:    models.ConnectionStateInit,
+		State:    models.CONNECTION_STATE_INIT,
 	}
 
 	saved, err := uc.GameRepository.SaveConnectionInfo(&connectionInfo)
