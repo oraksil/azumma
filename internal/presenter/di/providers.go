@@ -12,14 +12,34 @@ import (
 	"gitlab.com/oraksil/azumma/internal/presenter/mq/handlers"
 	"gitlab.com/oraksil/azumma/internal/presenter/web"
 	"gitlab.com/oraksil/azumma/internal/presenter/web/ctrls"
+	"gitlab.com/oraksil/azumma/pkg/drivers"
+	"gitlab.com/oraksil/azumma/pkg/utils"
 )
+
+func newServiceConfig() services.ServiceConfig {
+	return services.ServiceConfig{
+		UseStaticOrakki: utils.GetBoolEnv("USE_STATIC_ORAKKI", false),
+		StaticOrakkiId:  utils.GetStrEnv("STATIC_ORAKKI_ID", "orakki-static"),
+	}
+}
+
+func newOrakkiDriver() services.OrakkiDriver {
+	drv, err := drivers.NewK8SOrakkiDriver("", "orakki:latest")
+	if err != nil {
+		panic(err)
+	}
+	return drv
+}
 
 func newWebService() *web.WebService {
 	return web.NewWebService()
 }
 
 func newMqService() *mqrpc.MqService {
-	svc, _ := mqrpc.NewMqService("amqp://oraksil:oraksil@localhost:5672/", "oraksil")
+	svc, err := mqrpc.NewMqService("amqp://oraksil:oraksil@localhost:5672/", "oraksil")
+	if err != nil {
+		panic(err)
+	}
 	return svc
 }
 
@@ -31,7 +51,11 @@ func newMessageService() services.MessageService {
 }
 
 func newMySqlDb() *sqlx.DB {
-	db, _ := sqlx.Open("mysql", "oraksil:qlqjswha!@(localhost:3306)/oraksil")
+	db, err := sqlx.Open("mysql", "oraksil:oraksil@(localhost:3306)/oraksil")
+	if err != nil {
+		panic(err)
+	}
+
 	db.DB.SetMaxOpenConns(10)
 	_ = db.Ping()
 	return db
@@ -58,7 +82,18 @@ func newGameCtrlUseCase() *usecases.GameCtrlUseCase {
 	var msgService services.MessageService
 	container.Make(&msgService)
 
-	return &usecases.GameCtrlUseCase{GameRepository: repo, MessageService: msgService}
+	var orakkiDrv services.OrakkiDriver
+	container.Make(&orakkiDrv)
+
+	var serviceConf services.ServiceConfig
+	container.Make(&serviceConf)
+
+	return &usecases.GameCtrlUseCase{
+		GameRepository: repo,
+		MessageService: msgService,
+		OrakkiDriver:   orakkiDrv,
+		ServiceConfig:  serviceConf,
+	}
 }
 
 func newGameController() *ctrls.GameController {

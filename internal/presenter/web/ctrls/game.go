@@ -2,10 +2,12 @@ package ctrls
 
 import (
 	"net/http"
+	"reflect"
+	"time"
 
 	"clevergo.tech/jsend"
 	"github.com/gin-gonic/gin"
-	"github.com/mitchellh/mapstructure"
+	"gitlab.com/oraksil/azumma/internal/domain/models"
 	"gitlab.com/oraksil/azumma/internal/domain/usecases"
 	"gitlab.com/oraksil/azumma/internal/presenter/web"
 	"gitlab.com/oraksil/azumma/internal/presenter/web/ctrls/dto"
@@ -22,19 +24,46 @@ func (ctrl *GameController) getAvailableGames(c *gin.Context) {
 
 	games := ctrl.GameFetchUseCase.GetAvailableGames(p.Page, p.Size)
 
-	var gamesDto []dto.AvailableGame
-	mapstructure.Decode(games, &gamesDto)
+	c.JSON(http.StatusOK, jsend.New(dto.GamesToDto(games)))
+}
 
-	c.JSON(http.StatusOK, jsend.New(gamesDto))
+func timeToIntDecodeHook(
+	f reflect.Kind,
+	t reflect.Kind,
+	data interface{}) (interface{}, error) {
+	return data.(time.Time).Second(), nil
 }
 
 func (ctrl *GameController) createNewGame(c *gin.Context) {
-	ctrl.GameCtrlUseCase.CreateNewGame()
+	// TODO: get player id from session
+	// player := ctrl.SessionUseCase.GetPlayerFromSession(...)
+	player := models.Player{Id: 1, Name: "eddy"}
 
-	empty := map[string]string{
-		"aaa": "bbb",
+	type QueryParams struct {
+		GameId int `form:"game_id"`
 	}
-	c.JSON(http.StatusOK, jsend.New(empty))
+
+	var params QueryParams
+	err := c.BindQuery(&params)
+
+	if err != nil {
+		c.JSON(http.StatusOK, jsend.NewFail(map[string]interface{}{
+			"code":    400,
+			"message": "invalid game id",
+		}))
+		return
+	}
+
+	runningGame, err := ctrl.GameCtrlUseCase.CreateNewGame(params.GameId, &player)
+	if err != nil {
+		c.JSON(http.StatusOK, jsend.NewFail(map[string]interface{}{
+			"code":    400,
+			"message": "failed to create a new game",
+		}))
+		return
+	}
+
+	c.JSON(http.StatusOK, jsend.New(dto.RunningGameToDto(runningGame)))
 }
 
 func (ctrl *GameController) Routes() []web.Route {
