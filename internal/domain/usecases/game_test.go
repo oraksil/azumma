@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"gitlab.com/oraksil/azumma/internal/domain/models"
+	"gitlab.com/oraksil/azumma/internal/domain/services"
 )
 
 type MockGameRepository struct {
@@ -111,6 +112,7 @@ func TestGameCtrlUseCaseCreateNewGame(t *testing.T) {
 	mockRepo := new(MockGameRepository)
 	mockDriver := new(MockK8SOrakkiDriver)
 	mockMsgSvc := new(MockMessageService)
+	serviceConf := newServiceConfig()
 
 	mockPlayer := models.Player{
 		Id:         1,
@@ -128,20 +130,21 @@ func TestGameCtrlUseCaseCreateNewGame(t *testing.T) {
 
 	mockRepo.On("GetGameById", 1).Return(&mockGame, nil)
 	mockRepo.On("SaveRunningGame", mock.Anything).Return(mock.Anything, nil)
-	mockDriver.On("RunInstance", mock.Anything).Return("orakki-id", nil)
+	mockDriver.On("RunInstance", mock.Anything).Return(serviceConf.StaticOrakkiId, nil)
 
 	// when
 	useCase := GameCtrlUseCase{
 		GameRepository: mockRepo,
 		OrakkiDriver:   mockDriver,
 		MessageService: mockMsgSvc,
+		ServiceConfig:  serviceConf,
 	}
 	runningGame, err := useCase.CreateNewGame(1, &mockPlayer)
 
 	// then
 	assert.NotNil(t, runningGame)
 	assert.Nil(t, err)
-	assert.Equal(t, "orakki-id", runningGame.Orakki.Id)
+	assert.Equal(t, serviceConf.StaticOrakkiId, runningGame.Orakki.Id)
 	assert.Equal(t, models.ORAKKI_STATE_INIT, runningGame.Orakki.State)
 	assert.Equal(t, 1, len(runningGame.Players))
 	assert.Equal(t, &mockPlayer, runningGame.Players[0])
@@ -163,4 +166,12 @@ func TestGameCtrlUseCaseCreateNewGame(t *testing.T) {
 
 	// then
 	assert.Equal(t, models.ORAKKI_STATE_READY, runningGame.Orakki.State)
+}
+
+func newServiceConfig() *services.ServiceConfig {
+	return &services.ServiceConfig{
+		UseStaticOrakki:  false,
+		StaticOrakkiId:   "test-orakki-id",
+		ProvisionMaxWait: time.Duration(5),
+	}
 }
