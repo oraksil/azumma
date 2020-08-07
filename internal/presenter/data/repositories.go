@@ -107,20 +107,6 @@ func (r *GameRepositoryMySqlImpl) SaveRunningGame(game *models.RunningGame) (*mo
 	return game, nil
 }
 
-func (r *GameRepositoryMySqlImpl) GetPlayerById(id int64) (*models.Player, error) {
-	var player *models.Player
-
-	result := dto.PlayerData{}
-	err := r.DB.Get(&result, "select * from player where id = ? limit 1", id)
-	if err != nil {
-		return nil, err
-	}
-
-	mapstructure.Decode(result, &player)
-
-	return player, nil
-}
-
 func (r *GameRepositoryMySqlImpl) SaveConnectionInfo(connectionInfo *models.ConnectionInfo) (*models.ConnectionInfo, error) {
 	data := dto.ConnectionInfoData{
 		OrakkiID: connectionInfo.OrakkiId,
