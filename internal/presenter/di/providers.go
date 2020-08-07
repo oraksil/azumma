@@ -1,6 +1,9 @@
 package di
 
 import (
+	"os"
+	"time"
+
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/golobby/container"
 	"github.com/jmoiron/sqlx"
@@ -16,10 +19,15 @@ import (
 	"gitlab.com/oraksil/azumma/pkg/utils"
 )
 
-func newServiceConfig() services.ServiceConfig {
-	return services.ServiceConfig{
-		UseStaticOrakki: utils.GetBoolEnv("USE_STATIC_ORAKKI", false),
-		StaticOrakkiId:  utils.GetStrEnv("STATIC_ORAKKI_ID", "orakki-static"),
+func newServiceConfig() *services.ServiceConfig {
+	useStaticOrakki := utils.GetBoolEnv("USE_STATIC_ORAKKI", false)
+	hostname, _ := os.Hostname()
+	return &services.ServiceConfig{
+		UseStaticOrakki:      useStaticOrakki,
+		StaticOrakkiId:       utils.GetStrEnv("STATIC_ORAKKI_ID", "orakki-static"),
+		StaticOrakkiPeerName: utils.GetStrEnv("STATIC_ORAKKI_PEER_NAME", "orakki-local"),
+		PeerName:             utils.GetStrEnv("PEER_NAME", hostname),
+		ProvisionMaxWait:     time.Duration(utils.GetIntEnv("PROVISION_MAX_WAIT", 30)),
 	}
 }
 
@@ -85,7 +93,7 @@ func newGameCtrlUseCase() *usecases.GameCtrlUseCase {
 	var orakkiDrv services.OrakkiDriver
 	container.Make(&orakkiDrv)
 
-	var serviceConf services.ServiceConfig
+	var serviceConf *services.ServiceConfig
 	container.Make(&serviceConf)
 
 	return &usecases.GameCtrlUseCase{

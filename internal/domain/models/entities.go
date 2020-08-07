@@ -45,8 +45,5 @@ type GameRepository interface {
 
 	SaveRunningGame(game *RunningGame) (*RunningGame, error)
 
-	GetPlayerById(id int64) (*Player, error)
 	SaveConnectionInfo(connectionState *ConnectionInfo) (*ConnectionInfo, error)
-
-	GetOrakkiById(id string) (*Orakki, error)
 }

@@ -145,17 +145,3 @@ func (r *GameRepositoryMySqlImpl) SaveConnectionInfo(connectionInfo *models.Conn
 
 	return connectionInfo, err
 }
-
-func (r *GameRepositoryMySqlImpl) GetOrakkiById(id string) (*models.Orakki, error) {
-	var orakki *models.Orakki
-
-	result := dto.PlayerData{}
-	err := r.DB.Get(&result, "select * from orakki where id = ? limit 1", id)
-	if err != nil {
-		return nil, err
-	}
-
-	mapstructure.Decode(result, &orakki)
-
-	return orakki, nil
-}

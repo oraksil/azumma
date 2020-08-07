@@ -3,6 +3,7 @@ package di
 import (
 	"github.com/golobby/container"
 	"github.com/sangwonl/mqrpc"
+	"gitlab.com/oraksil/azumma/internal/domain/services"
 	"gitlab.com/oraksil/azumma/internal/presenter/mq/handlers"
 	"gitlab.com/oraksil/azumma/internal/presenter/web"
 	"gitlab.com/oraksil/azumma/internal/presenter/web/ctrls"
@@ -22,6 +23,12 @@ func InitContainer() {
 	container.Singleton(newHelloHandler)
 	container.Singleton(newSignalingUseCases)
 	container.Singleton(newSignalingController)
+}
+
+func InjectServiceConfig() *services.ServiceConfig {
+	var serviceConf *services.ServiceConfig
+	container.Make(&serviceConf)
+	return serviceConf
 }
 
 func InjectWebService() *web.WebService {

@@ -9,11 +9,6 @@ type GameData struct {
 	Description string `db:"description"`
 	MaxPlayers  int    `db:"max_players"`
 }
-type PlayerData struct {
-	Id         int64  `db:"id"`
-	Name       string `db:"name"`
-	TotalCoins int    `db:"total_coins`
-}
 type RunningGameData struct {
 	Id              int64     `db:"id"`
 	OrakkiId        string    `db:"orakki_id"`
