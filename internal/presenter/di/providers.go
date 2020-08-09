@@ -59,7 +59,7 @@ func newMessageService() services.MessageService {
 }
 
 func newMySqlDb() *sqlx.DB {
-	db, err := sqlx.Open("mysql", "oraksil:oraksil@(localhost:3306)/oraksil")
+	db, err := sqlx.Open("mysql", "oraksil:oraksil@(localhost:3306)/oraksil?parseTime=true")
 	if err != nil {
 		panic(err)
 	}
