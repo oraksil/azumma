@@ -38,7 +38,9 @@ create table connection_info (
     player_id bigint not null,
     state int not null,
     server_data varchar(8196),
+    created_at timestamp,
 
     primary key (id),
+    unique (orakki_id, player_id),
     foreign key (player_id) references player(id)
 ) character set utf8mb4 collate utf8mb4_unicode_ci;

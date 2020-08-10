@@ -107,9 +107,25 @@ func (r *GameRepositoryMySqlImpl) SaveRunningGame(game *models.RunningGame) (*mo
 	return game, nil
 }
 
+func (r *GameRepositoryMySqlImpl) FindRunningGameById(id int64) (*models.RunningGame, error) {
+
+	result := dto.RunningGameData{}
+	err := r.DB.Get(&result, "select * from running_game where id = ? limit 1", id)
+	if err != nil {
+		return nil, err
+	}
+
+	game := models.RunningGame{Id: id, Orakki: &models.Orakki{Id: result.OrakkiId}}
+	// game.Orakki.Id = result.OrakkiId
+
+	// // mapstructure.Decode(result, &game)
+
+	return &game, nil
+}
+
 func (r *GameRepositoryMySqlImpl) SaveConnectionInfo(connectionInfo *models.ConnectionInfo) (*models.ConnectionInfo, error) {
 	data := dto.ConnectionInfoData{
-		OrakkiID: connectionInfo.OrakkiId,
+		OrakkiID: connectionInfo.Game.Orakki.Id,
 		PlayerID: connectionInfo.PlayerId,
 		State:    connectionInfo.State,
 	}
@@ -118,9 +134,9 @@ func (r *GameRepositoryMySqlImpl) SaveConnectionInfo(connectionInfo *models.Conn
 		orakki_id,
 		player_id,
 		state,
-		server_data) values (?, ?, ?, ?)`
+		server_data) values (?, ?, ?, ?) on duplicate key update state=(?), server_data=(?)`
 
-	result, err := r.DB.Exec(insertQuery, data.OrakkiID, data.PlayerID, data.State, data.ServerData)
+	result, err := r.DB.Exec(insertQuery, data.OrakkiID, data.PlayerID, data.State, data.ServerData, data.State, data.ServerData)
 
 	if err != nil {
 		return nil, err
@@ -130,4 +146,17 @@ func (r *GameRepositoryMySqlImpl) SaveConnectionInfo(connectionInfo *models.Conn
 	connectionInfo.Id = LastInsertId
 
 	return connectionInfo, err
+}
+
+func (r *GameRepositoryMySqlImpl) GetConnectionInfo(orakkiId string, playerId int64) (*models.ConnectionInfo, error) {
+	var connectionInfo *models.ConnectionInfo
+	result := dto.ConnectionInfoData{}
+	err := r.DB.Get(&result, "select * from connection_info where orakki_id = ? and player_id = ? limit 1", orakkiId, playerId)
+	if err != nil {
+		return nil, err
+	}
+
+	mapstructure.Decode(result, &connectionInfo)
+
+	return connectionInfo, nil
 }

@@ -1,6 +1,8 @@
 package usecases
 
 import (
+	"errors"
+
 	"gitlab.com/oraksil/azumma/internal/domain/models"
 
 	"encoding/json"
@@ -13,15 +15,9 @@ type SignalingUseCase struct {
 }
 
 // NewUserSdp : Accept user's sdp
-func (uc *SignalingUseCase) NewOffer(orakkiId string, playerId int64, sdpString string) (*models.ConnectionInfo, error) {
+func (uc *SignalingUseCase) NewOffer(gameId int64, playerId int64, sdpString string) (*models.ConnectionInfo, error) {
 	// validation needed????
 	offer := webrtc.SessionDescription{}
-
-	// b, err := base64.StdEncoding.DecodeString(sdpString)
-
-	// if err != nil {
-	// return nil, err
-	// }
 
 	err := json.Unmarshal([]byte(sdpString), &offer)
 
@@ -30,11 +26,16 @@ func (uc *SignalingUseCase) NewOffer(orakkiId string, playerId int64, sdpString 
 	}
 
 	// Player, _ := uc.GameRepository.GetPlayerById(playerId)
+	game, err := uc.GameRepository.FindRunningGameById(gameId)
+
+	if game == nil {
+		return nil, errors.New("No game exists with given ID")
+	}
 
 	connectionInfo := models.ConnectionInfo{
-		OrakkiId: orakkiId,
+		Game:     game,
 		PlayerId: playerId,
-		State:    models.CONNECTION_STATE_INIT,
+		State:    models.CONNECTION_STATE_OFFER_REQUESTED,
 	}
 
 	saved, err := uc.GameRepository.SaveConnectionInfo(&connectionInfo)
@@ -43,4 +44,26 @@ func (uc *SignalingUseCase) NewOffer(orakkiId string, playerId int64, sdpString 
 	}
 
 	return saved, err
+}
+
+func (uc *SignalingUseCase) TryFetchAnswer(gameId int64, playerId int64) (bool, string, error) {
+	game, err := uc.GameRepository.FindRunningGameById(gameId)
+
+	if err != nil {
+		return false, "", errors.New("No game exists with given ID")
+	}
+
+	connectionInfo, _ := uc.GameRepository.GetConnectionInfo(game.Orakki.Id, playerId)
+
+	if connectionInfo.State == models.CONNECTION_STATE_ANSWER_SET {
+		if connectionInfo.ServerData != "" {
+			// change state ??
+			// connectionInfo.State = models.CONNECTION_STATE_ICE_EXCHANGING
+			return true, connectionInfo.ServerData, nil
+		} else {
+			return true, "", errors.New("Empty Answer is set")
+		}
+	} else {
+		return false, "", nil
+	}
 }
