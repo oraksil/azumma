@@ -35,11 +35,6 @@ func (r *MockGameRepository) SaveRunningGame(game *models.RunningGame) (*models.
 	return game, args.Error(1)
 }
 
-func (r *MockGameRepository) SaveConnectionInfo(connectionInfo *models.ConnectionInfo) (*models.ConnectionInfo, error) {
-	args := r.Called(connectionInfo)
-	return connectionInfo, args.Error(1)
-}
-
 type MockK8SOrakkiDriver struct {
 	mock.Mock
 }
