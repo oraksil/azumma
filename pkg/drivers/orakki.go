@@ -109,7 +109,7 @@ func (d *K8SOrakkiDriver) createOrakkiPod(podName, peerName string) *core.Pod {
 						},
 						{
 							Name:  "IPC_SOUND_FRAMES",
-							Value: "/var/oraksil/ipc/sound.ipc",
+							Value: "/var/oraksil/ipc/sounds.ipc",
 						},
 						{
 							Name:  "IPC_KEY_INPUTS",
@@ -138,7 +138,7 @@ func (d *K8SOrakkiDriver) createOrakkiPod(podName, peerName string) *core.Pod {
 						},
 						{
 							Name:  "IPC_SOUND_FRAMES",
-							Value: "/var/oraksil/ipc/sound.ipc",
+							Value: "/var/oraksil/ipc/sounds.ipc",
 						},
 						{
 							Name:  "IPC_KEY_INPUTS",
