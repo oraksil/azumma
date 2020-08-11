@@ -80,7 +80,7 @@ func (d *K8SOrakkiDriver) createOrakkiPod(podName, peerName string) *core.Pod {
 			},
 			Containers: []core.Container{
 				{
-					Name:            podName,
+					Name:            "orakki",
 					Image:           d.orakkiImage,
 					ImagePullPolicy: core.PullIfNotPresent,
 					VolumeMounts: []core.VolumeMount{
