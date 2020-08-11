@@ -63,8 +63,8 @@ func (uc *GameCtrlUseCase) provisionOrakki() (*models.Orakki, error) {
 	var newOrakkiId, newPeerName string
 
 	if uc.ServiceConfig.UseStaticOrakki {
-		newOrakkiId = uc.ServiceConfig.StaticOrakkiId
 		newPeerName = uc.ServiceConfig.StaticOrakkiPeerName
+		newOrakkiId = uc.ServiceConfig.StaticOrakkiId
 	} else {
 		newPeerName = utils.NewId("orakki")
 		orakkiId, err := uc.OrakkiDriver.RunInstance(newPeerName)
@@ -72,7 +72,6 @@ func (uc *GameCtrlUseCase) provisionOrakki() (*models.Orakki, error) {
 			return nil, err
 		}
 		newOrakkiId = orakkiId
-		newPeerName = newOrakkiId
 	}
 
 	return &models.Orakki{

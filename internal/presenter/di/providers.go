@@ -23,16 +23,32 @@ func newServiceConfig() *services.ServiceConfig {
 	useStaticOrakki := utils.GetBoolEnv("USE_STATIC_ORAKKI", false)
 	hostname, _ := os.Hostname()
 	return &services.ServiceConfig{
+		MqRpcUri:       utils.GetStrEnv("MQRPC_URI", "amqp://oraksil:oraksil@localhost:5672/"),
+		MqRpcNamespace: utils.GetStrEnv("MQRPC_NAMESPACE", "oraksil"),
+
+		PeerName: utils.GetStrEnv("PEER_NAME", hostname),
+
 		UseStaticOrakki:      useStaticOrakki,
 		StaticOrakkiId:       utils.GetStrEnv("STATIC_ORAKKI_ID", "orakki-static"),
 		StaticOrakkiPeerName: utils.GetStrEnv("STATIC_ORAKKI_PEER_NAME", "orakki-local"),
-		PeerName:             utils.GetStrEnv("PEER_NAME", hostname),
+
+		OrakkiContainerImage: utils.GetStrEnv("ORAKKI_CONTAINER_IMAGE", "registry.gitlab.com/oraksil/orakki:latest"),
+		GipanContainerImage:  utils.GetStrEnv("GIPAN_CONTAINER_IMAGE", "registry.gitlab.com/oraksil/gipan:latest"),
 		ProvisionMaxWait:     time.Duration(utils.GetIntEnv("PROVISION_MAX_WAIT", 30)),
 	}
 }
 
 func newOrakkiDriver() services.OrakkiDriver {
-	drv, err := drivers.NewK8SOrakkiDriver("", "orakki:latest")
+	var serviceConf *services.ServiceConfig
+	container.Make(&serviceConf)
+
+	drv, err := drivers.NewK8SOrakkiDriver(
+		"",
+		serviceConf.OrakkiContainerImage,
+		serviceConf.GipanContainerImage,
+		serviceConf.MqRpcUri,
+		serviceConf.MqRpcNamespace,
+	)
 	if err != nil {
 		panic(err)
 	}
@@ -44,7 +60,10 @@ func newWebService() *web.WebService {
 }
 
 func newMqService() *mqrpc.MqService {
-	svc, err := mqrpc.NewMqService("amqp://oraksil:oraksil@localhost:5672/", "oraksil")
+	var serviceConf *services.ServiceConfig
+	container.Make(&serviceConf)
+
+	svc, err := mqrpc.NewMqService(serviceConf.MqRpcUri, serviceConf.MqRpcNamespace)
 	if err != nil {
 		panic(err)
 	}

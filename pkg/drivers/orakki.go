@@ -15,9 +15,13 @@ import (
 
 type K8SOrakkiDriver struct {
 	kubeConfigPath string
-	orakkiImage    string
 	namespace      string
 	baseAppName    string
+
+	orakkiImage string
+	gipanImage  string
+	mqRpcUri    string
+	mqRpcNs     string
 
 	kubeConfig *restclient.Config
 	kubeOpSet  *kubernetes.Clientset
@@ -64,15 +68,81 @@ func (d *K8SOrakkiDriver) createOrakkiPod(podName, peerName string) *core.Pod {
 			},
 		},
 		Spec: core.PodSpec{
+			Volumes: []core.Volume{
+				{
+					Name: "shared-vol-for-ipc",
+					VolumeSource: core.VolumeSource{
+						EmptyDir: &core.EmptyDirVolumeSource{
+							Medium: "",
+						},
+					},
+				},
+			},
 			Containers: []core.Container{
 				{
 					Name:            podName,
 					Image:           d.orakkiImage,
 					ImagePullPolicy: core.PullIfNotPresent,
+					VolumeMounts: []core.VolumeMount{
+						{
+							Name:      "shared-vol-for-ipc",
+							MountPath: "/var/oraksil/ipc",
+							ReadOnly:  true,
+						},
+					},
 					Env: []core.EnvVar{
 						{
 							Name:  "PEER_NAME",
 							Value: peerName,
+						},
+						{
+							Name:  "MQRPC_URI",
+							Value: d.mqRpcUri,
+						},
+						{
+							Name:  "MQRPC_NAMESPACE",
+							Value: d.mqRpcNs,
+						},
+						{
+							Name:  "IPC_IMAGE_FRAMES",
+							Value: "/var/oraksil/ipc/images.ipc",
+						},
+						{
+							Name:  "IPC_SOUND_FRAMES",
+							Value: "/var/oraksil/ipc/sound.ipc",
+						},
+						{
+							Name:  "IPC_KEY_INPUTS",
+							Value: "/var/oraksil/ipc/keys.ipc",
+						},
+					},
+				},
+				{
+					Name:            "gipan",
+					Image:           d.gipanImage,
+					ImagePullPolicy: core.PullIfNotPresent,
+					VolumeMounts: []core.VolumeMount{
+						{
+							Name:      "shared-vol-for-ipc",
+							MountPath: "/var/oraksil/ipc",
+						},
+					},
+					Env: []core.EnvVar{
+						{
+							Name:  "GAME",
+							Value: "dino",
+						},
+						{
+							Name:  "IPC_IMAGE_FRAMES",
+							Value: "/var/oraksil/ipc/images.ipc",
+						},
+						{
+							Name:  "IPC_SOUND_FRAMES",
+							Value: "/var/oraksil/ipc/sound.ipc",
+						},
+						{
+							Name:  "IPC_KEY_INPUTS",
+							Value: "/var/oraksil/ipc/keys.ipc",
 						},
 					},
 				},
@@ -81,7 +151,7 @@ func (d *K8SOrakkiDriver) createOrakkiPod(podName, peerName string) *core.Pod {
 	}
 }
 
-func NewK8SOrakkiDriver(kubeConfigPath, orakkiImage string) (*K8SOrakkiDriver, error) {
+func NewK8SOrakkiDriver(kubeConfigPath, orakkiImage, gipanImage, mqRpcUri, mqRpcNs string) (*K8SOrakkiDriver, error) {
 	if kubeConfigPath == "" {
 		kubeConfigPath = filepath.Join(homedir.HomeDir(), ".kube", "config")
 	}
@@ -98,10 +168,13 @@ func NewK8SOrakkiDriver(kubeConfigPath, orakkiImage string) (*K8SOrakkiDriver, e
 
 	return &K8SOrakkiDriver{
 		kubeConfigPath: kubeConfigPath,
-		orakkiImage:    orakkiImage,
 		namespace:      "oraksil-dev",
 		baseAppName:    "orakki",
 		kubeConfig:     config,
 		kubeOpSet:      clientset,
+		orakkiImage:    orakkiImage,
+		gipanImage:     gipanImage,
+		mqRpcUri:       mqRpcUri,
+		mqRpcNs:        mqRpcNs,
 	}, nil
 }
