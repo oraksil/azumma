@@ -4,9 +4,9 @@ import (
 	"time"
 
 	"github.com/mitchellh/mapstructure"
-	"gitlab.com/oraksil/azumma/internal/domain/models"
-	"gitlab.com/oraksil/azumma/internal/domain/services"
-	"gitlab.com/oraksil/azumma/pkg/utils"
+	"github.com/oraksil/azumma/internal/domain/models"
+	"github.com/oraksil/azumma/internal/domain/services"
+	"github.com/oraksil/azumma/pkg/utils"
 )
 
 type GameFetchUseCase struct {

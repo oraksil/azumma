@@ -1,4 +1,4 @@
-module gitlab.com/oraksil/azumma
+module github.com/oraksil/azumma
 
 go 1.14
 

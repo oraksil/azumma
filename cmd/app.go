@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/joho/godotenv"
-	"gitlab.com/oraksil/azumma/internal/presenter/di"
+	"github.com/oraksil/azumma/internal/presenter/di"
 )
 
 func main() {
