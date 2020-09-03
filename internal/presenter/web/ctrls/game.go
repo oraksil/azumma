@@ -7,10 +7,10 @@ import (
 
 	"clevergo.tech/jsend"
 	"github.com/gin-gonic/gin"
-	"gitlab.com/oraksil/azumma/internal/domain/models"
-	"gitlab.com/oraksil/azumma/internal/domain/usecases"
-	"gitlab.com/oraksil/azumma/internal/presenter/web"
-	"gitlab.com/oraksil/azumma/internal/presenter/web/ctrls/dto"
+	"github.com/oraksil/azumma/internal/domain/models"
+	"github.com/oraksil/azumma/internal/domain/usecases"
+	"github.com/oraksil/azumma/internal/presenter/web"
+	"github.com/oraksil/azumma/internal/presenter/web/ctrls/dto"
 )
 
 type GameController struct {

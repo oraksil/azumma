@@ -2,7 +2,7 @@ package dto
 
 import (
 	"github.com/mitchellh/mapstructure"
-	"gitlab.com/oraksil/azumma/internal/domain/models"
+	"github.com/oraksil/azumma/internal/domain/models"
 )
 
 func GamesToDto(src []*models.Game) []*AvailableGameDto {
