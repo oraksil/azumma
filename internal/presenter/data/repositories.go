@@ -115,19 +115,17 @@ func (r *GameRepositoryMySqlImpl) FindRunningGameById(id int64) (*models.Running
 		return nil, err
 	}
 
-	game := models.RunningGame{Id: id, Orakki: &models.Orakki{Id: result.OrakkiId}}
-	// game.Orakki.Id = result.OrakkiId
-
-	// // mapstructure.Decode(result, &game)
+	game := models.RunningGame{Id: id, PeerName: result.PeerName, Orakki: &models.Orakki{Id: result.OrakkiId}}
 
 	return &game, nil
 }
 
 func (r *GameRepositoryMySqlImpl) SaveConnectionInfo(connectionInfo *models.ConnectionInfo) (*models.ConnectionInfo, error) {
 	data := dto.ConnectionInfoData{
-		OrakkiID: connectionInfo.Game.Orakki.Id,
-		PlayerID: connectionInfo.PlayerId,
-		State:    connectionInfo.State,
+		OrakkiID:   connectionInfo.Game.Orakki.Id,
+		PlayerID:   connectionInfo.PlayerId,
+		State:      connectionInfo.State,
+		ServerData: connectionInfo.ServerData,
 	}
 
 	insertQuery := `insert into connection_info (

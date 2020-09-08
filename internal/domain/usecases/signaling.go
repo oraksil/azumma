@@ -3,15 +3,20 @@ package usecases
 import (
 	"errors"
 
-	"gitlab.com/oraksil/azumma/internal/domain/models"
-
 	"encoding/json"
 
+	"github.com/mitchellh/mapstructure"
+	"gitlab.com/oraksil/azumma/internal/domain/models"
+	"gitlab.com/oraksil/azumma/internal/domain/services"
+
 	"github.com/pion/webrtc/v2"
+
+	"time"
 )
 
 type SignalingUseCase struct {
 	GameRepository models.GameRepository
+	MessageService services.MessageService
 }
 
 // NewUserSdp : Accept user's sdp
@@ -25,17 +30,28 @@ func (uc *SignalingUseCase) NewOffer(gameId int64, playerId int64, sdpString str
 		return nil, err
 	}
 
-	// Player, _ := uc.GameRepository.GetPlayerById(playerId)
 	game, err := uc.GameRepository.FindRunningGameById(gameId)
 
 	if game == nil {
 		return nil, errors.New("No game exists with given ID")
 	}
 
+	// sdp response from orakki
+	resp, _ := uc.MessageService.Request(
+		game.PeerName,
+		models.MSG_HANDLE_SETUP_OFFER,
+		offer,
+		5*time.Second,
+	)
+
+	var setupAnswer models.SetupAnswer
+	mapstructure.Decode(resp, &setupAnswer)
+
 	connectionInfo := models.ConnectionInfo{
-		Game:     game,
-		PlayerId: playerId,
-		State:    models.CONNECTION_STATE_OFFER_REQUESTED,
+		Game:       game,
+		PlayerId:   playerId,
+		State:      models.CONNECTION_STATE_OFFER_REQUESTED,
+		ServerData: setupAnswer.Answer,
 	}
 
 	saved, err := uc.GameRepository.SaveConnectionInfo(&connectionInfo)

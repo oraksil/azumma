@@ -26,6 +26,7 @@ type RunningGame struct {
 	Id        int64
 	Orakki    *Orakki
 	Game      *Game
+	PeerName  string
 	Players   []*Player
 	CreatedAt time.Time
 }

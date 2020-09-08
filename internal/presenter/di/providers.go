@@ -59,7 +59,7 @@ func newMessageService() services.MessageService {
 }
 
 func newMySqlDb() *sqlx.DB {
-	db, err := sqlx.Open("mysql", "oraksil:oraksil@(localhost:3306)/oraksil?parseTime=true")
+	db, err := sqlx.Open("mysql", "oraksil:qlqjswha!@(localhost:3306)/oraksil?parseTime=true")
 	if err != nil {
 		panic(err)
 	}
@@ -121,8 +121,12 @@ func newSignalingUseCases() *usecases.SignalingUseCase {
 	var repo models.GameRepository
 	container.Make(&repo)
 
+	var msgService services.MessageService
+	container.Make(&msgService)
+
 	return &usecases.SignalingUseCase{
 		GameRepository: repo,
+		MessageService: msgService,
 	}
 }
 
