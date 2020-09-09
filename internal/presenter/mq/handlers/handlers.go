@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/oraksil/azumma/internal/domain/models"
+	"github.com/oraksil/azumma/internal/domain/usecases"
 	"github.com/sangwonl/mqrpc"
-	"gitlab.com/oraksil/azumma/internal/domain/models"
-	"gitlab.com/oraksil/azumma/internal/domain/usecases"
 )
 
 type HelloHandler struct {

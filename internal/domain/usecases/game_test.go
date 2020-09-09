@@ -4,10 +4,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/oraksil/azumma/internal/domain/models"
+	"github.com/oraksil/azumma/internal/domain/services"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"gitlab.com/oraksil/azumma/internal/domain/models"
-	"gitlab.com/oraksil/azumma/internal/domain/services"
 )
 
 type MockGameRepository struct {

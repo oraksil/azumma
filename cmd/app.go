@@ -1,10 +1,13 @@
 package main
 
 import (
-	"gitlab.com/oraksil/azumma/internal/presenter/di"
+	"github.com/joho/godotenv"
+	"github.com/oraksil/azumma/internal/presenter/di"
 )
 
 func main() {
+	godotenv.Load(".env")
+
 	di.InitContainer()
 
 	mqSvc := di.InjectMqService()

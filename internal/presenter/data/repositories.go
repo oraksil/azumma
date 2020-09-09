@@ -6,8 +6,8 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	"github.com/mitchellh/mapstructure"
-	"gitlab.com/oraksil/azumma/internal/domain/models"
-	"gitlab.com/oraksil/azumma/internal/presenter/data/dto"
+	"github.com/oraksil/azumma/internal/domain/models"
+	"github.com/oraksil/azumma/internal/presenter/data/dto"
 )
 
 type GameRepositoryMySqlImpl struct {

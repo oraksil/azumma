@@ -8,7 +8,9 @@ import (
 )
 
 func TestOrakkiPodObject(t *testing.T) {
-	drv, err := NewK8SOrakkiDriver("../../configs/kube/config.local", "busybox")
+	orakkiImage := "registry.gitlab.com/oraksil/orakki:latest"
+	gipanImage := "registry.gitlab.com/oraksil/gipan:latest"
+	drv, err := NewK8SOrakkiDriver("../../configs/kube/config.local", orakkiImage, gipanImage, "", "")
 	assert.Nil(t, err)
 	assert.NotNil(t, drv)
 	assert.Equal(t, "orakki", drv.baseAppName)
