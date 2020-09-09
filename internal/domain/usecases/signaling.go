@@ -6,8 +6,8 @@ import (
 	"encoding/json"
 
 	"github.com/mitchellh/mapstructure"
-	"gitlab.com/oraksil/azumma/internal/domain/models"
-	"gitlab.com/oraksil/azumma/internal/domain/services"
+	"github.com/oraksil/azumma/internal/domain/models"
+	"github.com/oraksil/azumma/internal/domain/services"
 
 	"github.com/pion/webrtc/v2"
 

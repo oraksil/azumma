@@ -6,8 +6,8 @@ import (
 
 	"clevergo.tech/jsend"
 	"github.com/gin-gonic/gin"
-	"gitlab.com/oraksil/azumma/internal/domain/usecases"
-	"gitlab.com/oraksil/azumma/internal/presenter/web"
+	"github.com/oraksil/azumma/internal/domain/usecases"
+	"github.com/oraksil/azumma/internal/presenter/web"
 )
 
 type SignalingController struct {
