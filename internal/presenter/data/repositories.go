@@ -107,54 +107,86 @@ func (r *GameRepositoryMySqlImpl) SaveRunningGame(game *models.RunningGame) (*mo
 	return game, nil
 }
 
-func (r *GameRepositoryMySqlImpl) FindRunningGameById(id int64) (*models.RunningGame, error) {
+func (r *GameRepositoryMySqlImpl) FindRunningGameByOrakkiId(orakkiId string) (*models.RunningGame, error) {
 
 	result := dto.RunningGameData{}
-	err := r.DB.Get(&result, "select * from running_game where id = ? limit 1", id)
+	err := r.DB.Get(&result, "select * from running_game where orakki_id = ? limit 1", orakkiId)
 	if err != nil {
 		return nil, err
 	}
 
-	game := models.RunningGame{Id: id, PeerName: result.PeerName, Orakki: &models.Orakki{Id: result.OrakkiId}}
+	game := models.RunningGame{Id: result.Id, PeerName: result.PeerName, Orakki: &models.Orakki{Id: result.OrakkiId}}
 
 	return &game, nil
 }
 
-func (r *GameRepositoryMySqlImpl) SaveConnectionInfo(connectionInfo *models.ConnectionInfo) (*models.ConnectionInfo, error) {
-	data := dto.ConnectionInfoData{
-		OrakkiID:   connectionInfo.Game.Orakki.Id,
-		PlayerID:   connectionInfo.PlayerId,
-		State:      connectionInfo.State,
-		ServerData: connectionInfo.ServerData,
+func (r *GameRepositoryMySqlImpl) SaveSignalingInfo(signalingInfo *models.SignalingInfo) (*models.SignalingInfo, error) {
+	data := dto.SignalingInfoData{
+		OrakkiID: signalingInfo.Game.Orakki.Id,
+		Data:     signalingInfo.Data,
+		IsLast:   signalingInfo.IsLast,
 	}
 
-	insertQuery := `insert into connection_info (
+	insertQuery := `insert into signaling_info (
 		orakki_id,
-		player_id,
-		state,
-		server_data) values (?, ?, ?, ?) on duplicate key update state=(?), server_data=(?)`
+		data,
+		is_last) values (?, ?, ?) `
 
-	result, err := r.DB.Exec(insertQuery, data.OrakkiID, data.PlayerID, data.State, data.ServerData, data.State, data.ServerData)
+	result, err := r.DB.Exec(insertQuery, data.OrakkiID, data.Data, data.IsLast)
 
 	if err != nil {
 		return nil, err
 	}
 
 	LastInsertId, _ := result.LastInsertId()
-	connectionInfo.Id = LastInsertId
+	signalingInfo.Id = LastInsertId
 
-	return connectionInfo, err
+	return signalingInfo, err
 }
+func (r *GameRepositoryMySqlImpl) UpdateSignalingInfo(signalingInfo *models.SignalingInfo) (*models.SignalingInfo, error) {
+	data := dto.SignalingInfoData{
+		OrakkiID: signalingInfo.OrakkiId,
+		Data:     signalingInfo.Data,
+		IsLast:   signalingInfo.IsLast,
+	}
 
-func (r *GameRepositoryMySqlImpl) GetConnectionInfo(orakkiId string, playerId int64) (*models.ConnectionInfo, error) {
-	var connectionInfo *models.ConnectionInfo
-	result := dto.ConnectionInfoData{}
-	err := r.DB.Get(&result, "select * from connection_info where orakki_id = ? and player_id = ? limit 1", orakkiId, playerId)
+	insertQuery := `update signaling_info set 
+		is_last = ? where id = ? `
+
+	result, err := r.DB.Exec(insertQuery, data.IsLast, signalingInfo.Id)
+
 	if err != nil {
 		return nil, err
 	}
 
-	mapstructure.Decode(result, &connectionInfo)
+	LastInsertId, _ := result.LastInsertId()
+	signalingInfo.Id = LastInsertId
 
-	return connectionInfo, nil
+	return signalingInfo, err
+}
+func (r *GameRepositoryMySqlImpl) FindSignalingInfo(orakkiId string, order string, num int) (*models.SignalingInfo, error) {
+	var signalingInfo *models.SignalingInfo
+	result := dto.SignalingInfoData{}
+	err := r.DB.Get(&result, "select * from signaling_info where orakki_id = ? order by id desc limit ?", orakkiId, num)
+	if err != nil {
+		return nil, err
+	}
+
+	mapstructure.Decode(result, &signalingInfo)
+
+	return signalingInfo, nil
+}
+
+func (r *GameRepositoryMySqlImpl) FindIceCandidate(orakkiId string, seqAfter, num int) (*models.SignalingInfo, error) {
+	var signalingInfo *models.SignalingInfo
+	result := dto.SignalingInfoData{}
+	err := r.DB.Get(&result, "select * from signaling_info where orakki_id = ? and id > ? order by id asc limit ?", orakkiId, seqAfter, num)
+	if err != nil {
+		return nil, err
+	}
+
+	mapstructure.Decode(result, &signalingInfo)
+
+	return signalingInfo, nil
+
 }

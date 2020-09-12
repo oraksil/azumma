@@ -32,15 +32,12 @@ create table running_game (
     foreign key (first_player_id) references player(id)
 ) character set utf8mb4 collate utf8mb4_unicode_ci;
 
-create table connection_info (
+create table signaling_info (
     id bigint not null auto_increment,
     orakki_id varchar(128) not null,
-    player_id bigint not null,
-    state int not null,
-    server_data varchar(8196),
+    data varchar(8196),
     created_at timestamp,
+    is_last boolean not null,
 
-    primary key (id),
-    unique (orakki_id, player_id),
-    foreign key (player_id) references player(id)
+    primary key (id)
 ) character set utf8mb4 collate utf8mb4_unicode_ci;

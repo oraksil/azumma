@@ -26,3 +26,21 @@ func (h *HelloHandler) Routes() []mqrpc.Route {
 		{MsgType: models.MSG_HELLO, Handler: h.handleHello},
 	}
 }
+
+type SignalingHandler struct {
+	SignalingUseCase *usecases.SignalingUseCase
+}
+
+func (h *SignalingHandler) handleIceCandidate(ctx *mqrpc.Context) interface{} {
+	var temp models.Icecandidate
+	json.Unmarshal(ctx.GetMessage().Payload, &temp)
+
+	h.SignalingUseCase.AddServerIceCandidate(temp.OrakkiId, temp.IceString)
+	return nil
+}
+
+func (h *SignalingHandler) Routes() []mqrpc.Route {
+	return []mqrpc.Route{
+		{MsgType: models.MSG_HANDLE_SETUP_ICECANDIDATE, Handler: h.handleIceCandidate},
+	}
+}

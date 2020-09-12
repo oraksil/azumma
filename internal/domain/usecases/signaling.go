@@ -19,9 +19,7 @@ type SignalingUseCase struct {
 	MessageService services.MessageService
 }
 
-// NewUserSdp : Accept user's sdp
-func (uc *SignalingUseCase) NewOffer(gameId int64, playerId int64, sdpString string) (*models.ConnectionInfo, error) {
-	// validation needed????
+func (uc *SignalingUseCase) NewOffer(orakkiId string, playerId int64, sdpString string) (*models.SignalingInfo, error) {
 	offer := webrtc.SessionDescription{}
 
 	err := json.Unmarshal([]byte(sdpString), &offer)
@@ -30,14 +28,14 @@ func (uc *SignalingUseCase) NewOffer(gameId int64, playerId int64, sdpString str
 		return nil, err
 	}
 
-	game, err := uc.GameRepository.FindRunningGameById(gameId)
+	game, err := uc.GameRepository.FindRunningGameByOrakkiId(orakkiId)
 
 	if game == nil {
 		return nil, errors.New("No game exists with given ID")
 	}
 
 	// sdp response from orakki
-	resp, _ := uc.MessageService.Request(
+	resp, err := uc.MessageService.Request(
 		game.PeerName,
 		models.MSG_HANDLE_SETUP_OFFER,
 		offer,
@@ -47,39 +45,88 @@ func (uc *SignalingUseCase) NewOffer(gameId int64, playerId int64, sdpString str
 	var setupAnswer models.SetupAnswer
 	mapstructure.Decode(resp, &setupAnswer)
 
-	connectionInfo := models.ConnectionInfo{
-		Game:       game,
-		PlayerId:   playerId,
-		State:      models.CONNECTION_STATE_OFFER_REQUESTED,
-		ServerData: setupAnswer.Answer,
+	SignalingInfo := models.SignalingInfo{
+		Game: game,
+		// PlayerId: playerId,
+		// State:    models.POLLING_STATE_DATA_FETCHED,
+		Data: setupAnswer.Answer,
 	}
 
-	saved, err := uc.GameRepository.SaveConnectionInfo(&connectionInfo)
+	// saved, err := uc.GameRepository.SaveSignalingInfo(&SignalingInfo)
+	// if err != nil {
+	// return nil, err
+	// }
+
+	return &SignalingInfo, err
+}
+
+func (uc *SignalingUseCase) GetIceCandidate(orakkiId string, seqAfter int, num int) (*models.SignalingInfo, error) {
+	signalingInfo, err := uc.GameRepository.FindIceCandidate(orakkiId, seqAfter, num)
+
 	if err != nil {
 		return nil, err
 	}
 
-	return saved, err
+	return signalingInfo, nil
 }
 
-func (uc *SignalingUseCase) TryFetchAnswer(gameId int64, playerId int64) (bool, string, error) {
-	game, err := uc.GameRepository.FindRunningGameById(gameId)
+func (uc *SignalingUseCase) AddServerIceCandidate(orakkiId string, iceCandidate string) (*models.SignalingInfo, error) {
+	game, err := uc.GameRepository.FindRunningGameByOrakkiId(orakkiId)
+
+	if game == nil {
+		return nil, errors.New("No game matched to given ID")
+	}
+
+	SignalingInfo := models.SignalingInfo{
+		Game:     game,
+		Data:     iceCandidate,
+		OrakkiId: orakkiId,
+	}
+
+	var saved *models.SignalingInfo
+	if iceCandidate == "" {
+		// get lastly added signaling info to set is_last to 1
+		lastSignalingInfo, _ := uc.GameRepository.FindSignalingInfo(orakkiId, "desc", 1)
+		lastSignalingInfo.IsLast = true
+
+		saved, err = uc.GameRepository.UpdateSignalingInfo(lastSignalingInfo)
+	} else {
+		saved, err = uc.GameRepository.SaveSignalingInfo(&SignalingInfo)
+	}
 
 	if err != nil {
-		return false, "", errors.New("No game exists with given ID")
+		return nil, err
+	}
+	return saved, nil
+}
+
+func (uc *SignalingUseCase) AddIceCandidate(orakkiId string, playerId int64, iceCandidate string) (*models.SignalingInfo, error) {
+	game, _ := uc.GameRepository.FindRunningGameByOrakkiId(orakkiId)
+
+	if game == nil {
+		return nil, errors.New("No game exists with given ID")
 	}
 
-	connectionInfo, _ := uc.GameRepository.GetConnectionInfo(game.Orakki.Id, playerId)
+	resp, err := uc.MessageService.Request(
+		game.PeerName,
+		models.MSG_HANDLE_SETUP_ICECANDIDATE,
+		models.Icecandidate{
+			PlayerId:  playerId,
+			IceString: iceCandidate,
+		},
+		5*time.Second,
+	)
 
-	if connectionInfo.State == models.CONNECTION_STATE_ANSWER_SET {
-		if connectionInfo.ServerData != "" {
-			// change state ??
-			// connectionInfo.State = models.CONNECTION_STATE_ICE_EXCHANGING
-			return true, connectionInfo.ServerData, nil
-		} else {
-			return true, "", errors.New("Empty Answer is set")
-		}
-	} else {
-		return false, "", nil
+	if err != nil {
+		return nil, err
 	}
+
+	var setupAnswer models.SetupAnswer
+	mapstructure.Decode(resp, &setupAnswer)
+
+	SignalingInfo := models.SignalingInfo{
+		Game: game,
+	}
+
+	return &SignalingInfo, nil
 }

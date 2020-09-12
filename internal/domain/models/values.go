@@ -9,3 +9,9 @@ type SetupAnswer struct {
 	PeerId string
 	Answer string
 }
+
+type Icecandidate struct {
+	PlayerId  int64
+	OrakkiId  string
+	IceString string
+}

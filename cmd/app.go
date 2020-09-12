@@ -12,6 +12,7 @@ func main() {
 
 	mqSvc := di.InjectMqService()
 	mqSvc.AddHandler(di.InjectHelloHandler())
+	mqSvc.AddHandler(di.InjectSignalingHandler())
 
 	conf := di.InjectServiceConfig()
 	go func() { mqSvc.Run(conf.PeerName) }()

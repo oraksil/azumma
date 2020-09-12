@@ -21,11 +21,13 @@ type RunningGameData struct {
 }
 
 // ConnectionDescriptionData : record info of connection for each player, such as signaling state
-type ConnectionInfoData struct {
-	ID         int64     `db:"id"`
-	OrakkiID   string    `db:"orakki_id"`
-	PlayerID   int64     `db:"player_id"`
-	State      int       `db:"state"`
-	ServerData string    `db:"server_data"`
-	CreatedAt  time.Time `db:"created_at"`
+type SignalingInfoData struct {
+	ID       int64  `db:"id"`
+	OrakkiID string `db:"orakki_id"`
+	// PlayerID  int64     `db:"player_id"`
+	// State     int       `db:"state"`
+	Data string `db:"data"`
+	// Type      int       `db:"type"`
+	IsLast    bool      `db:"is_last"`
+	CreatedAt time.Time `db:"created_at"`
 }

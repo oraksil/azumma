@@ -35,6 +35,16 @@ func (r *MockGameRepository) SaveRunningGame(game *models.RunningGame) (*models.
 	return game, args.Error(1)
 }
 
+func (r *MockGameRepository) GetSignalingInfo(orakkiId string, playerId int64) (*models.SignalingInfo, error) {
+	var signalingInfo *models.SignalingInfo
+
+	return signalingInfo, nil
+}
+
+func (r *MockGameRepository) SaveSignalingInfo(signalingInfo *models.SignalingInfo) (*models.SignalingInfo, error) {
+	return nil, nil
+}
+
 type MockK8SOrakkiDriver struct {
 	mock.Mock
 }

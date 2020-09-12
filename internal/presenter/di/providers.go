@@ -166,3 +166,12 @@ func newHelloHandler() *handlers.HelloHandler {
 		GameCtrlUseCase: gameCtrlUseCase,
 	}
 }
+
+func newSignalingHandler() *handlers.SignalingHandler {
+	var signalingUseCase *usecases.SignalingUseCase
+	container.Make(&signalingUseCase)
+
+	return &handlers.SignalingHandler{
+		SignalingUseCase: signalingUseCase,
+	}
+}

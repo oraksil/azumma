@@ -15,48 +15,78 @@ type SignalingController struct {
 }
 
 func (ctrl *SignalingController) offerHandler(c *gin.Context) {
-	gameid, _ := strconv.ParseInt(c.Query("gameid"), 10, 64)
-	playerid, _ := strconv.ParseInt(c.PostForm("playerid"), 10, 64)
+	orakkiId := c.PostForm("orakki_id")
+	playerId, _ := strconv.ParseInt(c.PostForm("player_id"), 10, 64)
 	offer := c.PostForm("offer")
-	connectionInfo, err := ctrl.SignalingUseCase.NewOffer(gameid, playerid, offer)
+	signalingInfo, err := ctrl.SignalingUseCase.NewOffer(orakkiId, playerId, offer)
 
-	var result map[string]string
 	if err != nil {
-		result = map[string]string{
-			"error": err.Error(),
-		}
+		c.JSON(http.StatusNotAcceptable, jsend.NewFail(map[string]interface{}{
+			"code":    400,
+			"message": "invalid game or player id",
+		}))
 	} else {
-		result = map[string]string{
-			"state": strconv.Itoa(connectionInfo.State),
+		response := map[string]string{
+			"data": signalingInfo.Data,
 		}
+		c.JSON(http.StatusOK, jsend.New(response))
 	}
-	c.JSON(http.StatusOK, jsend.New(result))
 }
 
-func (ctrl *SignalingController) getAnswer(c *gin.Context) {
-	gameid, _ := strconv.ParseInt(c.Query("gameid"), 10, 64)
-	playerid, _ := strconv.ParseInt(c.Query("playerid"), 10, 64)
+func (ctrl *SignalingController) getIceCandidate(c *gin.Context) {
+	type QueryParams struct {
+		OrakkiId string `form:"orakki_id"`
+		PlayerId int64  `form:"player_id"`
+		SeqAfter int    `form:"seq_after"`
+	}
 
-	hasAnswer, answer, err := ctrl.SignalingUseCase.TryFetchAnswer(gameid, playerid)
+	var params QueryParams
+	err := c.BindQuery(&params)
+
+	SignalingInfo, err := ctrl.SignalingUseCase.GetIceCandidate(params.OrakkiId, params.SeqAfter, 1)
 
 	if err != nil {
-		result := map[string]string{
-			"error": err.Error(),
-		}
-		c.JSON(http.StatusNotAcceptable, jsend.New(result))
+		c.JSON(http.StatusNotAcceptable, jsend.NewFail(map[string]interface{}{
+			"code":    400,
+			"message": "no ice candidates availble with given id, seq",
+		}))
 	} else {
 		result := map[string]interface{}{
-			"answer":    answer,
-			"hasAnswer": hasAnswer,
+			"seq":          SignalingInfo.Id,
+			"icecandidate": SignalingInfo.Data,
+			"isLast":       SignalingInfo.IsLast,
 		}
 
 		c.JSON(http.StatusOK, jsend.New(result))
 	}
 }
 
+func (ctrl *SignalingController) postIceCandidate(c *gin.Context) {
+	orakkiId := c.PostForm("orakki_id")
+	playerId, _ := strconv.ParseInt(c.PostForm("player_id"), 10, 64)
+	candidates := c.PostForm("candidates")
+
+	result, err := ctrl.SignalingUseCase.AddIceCandidate(orakkiId, playerId, candidates)
+
+	if err != nil {
+		c.JSON(http.StatusNotAcceptable, jsend.NewFail(map[string]interface{}{
+			"code":    400,
+			"message": "invalid game id",
+		}))
+	} else {
+		response := map[string]interface{}{
+			"gameid":   result.Game.Id,
+			"playerid": playerId,
+		}
+
+		c.JSON(http.StatusOK, jsend.New(response))
+	}
+}
+
 func (ctrl *SignalingController) Routes() []web.Route {
 	return []web.Route{
 		{Spec: "POST /api/v1/signaling/offer", Handler: ctrl.offerHandler},
-		{Spec: "GET /api/v1/signaling/answer", Handler: ctrl.getAnswer},
+		{Spec: "GET /api/v1/signaling/ice", Handler: ctrl.getIceCandidate},
+		{Spec: "POST /api/v1/signaling/ice", Handler: ctrl.postIceCandidate},
 	}
 }

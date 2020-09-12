@@ -31,13 +31,12 @@ type RunningGame struct {
 	CreatedAt time.Time
 }
 
-// ConnectionState : record info of connection for each player
-type ConnectionInfo struct {
-	Id         int64
-	Game       *RunningGame
-	PlayerId   int64
-	State      int
-	ServerData string
+type SignalingInfo struct {
+	Id       int64
+	OrakkiId string
+	Game     *RunningGame
+	Data     string
+	IsLast   bool
 }
 type GameRepository interface {
 	GetGameById(id int) (*Game, error)
@@ -45,9 +44,11 @@ type GameRepository interface {
 	FindAvailableGames(offset, limit int) []*Game
 	FindRunningGames(offset, limit int) []*RunningGame
 
-	FindRunningGameById(id int64) (*RunningGame, error)
+	FindRunningGameByOrakkiId(orakkiId string) (*RunningGame, error)
 	SaveRunningGame(game *RunningGame) (*RunningGame, error)
 
-	SaveConnectionInfo(connectionState *ConnectionInfo) (*ConnectionInfo, error)
-	GetConnectionInfo(orakkiId string, playerId int64) (*ConnectionInfo, error)
+	SaveSignalingInfo(signalingInfo *SignalingInfo) (*SignalingInfo, error)
+	UpdateSignalingInfo(signalingInfo *SignalingInfo) (*SignalingInfo, error)
+	FindSignalingInfo(orakkiId string, order string, num int) (*SignalingInfo, error)
+	FindIceCandidate(orakkiId string, seqAfter int, num int) (*SignalingInfo, error)
 }
