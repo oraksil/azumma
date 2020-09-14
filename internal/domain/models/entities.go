@@ -38,15 +38,16 @@ type SignalingInfo struct {
 	Data     string
 	IsLast   bool
 }
+
 type GameRepository interface {
 	GetGameById(id int) (*Game, error)
-
 	FindAvailableGames(offset, limit int) []*Game
 	FindRunningGames(offset, limit int) []*RunningGame
-
 	FindRunningGameByOrakkiId(orakkiId string) (*RunningGame, error)
 	SaveRunningGame(game *RunningGame) (*RunningGame, error)
+}
 
+type SignalingRepository interface {
 	SaveSignalingInfo(signalingInfo *SignalingInfo) (*SignalingInfo, error)
 	UpdateSignalingInfo(signalingInfo *SignalingInfo) (*SignalingInfo, error)
 	FindSignalingInfo(orakkiId string, order string, num int) (*SignalingInfo, error)

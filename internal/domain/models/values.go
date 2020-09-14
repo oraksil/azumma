@@ -5,6 +5,16 @@ type OrakkiState struct {
 	State    int
 }
 
+type SdpInfo struct {
+	PeerId           string
+	SdpBase64Encoded string
+}
+
+type IceCandidate struct {
+	PeerId           string
+	IceBase64Encoded string
+}
+
 type SetupAnswer struct {
 	PeerId string
 	Answer string

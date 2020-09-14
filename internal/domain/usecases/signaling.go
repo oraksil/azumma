@@ -15,8 +15,9 @@ import (
 )
 
 type SignalingUseCase struct {
-	GameRepository models.GameRepository
-	MessageService services.MessageService
+	GameRepository      models.GameRepository
+	SignalingRepository models.SignalingRepository
+	MessageService      services.MessageService
 }
 
 func (uc *SignalingUseCase) NewOffer(orakkiId string, playerId int64, sdpString string) (*models.SignalingInfo, error) {
@@ -37,7 +38,7 @@ func (uc *SignalingUseCase) NewOffer(orakkiId string, playerId int64, sdpString 
 	// sdp response from orakki
 	resp, err := uc.MessageService.Request(
 		game.PeerName,
-		models.MSG_HANDLE_SETUP_OFFER,
+		models.MSG_SETUP_WITH_NEW_OFFER,
 		offer,
 		5*time.Second,
 	)
@@ -52,16 +53,11 @@ func (uc *SignalingUseCase) NewOffer(orakkiId string, playerId int64, sdpString 
 		Data: setupAnswer.Answer,
 	}
 
-	// saved, err := uc.GameRepository.SaveSignalingInfo(&SignalingInfo)
-	// if err != nil {
-	// return nil, err
-	// }
-
 	return &SignalingInfo, err
 }
 
 func (uc *SignalingUseCase) GetIceCandidate(orakkiId string, seqAfter int, num int) (*models.SignalingInfo, error) {
-	signalingInfo, err := uc.GameRepository.FindIceCandidate(orakkiId, seqAfter, num)
+	signalingInfo, err := uc.SignalingRepository.FindIceCandidate(orakkiId, seqAfter, num)
 
 	if err != nil {
 		return nil, err
@@ -86,12 +82,12 @@ func (uc *SignalingUseCase) AddServerIceCandidate(orakkiId string, iceCandidate 
 	var saved *models.SignalingInfo
 	if iceCandidate == "" {
 		// get lastly added signaling info to set is_last to 1
-		lastSignalingInfo, _ := uc.GameRepository.FindSignalingInfo(orakkiId, "desc", 1)
+		lastSignalingInfo, _ := uc.SignalingRepository.FindSignalingInfo(orakkiId, "desc", 1)
 		lastSignalingInfo.IsLast = true
 
-		saved, err = uc.GameRepository.UpdateSignalingInfo(lastSignalingInfo)
+		saved, err = uc.SignalingRepository.UpdateSignalingInfo(lastSignalingInfo)
 	} else {
-		saved, err = uc.GameRepository.SaveSignalingInfo(&SignalingInfo)
+		saved, err = uc.SignalingRepository.SaveSignalingInfo(&SignalingInfo)
 	}
 
 	if err != nil {
@@ -109,7 +105,7 @@ func (uc *SignalingUseCase) AddIceCandidate(orakkiId string, playerId int64, ice
 
 	resp, err := uc.MessageService.Request(
 		game.PeerName,
-		models.MSG_HANDLE_SETUP_ICECANDIDATE,
+		models.MSG_REMOTE_ICE_CANDIDATE,
 		models.Icecandidate{
 			PlayerId:  playerId,
 			IceString: iceCandidate,

@@ -11,7 +11,6 @@ func main() {
 	di.InitContainer()
 
 	mqSvc := di.InjectMqService()
-	mqSvc.AddHandler(di.InjectHelloHandler())
 	mqSvc.AddHandler(di.InjectSignalingHandler())
 
 	conf := di.InjectServiceConfig()

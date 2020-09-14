@@ -137,15 +137,19 @@ func newGameController() *ctrls.GameController {
 }
 
 func newSignalingUseCases() *usecases.SignalingUseCase {
-	var repo models.GameRepository
-	container.Make(&repo)
+	var gameRepo models.GameRepository
+	container.Make(&gameRepo)
+
+	var signalingRepo models.SignalingRepository
+	container.Make(&signalingRepo)
 
 	var msgService services.MessageService
 	container.Make(&msgService)
 
 	return &usecases.SignalingUseCase{
-		GameRepository: repo,
-		MessageService: msgService,
+		GameRepository:      gameRepo,
+		SignalingRepository: signalingRepo,
+		MessageService:      msgService,
 	}
 }
 
@@ -155,15 +159,6 @@ func newSignalingController() *ctrls.SignalingController {
 
 	return &ctrls.SignalingController{
 		SignalingUseCase: signalingUseCase,
-	}
-}
-
-func newHelloHandler() *handlers.HelloHandler {
-	var gameCtrlUseCase *usecases.GameCtrlUseCase
-	container.Make(&gameCtrlUseCase)
-
-	return &handlers.HelloHandler{
-		GameCtrlUseCase: gameCtrlUseCase,
 	}
 }
 
