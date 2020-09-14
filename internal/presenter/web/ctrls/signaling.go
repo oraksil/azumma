@@ -2,7 +2,6 @@ package ctrls
 
 import (
 	"net/http"
-	"strconv"
 
 	"clevergo.tech/jsend"
 	"github.com/gin-gonic/gin"
@@ -15,13 +14,20 @@ type SignalingController struct {
 }
 
 func (ctrl *SignalingController) offerHandler(c *gin.Context) {
-	orakkiId := c.PostForm("orakki_id")
-	playerId, _ := strconv.ParseInt(c.PostForm("player_id"), 10, 64)
-	offer := c.PostForm("offer")
-	signalingInfo, err := ctrl.SignalingUseCase.NewOffer(orakkiId, playerId, offer)
+
+	type BodyParams struct {
+		OrakkiId string `json:"orakki_id" form:"orakki_id"`
+		PlayerId int64  `json:"player_id" form:"player_id"`
+		Offer    string `json:"offer" form:"offer"`
+	}
+
+	var params BodyParams
+	err := c.Bind(&params)
+
+	signalingInfo, err := ctrl.SignalingUseCase.NewOffer(params.OrakkiId, params.PlayerId, params.Offer)
 
 	if err != nil {
-		c.JSON(http.StatusNotAcceptable, jsend.NewFail(map[string]interface{}{
+		c.JSON(http.StatusOK, jsend.NewFail(map[string]interface{}{
 			"code":    400,
 			"message": "invalid game or player id",
 		}))
@@ -41,12 +47,12 @@ func (ctrl *SignalingController) getIceCandidate(c *gin.Context) {
 	}
 
 	var params QueryParams
-	err := c.BindQuery(&params)
+	err := c.Bind(&params)
 
-	SignalingInfo, err := ctrl.SignalingUseCase.GetIceCandidate(params.OrakkiId, params.SeqAfter, 1)
+	SignalingInfo, err := ctrl.SignalingUseCase.GetIceCandidate(params.OrakkiId, params.SeqAfter)
 
 	if err != nil {
-		c.JSON(http.StatusNotAcceptable, jsend.NewFail(map[string]interface{}{
+		c.JSON(http.StatusOK, jsend.NewFail(map[string]interface{}{
 			"code":    400,
 			"message": "no ice candidates availble with given id, seq",
 		}))
@@ -62,21 +68,26 @@ func (ctrl *SignalingController) getIceCandidate(c *gin.Context) {
 }
 
 func (ctrl *SignalingController) postIceCandidate(c *gin.Context) {
-	orakkiId := c.PostForm("orakki_id")
-	playerId, _ := strconv.ParseInt(c.PostForm("player_id"), 10, 64)
-	candidates := c.PostForm("candidates")
+	type BodyParams struct {
+		OrakkiId  string `json:"orakki_id" form:"orakki_id"`
+		PlayerId  int64  `json:"player_id" form:"player_id"`
+		Candidate string `json:"candidate" form:"candidate"`
+	}
 
-	result, err := ctrl.SignalingUseCase.AddIceCandidate(orakkiId, playerId, candidates)
+	var params BodyParams
+	err := c.Bind(&params)
+
+	result, err := ctrl.SignalingUseCase.AddIceCandidate(params.OrakkiId, params.PlayerId, params.Candidate)
 
 	if err != nil {
-		c.JSON(http.StatusNotAcceptable, jsend.NewFail(map[string]interface{}{
+		c.JSON(http.StatusOK, jsend.NewFail(map[string]interface{}{
 			"code":    400,
 			"message": "invalid game id",
 		}))
 	} else {
 		response := map[string]interface{}{
 			"gameid":   result.Game.Id,
-			"playerid": playerId,
+			"playerid": params.PlayerId,
 		}
 
 		c.JSON(http.StatusOK, jsend.New(response))

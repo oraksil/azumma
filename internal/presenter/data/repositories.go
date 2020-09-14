@@ -120,7 +120,11 @@ func (r *GameRepositoryMySqlImpl) FindRunningGameByOrakkiId(orakkiId string) (*m
 	return &game, nil
 }
 
-func (r *GameRepositoryMySqlImpl) SaveSignalingInfo(signalingInfo *models.SignalingInfo) (*models.SignalingInfo, error) {
+type SignalingRepositoryMySqlImpl struct {
+	DB *sqlx.DB
+}
+
+func (r *SignalingRepositoryMySqlImpl) SaveSignalingInfo(signalingInfo *models.SignalingInfo) (*models.SignalingInfo, error) {
 	data := dto.SignalingInfoData{
 		OrakkiID: signalingInfo.Game.Orakki.Id,
 		Data:     signalingInfo.Data,
@@ -143,7 +147,7 @@ func (r *GameRepositoryMySqlImpl) SaveSignalingInfo(signalingInfo *models.Signal
 
 	return signalingInfo, err
 }
-func (r *GameRepositoryMySqlImpl) UpdateSignalingInfo(signalingInfo *models.SignalingInfo) (*models.SignalingInfo, error) {
+func (r *SignalingRepositoryMySqlImpl) UpdateSignalingInfo(signalingInfo *models.SignalingInfo) (*models.SignalingInfo, error) {
 	data := dto.SignalingInfoData{
 		OrakkiID: signalingInfo.OrakkiId,
 		Data:     signalingInfo.Data,
@@ -164,7 +168,7 @@ func (r *GameRepositoryMySqlImpl) UpdateSignalingInfo(signalingInfo *models.Sign
 
 	return signalingInfo, err
 }
-func (r *GameRepositoryMySqlImpl) FindSignalingInfo(orakkiId string, order string, num int) (*models.SignalingInfo, error) {
+func (r *SignalingRepositoryMySqlImpl) FindSignalingInfo(orakkiId string, order string, num int) (*models.SignalingInfo, error) {
 	var signalingInfo *models.SignalingInfo
 	result := dto.SignalingInfoData{}
 	err := r.DB.Get(&result, "select * from signaling_info where orakki_id = ? order by id desc limit ?", orakkiId, num)
@@ -177,10 +181,10 @@ func (r *GameRepositoryMySqlImpl) FindSignalingInfo(orakkiId string, order strin
 	return signalingInfo, nil
 }
 
-func (r *GameRepositoryMySqlImpl) FindIceCandidate(orakkiId string, seqAfter, num int) (*models.SignalingInfo, error) {
+func (r *SignalingRepositoryMySqlImpl) FindIceCandidate(orakkiId string, seqAfter int) (*models.SignalingInfo, error) {
 	var signalingInfo *models.SignalingInfo
 	result := dto.SignalingInfoData{}
-	err := r.DB.Get(&result, "select * from signaling_info where orakki_id = ? and id > ? order by id asc limit ?", orakkiId, seqAfter, num)
+	err := r.DB.Get(&result, "select * from signaling_info where orakki_id = ? and id > ? order by id asc", orakkiId, seqAfter)
 	if err != nil {
 		return nil, err
 	}

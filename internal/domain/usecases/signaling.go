@@ -56,8 +56,8 @@ func (uc *SignalingUseCase) NewOffer(orakkiId string, playerId int64, sdpString 
 	return &SignalingInfo, err
 }
 
-func (uc *SignalingUseCase) GetIceCandidate(orakkiId string, seqAfter int, num int) (*models.SignalingInfo, error) {
-	signalingInfo, err := uc.SignalingRepository.FindIceCandidate(orakkiId, seqAfter, num)
+func (uc *SignalingUseCase) GetIceCandidate(orakkiId string, seqAfter int) (*models.SignalingInfo, error) {
+	signalingInfo, err := uc.SignalingRepository.FindIceCandidate(orakkiId, seqAfter)
 
 	if err != nil {
 		return nil, err

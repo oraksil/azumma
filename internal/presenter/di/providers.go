@@ -136,6 +136,14 @@ func newGameController() *ctrls.GameController {
 	}
 }
 
+func newSignalingRepository() models.SignalingRepository {
+
+	var db *sqlx.DB
+	container.Make(&db)
+
+	return &data.SignalingRepositoryMySqlImpl{DB: db}
+}
+
 func newSignalingUseCases() *usecases.SignalingUseCase {
 	var gameRepo models.GameRepository
 	container.Make(&gameRepo)

@@ -99,7 +99,7 @@ func (m *MockSignalingRepository) UpdateSignalingInfo(signalingInfo *models.Sign
 	return args.Get(0).(*models.SignalingInfo), args.Error(1)
 }
 
-func (m *MockSignalingRepository) FindIceCandidate(orakkiId string, seqAfter int, num int) (*models.SignalingInfo, error) {
-	args := m.Called(orakkiId, seqAfter, num)
+func (m *MockSignalingRepository) FindIceCandidate(orakkiId string, seqAfter int) (*models.SignalingInfo, error) {
+	args := m.Called(orakkiId, seqAfter)
 	return args.Get(0).(*models.SignalingInfo), args.Error(1)
 }

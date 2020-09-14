@@ -20,7 +20,7 @@ func InitContainer() {
 	container.Singleton(newGameFetchUseCase)
 	container.Singleton(newGameCtrlUseCase)
 	container.Singleton(newGameController)
-	container.Singleton(newSignalingHandler)
+	container.Singleton(newSignalingRepository)
 	container.Singleton(newSignalingUseCases)
 	container.Singleton(newSignalingHandler)
 	container.Singleton(newSignalingController)

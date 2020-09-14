@@ -51,5 +51,5 @@ type SignalingRepository interface {
 	SaveSignalingInfo(signalingInfo *SignalingInfo) (*SignalingInfo, error)
 	UpdateSignalingInfo(signalingInfo *SignalingInfo) (*SignalingInfo, error)
 	FindSignalingInfo(orakkiId string, order string, num int) (*SignalingInfo, error)
-	FindIceCandidate(orakkiId string, seqAfter int, num int) (*SignalingInfo, error)
+	FindIceCandidate(orakkiId string, seqAfter int) (*SignalingInfo, error)
 }
