@@ -9,9 +9,9 @@ import (
 )
 
 func TestMapGameEntityToDto(t *testing.T) {
-	e := models.Game{Id: 1, Title: "Game", Description: "Desc", MaxPlayers: 3}
+	e := models.Pack{Id: 1, Title: "Game", Description: "Desc", MaxPlayers: 3}
 
-	var dto AvailableGameDto
+	var dto PackDto
 	mapstructure.Decode(e, &dto)
 
 	assert.Equal(t, e.Id, dto.Id)

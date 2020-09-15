@@ -10,29 +10,29 @@ import (
 )
 
 type GameFetchUseCase struct {
-	GameRepo        models.GameRepository
-	RunningGameRepo models.RunningGameRepository
+	PackRepo models.PackRepository
+	GameRepo models.GameRepository
 }
 
-func (uc *GameFetchUseCase) GetAvailableGames(page, size int) []*models.Game {
+func (uc *GameFetchUseCase) GetPacks(page, size int) []*models.Pack {
+	return uc.PackRepo.Find(page*size, size)
+}
+
+func (uc *GameFetchUseCase) GetGames(page, size int) []*models.Game {
 	return uc.GameRepo.Find(page*size, size)
 }
 
-func (uc *GameFetchUseCase) GetRunningGames(page, size int) []*models.RunningGame {
-	return uc.RunningGameRepo.Find(page*size, size)
-}
-
 type GameCtrlUseCase struct {
-	GameRepo        models.GameRepository
-	RunningGameRepo models.RunningGameRepository
-	OrakkiDriver    services.OrakkiDriver
-	MessageService  services.MessageService
-	ServiceConfig   *services.ServiceConfig
+	PackRepo       models.PackRepository
+	GameRepo       models.GameRepository
+	OrakkiDriver   services.OrakkiDriver
+	MessageService services.MessageService
+	ServiceConfig  *services.ServiceConfig
 }
 
-func (uc *GameCtrlUseCase) CreateNewGame(gameId int, firstPlayer *models.Player) (*models.RunningGame, error) {
+func (uc *GameCtrlUseCase) CreateNewGame(packId int, firstPlayer *models.Player) (*models.Game, error) {
 	// validate game
-	game, err := uc.GameRepo.GetById(gameId)
+	pack, err := uc.PackRepo.GetById(packId)
 	if err != nil {
 		return nil, err
 	}
@@ -44,19 +44,19 @@ func (uc *GameCtrlUseCase) CreateNewGame(gameId int, firstPlayer *models.Player)
 	}
 
 	// persist orakki context
-	runningGame := models.RunningGame{
+	game := models.Game{
 		Orakki:  newOrakki,
-		Game:    game,
+		Pack:    pack,
 		Players: []*models.Player{firstPlayer},
 	}
-	saved, err := uc.RunningGameRepo.Save(&runningGame)
+	saved, err := uc.GameRepo.Save(&game)
 	if err != nil {
 		uc.OrakkiDriver.DeleteInstance(newOrakki.Id)
 		return nil, err
 	}
 
 	// healthcheck if orakki instance is ready
-	go uc.postProvisionHandler(&runningGame)
+	go uc.postProvisionHandler(&game)
 
 	return saved, nil
 }
@@ -83,8 +83,8 @@ func (uc *GameCtrlUseCase) provisionOrakki() (*models.Orakki, error) {
 	}, nil
 }
 
-func (uc *GameCtrlUseCase) postProvisionHandler(runningGame *models.RunningGame) {
-	newOrakki := runningGame.Orakki
+func (uc *GameCtrlUseCase) postProvisionHandler(game *models.Game) {
+	newOrakki := game.Orakki
 
 	maxWaitTime := uc.ServiceConfig.ProvisionMaxWait * time.Second
 	startTime := time.Now()
@@ -100,10 +100,10 @@ func (uc *GameCtrlUseCase) postProvisionHandler(runningGame *models.RunningGame)
 		var orakkiState models.OrakkiState
 		mapstructure.Decode(resp, &orakkiState)
 
-		if orakkiState.OrakkiId == runningGame.Orakki.Id &&
+		if orakkiState.OrakkiId == game.Orakki.Id &&
 			orakkiState.State == models.ORAKKI_STATE_READY {
-			runningGame.Orakki.State = models.ORAKKI_STATE_READY
-			uc.RunningGameRepo.Save(runningGame)
+			game.Orakki.State = models.ORAKKI_STATE_READY
+			uc.GameRepo.Save(game)
 			break
 		}
 
@@ -113,8 +113,8 @@ func (uc *GameCtrlUseCase) postProvisionHandler(runningGame *models.RunningGame)
 				uc.OrakkiDriver.DeleteInstance(newOrakki.Id)
 			}
 
-			runningGame.Orakki.State = models.ORAKKI_STATE_PANIC
-			uc.RunningGameRepo.Save(runningGame)
+			game.Orakki.State = models.ORAKKI_STATE_PANIC
+			uc.GameRepo.Save(game)
 			break
 		}
 

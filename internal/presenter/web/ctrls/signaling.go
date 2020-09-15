@@ -20,14 +20,14 @@ func (ctrl *SignalingController) handleSdpExchange(c *gin.Context) {
 	player := models.Player{Id: 1, Name: "eddy"}
 
 	type JsonParams struct {
-		RunningGameId int64  `json:"running_game_id"`
-		SdpOffer      string `json:"sdp_offer"`
+		gameId   int64  `json:"game_id"`
+		sdpOffer string `json:"sdp_offer"`
 	}
 
 	var params JsonParams
 	err := c.BindJSON(&params)
 
-	signalingInfo, err := ctrl.SignalingUseCase.NewOffer(params.RunningGameId, player.Id, params.SdpOffer)
+	signaling, err := ctrl.SignalingUseCase.NewOffer(params.gameId, player.Id, params.sdpOffer)
 
 	if err != nil {
 		c.JSON(http.StatusOK, jsend.NewFail(map[string]interface{}{
@@ -35,7 +35,7 @@ func (ctrl *SignalingController) handleSdpExchange(c *gin.Context) {
 			"message": "invalid game or player id",
 		}))
 	} else {
-		c.JSON(http.StatusOK, jsend.New(signalingInfo))
+		c.JSON(http.StatusOK, jsend.New(signaling))
 	}
 }
 
@@ -45,14 +45,14 @@ func (ctrl *SignalingController) getOrakkiIceCandidates(c *gin.Context) {
 	// player := models.Player{Id: 1, Name: "eddy"}
 
 	type QueryParams struct {
-		RunningGameId int64 `json:"running_game_id"`
-		SinceId       int64 `form:"since_id"`
+		gameId  int64 `json:"game_id"`
+		sinceId int64 `form:"since_id"`
 	}
 
 	var params QueryParams
 	err := c.Bind(&params)
 
-	signalingInfo, err := ctrl.SignalingUseCase.GetIceCandidate(params.RunningGameId, params.SinceId)
+	signaling, err := ctrl.SignalingUseCase.GetIceCandidate(params.gameId, params.sinceId)
 
 	if err != nil {
 		c.JSON(http.StatusOK, jsend.NewFail(map[string]interface{}{
@@ -62,7 +62,7 @@ func (ctrl *SignalingController) getOrakkiIceCandidates(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, jsend.New(signalingInfo))
+	c.JSON(http.StatusOK, jsend.New(signaling))
 }
 
 func (ctrl *SignalingController) postPlayerIceCandidate(c *gin.Context) {
@@ -70,15 +70,15 @@ func (ctrl *SignalingController) postPlayerIceCandidate(c *gin.Context) {
 	// player := ctrl.SessionUseCase.GetPlayerFromSession(...)
 	player := models.Player{Id: 1, Name: "eddy"}
 
-	type BodyParams struct {
-		RunningGameId int64  `json:"running_game_id"`
-		Candidate     string `json:"candidate"`
+	type JsonParams struct {
+		gameId    int64  `json:"game_id"`
+		candidate string `json:"candidate"`
 	}
 
-	var params BodyParams
+	var params JsonParams
 	err := c.BindJSON(&params)
 
-	result, err := ctrl.SignalingUseCase.AddIceCandidate(params.RunningGameId, player.Id, params.Candidate)
+	result, err := ctrl.SignalingUseCase.AddIceCandidate(params.gameId, player.Id, params.candidate)
 
 	if err != nil {
 		c.JSON(http.StatusOK, jsend.NewFail(map[string]interface{}{

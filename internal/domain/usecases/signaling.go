@@ -16,12 +16,12 @@ import (
 )
 
 type SignalingUseCase struct {
-	RunningGameRepo models.RunningGameRepository
-	SignalingRepo   models.SignalingRepository
-	MessageService  services.MessageService
+	GameRepo       models.GameRepository
+	SignalingRepo  models.SignalingRepository
+	MessageService services.MessageService
 }
 
-func (uc *SignalingUseCase) NewOffer(runningGameId int64, playerId int64, sdpString string) (*models.SignalingInfo, error) {
+func (uc *SignalingUseCase) NewOffer(gameId int64, playerId int64, sdpString string) (*models.Signaling, error) {
 	offer := webrtc.SessionDescription{}
 
 	err := json.Unmarshal([]byte(sdpString), &offer)
@@ -30,7 +30,7 @@ func (uc *SignalingUseCase) NewOffer(runningGameId int64, playerId int64, sdpStr
 		return nil, err
 	}
 
-	game, err := uc.RunningGameRepo.FindById(runningGameId)
+	game, err := uc.GameRepo.FindById(gameId)
 
 	if game == nil {
 		return nil, errors.New("No game exists with given ID")
@@ -52,47 +52,47 @@ func (uc *SignalingUseCase) NewOffer(runningGameId int64, playerId int64, sdpStr
 	var setupAnswer models.SetupAnswer
 	mapstructure.Decode(resp, &setupAnswer)
 
-	SignalingInfo := models.SignalingInfo{
+	Signaling := models.Signaling{
 		Game: game,
 		// PlayerId: playerId,
 		// State:    models.POLLING_STATE_DATA_FETCHED,
 		Data: setupAnswer.Answer,
 	}
 
-	return &SignalingInfo, err
+	return &Signaling, err
 }
 
-func (uc *SignalingUseCase) GetIceCandidate(runningGameId int64, sinceId int64) (*models.SignalingInfo, error) {
-	signalingInfo, err := uc.SignalingRepo.FindByRunningGameId(runningGameId, sinceId)
+func (uc *SignalingUseCase) GetIceCandidate(gameId int64, sinceId int64) (*models.Signaling, error) {
+	signaling, err := uc.SignalingRepo.FindByGameId(gameId, sinceId)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return signalingInfo, nil
+	return signaling, nil
 }
 
-func (uc *SignalingUseCase) AddServerIceCandidate(runningGameId int64, iceCandidate string) (*models.SignalingInfo, error) {
-	game, err := uc.RunningGameRepo.FindById(runningGameId)
+func (uc *SignalingUseCase) AddServerIceCandidate(gameId int64, iceCandidate string) (*models.Signaling, error) {
+	game, err := uc.GameRepo.FindById(gameId)
 
 	if game == nil {
 		return nil, errors.New("No game matched to given ID")
 	}
 
-	SignalingInfo := models.SignalingInfo{
+	signaling := models.Signaling{
 		Game: game,
 		Data: iceCandidate,
 	}
 
-	var saved *models.SignalingInfo
+	var saved *models.Signaling
 	if iceCandidate == "" {
 		// get lastly added signaling info to set is_last to 1
-		lastSignalingInfo, _ := uc.SignalingRepo.FindByRunningGameId(runningGameId, 1)
-		lastSignalingInfo.IsLast = true
+		lastSignaling, _ := uc.SignalingRepo.FindByGameId(gameId, 1)
+		lastSignaling.IsLast = true
 
-		saved, err = uc.SignalingRepo.Save(lastSignalingInfo)
+		saved, err = uc.SignalingRepo.Save(lastSignaling)
 	} else {
-		saved, err = uc.SignalingRepo.Save(&SignalingInfo)
+		saved, err = uc.SignalingRepo.Save(&signaling)
 	}
 
 	if err != nil {
@@ -101,8 +101,8 @@ func (uc *SignalingUseCase) AddServerIceCandidate(runningGameId int64, iceCandid
 	return saved, nil
 }
 
-func (uc *SignalingUseCase) AddIceCandidate(runningGameId int64, playerId int64, iceCandidate string) (*models.SignalingInfo, error) {
-	game, _ := uc.RunningGameRepo.FindById(runningGameId)
+func (uc *SignalingUseCase) AddIceCandidate(gameId int64, playerId int64, iceCandidate string) (*models.Signaling, error) {
+	game, _ := uc.GameRepo.FindById(gameId)
 
 	if game == nil {
 		return nil, errors.New("No game exists with given ID")
@@ -125,9 +125,9 @@ func (uc *SignalingUseCase) AddIceCandidate(runningGameId int64, playerId int64,
 	var setupAnswer models.SetupAnswer
 	mapstructure.Decode(resp, &setupAnswer)
 
-	SignalingInfo := models.SignalingInfo{
+	Signaling := models.Signaling{
 		Game: game,
 	}
 
-	return &SignalingInfo, nil
+	return &Signaling, nil
 }

@@ -1,4 +1,4 @@
-create table game (
+create table pack (
     id int not null auto_increment,
     title varchar(64) not null,
     maker varchar(64) not null,
@@ -16,7 +16,7 @@ create table player (
     primary key (id)
 ) character set utf8mb4 collate utf8mb4_unicode_ci;
 
-create table running_game (
+create table game (
     id bigint not null auto_increment,
     peer_name varchar(128) not null,
     orakki_id varchar(128) not null,
@@ -32,7 +32,7 @@ create table running_game (
     foreign key (first_player_id) references player(id)
 ) character set utf8mb4 collate utf8mb4_unicode_ci;
 
-create table signaling_info (
+create table signaling (
     id bigint not null auto_increment,
     orakki_id varchar(128) not null,
     data varchar(8196),

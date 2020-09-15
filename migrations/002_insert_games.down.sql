@@ -1,4 +1,4 @@
-delete from running_game;
-delete from signaling_info;
 delete from game;
+delete from signaling;
+delete from pack;
 delete from player;

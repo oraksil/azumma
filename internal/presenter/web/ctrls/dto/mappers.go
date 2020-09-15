@@ -5,15 +5,15 @@ import (
 	"github.com/oraksil/azumma/internal/domain/models"
 )
 
-func GamesToDto(src []*models.Game) []*AvailableGameDto {
-	var gamesDto []*AvailableGameDto
-	mapstructure.Decode(src, &gamesDto)
+func PackToDto(src []*models.Pack) []*PackDto {
+	var packsDto []*PackDto
+	mapstructure.Decode(src, &packsDto)
 
-	return gamesDto
+	return packsDto
 }
 
-func RunningGameToDto(src *models.RunningGame) *RunningGameDto {
-	gameDto := RunningGameDto{
+func GameToDto(src *models.Game) *GameDto {
+	gameDto := GameDto{
 		Id:        src.Id,
 		CreatedAt: src.CreatedAt.Unix(),
 	}

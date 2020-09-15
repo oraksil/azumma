@@ -10,41 +10,41 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func TestGameFetchUseCaseFindAvailableGames(t *testing.T) {
+func TestGameFetchUseCaseFindAvailablePacks(t *testing.T) {
 	// given
-	mockGameRepo := new(MockGameRepository)
+	mockPackRepo := new(MockPackRepository)
 	useCase := GameFetchUseCase{
-		GameRepo: mockGameRepo,
+		PackRepo: mockPackRepo,
 	}
 
-	mockGames := []*models.Game{
+	mockPacks := []*models.Pack{
 		{Id: 1, Title: "Cadilacs", Description: "Game", MaxPlayers: 3},
 		{Id: 2, Title: "Bobl Bubl", Description: "Game", MaxPlayers: 2},
 	}
-	mockGameRepo.On("Find", 0, 2).Return(mockGames)
+	mockPackRepo.On("Find", 0, 2).Return(mockPacks)
 
 	// when
-	games := useCase.GetAvailableGames(0, 2)
+	packs := useCase.GetPacks(0, 2)
 
 	// then
-	assert.Equal(t, len(games), 2)
-	mockGameRepo.AssertExpectations(t)
+	assert.Equal(t, len(packs), 2)
+	mockPackRepo.AssertExpectations(t)
 
 	// given
-	mockGameRepo.On("Find", 2, 2).Return(mockGames)
+	mockPackRepo.On("Find", 2, 2).Return(mockPacks)
 
 	// when
-	games = useCase.GetAvailableGames(1, 2)
+	packs = useCase.GetPacks(1, 2)
 
 	// then
-	assert.Equal(t, len(games), 2)
-	mockGameRepo.AssertExpectations(t)
+	assert.Equal(t, len(packs), 2)
+	mockPackRepo.AssertExpectations(t)
 }
 
 func TestGameCtrlUseCaseCreateNewGame(t *testing.T) {
 	// given
+	mockPackRepo := new(MockPackRepository)
 	mockGameRepo := new(MockGameRepository)
-	mockRunningGameRepo := new(MockRunningGameRepository)
 	mockDriver := new(MockK8SOrakkiDriver)
 	mockMsgSvc := new(MockMessageService)
 	serviceConf := newServiceConfig()
@@ -55,7 +55,7 @@ func TestGameCtrlUseCaseCreateNewGame(t *testing.T) {
 		TotalCoins: 10,
 	}
 
-	mockGame := models.Game{
+	mockPack := models.Pack{
 		Id:          1,
 		Title:       "Bubl Boble",
 		Maker:       "TAITO",
@@ -63,34 +63,34 @@ func TestGameCtrlUseCaseCreateNewGame(t *testing.T) {
 		MaxPlayers:  2,
 	}
 
-	mockGameRepo.On("GetById", 1).Return(&mockGame, nil)
-	mockRunningGameRepo.On("Save", mock.Anything).Return(mock.Anything, nil)
+	mockPackRepo.On("GetById", 1).Return(&mockPack, nil)
+	mockGameRepo.On("Save", mock.Anything).Return(mock.Anything, nil)
 	mockDriver.On("RunInstance", mock.Anything).Return(serviceConf.StaticOrakkiId, nil)
 
 	// when
 	useCase := GameCtrlUseCase{
-		GameRepo:        mockGameRepo,
-		RunningGameRepo: mockRunningGameRepo,
-		OrakkiDriver:    mockDriver,
-		MessageService:  mockMsgSvc,
-		ServiceConfig:   serviceConf,
+		PackRepo:       mockPackRepo,
+		GameRepo:       mockGameRepo,
+		OrakkiDriver:   mockDriver,
+		MessageService: mockMsgSvc,
+		ServiceConfig:  serviceConf,
 	}
-	runningGame, err := useCase.CreateNewGame(1, &mockPlayer)
+	game, err := useCase.CreateNewGame(1, &mockPlayer)
 
 	// then
-	assert.NotNil(t, runningGame)
+	assert.NotNil(t, game)
 	assert.Nil(t, err)
-	assert.Equal(t, serviceConf.StaticOrakkiId, runningGame.Orakki.Id)
-	assert.Equal(t, models.ORAKKI_STATE_INIT, runningGame.Orakki.State)
-	assert.Equal(t, 1, len(runningGame.Players))
-	assert.Equal(t, &mockPlayer, runningGame.Players[0])
+	assert.Equal(t, serviceConf.StaticOrakkiId, game.Orakki.Id)
+	assert.Equal(t, models.ORAKKI_STATE_INIT, game.Orakki.State)
+	assert.Equal(t, 1, len(game.Players))
+	assert.Equal(t, &mockPlayer, game.Players[0])
 
 	mockGameRepo.AssertExpectations(t)
 	mockDriver.AssertExpectations(t)
 
 	// given
 	mockState := models.OrakkiState{
-		OrakkiId: runningGame.Orakki.Id,
+		OrakkiId: game.Orakki.Id,
 		State:    models.ORAKKI_STATE_READY,
 	}
 	mockMsgSvc.
@@ -98,10 +98,10 @@ func TestGameCtrlUseCaseCreateNewGame(t *testing.T) {
 		Return(mockState, nil)
 
 	// when
-	useCase.postProvisionHandler(runningGame)
+	useCase.postProvisionHandler(game)
 
 	// then
-	assert.Equal(t, models.ORAKKI_STATE_READY, runningGame.Orakki.State)
+	assert.Equal(t, models.ORAKKI_STATE_READY, game.Orakki.State)
 }
 
 func newServiceConfig() *services.ServiceConfig {

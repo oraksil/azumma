@@ -1,6 +1,6 @@
 package dto
 
-type AvailableGameDto struct {
+type PackDto struct {
 	Id         int    `json:"id"`
 	Title      string `json:"title"`
 	Maker      string `json:"maker"`
@@ -8,7 +8,7 @@ type AvailableGameDto struct {
 	MaxPlayers int    `json:"max_players"`
 }
 
-type RunningGameDto struct {
+type GameDto struct {
 	Id int64 `json:"id"`
 	// Orakki    *Orakki
 	// Game      *Game

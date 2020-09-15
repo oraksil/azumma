@@ -7,13 +7,22 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-type MockGameRepository struct {
+type MockPackRepository struct {
 	mock.Mock
 }
 
-func (r *MockGameRepository) GetById(id int) (*models.Game, error) {
+func (r *MockPackRepository) GetById(id int) (*models.Pack, error) {
 	args := r.Called(id)
-	return args.Get(0).(*models.Game), args.Error(1)
+	return args.Get(0).(*models.Pack), args.Error(1)
+}
+
+func (r *MockPackRepository) Find(offset, limit int) []*models.Pack {
+	args := r.Called(offset, limit)
+	return args.Get(0).([]*models.Pack)
+}
+
+type MockGameRepository struct {
+	mock.Mock
 }
 
 func (r *MockGameRepository) Find(offset, limit int) []*models.Game {
@@ -21,21 +30,12 @@ func (r *MockGameRepository) Find(offset, limit int) []*models.Game {
 	return args.Get(0).([]*models.Game)
 }
 
-type MockRunningGameRepository struct {
-	mock.Mock
-}
-
-func (r *MockRunningGameRepository) Find(offset, limit int) []*models.RunningGame {
-	args := r.Called(offset, limit)
-	return args.Get(0).([]*models.RunningGame)
-}
-
-func (r *MockRunningGameRepository) FindById(id int64) (*models.RunningGame, error) {
+func (r *MockGameRepository) FindById(id int64) (*models.Game, error) {
 	args := r.Called(id)
-	return args.Get(0).(*models.RunningGame), args.Error(1)
+	return args.Get(0).(*models.Game), args.Error(1)
 }
 
-func (r *MockRunningGameRepository) Save(game *models.RunningGame) (*models.RunningGame, error) {
+func (r *MockGameRepository) Save(game *models.Game) (*models.Game, error) {
 	args := r.Called(game)
 	game.Id = 1
 	return game, args.Error(1)
@@ -45,14 +45,14 @@ type MockSignalingRepository struct {
 	mock.Mock
 }
 
-func (m *MockSignalingRepository) Save(signalingInfo *models.SignalingInfo) (*models.SignalingInfo, error) {
-	args := m.Called(signalingInfo)
-	return args.Get(0).(*models.SignalingInfo), args.Error(1)
+func (m *MockSignalingRepository) Save(signaling *models.Signaling) (*models.Signaling, error) {
+	args := m.Called(signaling)
+	return args.Get(0).(*models.Signaling), args.Error(1)
 }
 
-func (m *MockSignalingRepository) FindByRunningGameId(runningGameId int64, sinceId int64) (*models.SignalingInfo, error) {
-	args := m.Called(runningGameId, sinceId)
-	return args.Get(0).(*models.SignalingInfo), args.Error(1)
+func (m *MockSignalingRepository) FindByGameId(gameId int64, sinceId int64) (*models.Signaling, error) {
+	args := m.Called(gameId, sinceId)
+	return args.Get(0).(*models.Signaling), args.Error(1)
 }
 
 type MockK8SOrakkiDriver struct {
