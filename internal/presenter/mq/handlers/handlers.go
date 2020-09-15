@@ -17,7 +17,7 @@ func (h *SignalingHandler) handleIceCandidate(ctx *mqrpc.Context) interface{} {
 	var temp models.Icecandidate
 	json.Unmarshal(ctx.GetMessage().Payload, &temp)
 
-	h.SignalingUseCase.AddServerIceCandidate(temp.OrakkiId, temp.IceString)
+	h.SignalingUseCase.AddServerIceCandidate(1, temp.IceString)
 	return nil
 }
 

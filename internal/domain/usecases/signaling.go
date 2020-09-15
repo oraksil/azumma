@@ -8,6 +8,7 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/oraksil/azumma/internal/domain/models"
 	"github.com/oraksil/azumma/internal/domain/services"
+	"github.com/oraksil/azumma/pkg/utils"
 
 	"github.com/pion/webrtc/v2"
 
@@ -15,12 +16,12 @@ import (
 )
 
 type SignalingUseCase struct {
-	GameRepository      models.GameRepository
-	SignalingRepository models.SignalingRepository
-	MessageService      services.MessageService
+	RunningGameRepo models.RunningGameRepository
+	SignalingRepo   models.SignalingRepository
+	MessageService  services.MessageService
 }
 
-func (uc *SignalingUseCase) NewOffer(orakkiId string, playerId int64, sdpString string) (*models.SignalingInfo, error) {
+func (uc *SignalingUseCase) NewOffer(runningGameId int64, playerId int64, sdpString string) (*models.SignalingInfo, error) {
 	offer := webrtc.SessionDescription{}
 
 	err := json.Unmarshal([]byte(sdpString), &offer)
@@ -29,17 +30,22 @@ func (uc *SignalingUseCase) NewOffer(orakkiId string, playerId int64, sdpString 
 		return nil, err
 	}
 
-	game, err := uc.GameRepository.FindRunningGameByOrakkiId(orakkiId)
+	game, err := uc.RunningGameRepo.FindById(runningGameId)
 
 	if game == nil {
 		return nil, errors.New("No game exists with given ID")
+	}
+
+	b64EncodedOffer, err := utils.EncodeToB64EncodedJsonStr(offer)
+	if err != nil {
+		return nil, err
 	}
 
 	// sdp response from orakki
 	resp, err := uc.MessageService.Request(
 		game.PeerName,
 		models.MSG_SETUP_WITH_NEW_OFFER,
-		offer,
+		b64EncodedOffer,
 		5*time.Second,
 	)
 
@@ -56,8 +62,8 @@ func (uc *SignalingUseCase) NewOffer(orakkiId string, playerId int64, sdpString 
 	return &SignalingInfo, err
 }
 
-func (uc *SignalingUseCase) GetIceCandidate(orakkiId string, seqAfter int) (*models.SignalingInfo, error) {
-	signalingInfo, err := uc.SignalingRepository.FindIceCandidate(orakkiId, seqAfter)
+func (uc *SignalingUseCase) GetIceCandidate(runningGameId int64, sinceId int64) (*models.SignalingInfo, error) {
+	signalingInfo, err := uc.SignalingRepo.FindByRunningGameId(runningGameId, sinceId)
 
 	if err != nil {
 		return nil, err
@@ -66,28 +72,27 @@ func (uc *SignalingUseCase) GetIceCandidate(orakkiId string, seqAfter int) (*mod
 	return signalingInfo, nil
 }
 
-func (uc *SignalingUseCase) AddServerIceCandidate(orakkiId string, iceCandidate string) (*models.SignalingInfo, error) {
-	game, err := uc.GameRepository.FindRunningGameByOrakkiId(orakkiId)
+func (uc *SignalingUseCase) AddServerIceCandidate(runningGameId int64, iceCandidate string) (*models.SignalingInfo, error) {
+	game, err := uc.RunningGameRepo.FindById(runningGameId)
 
 	if game == nil {
 		return nil, errors.New("No game matched to given ID")
 	}
 
 	SignalingInfo := models.SignalingInfo{
-		Game:     game,
-		Data:     iceCandidate,
-		OrakkiId: orakkiId,
+		Game: game,
+		Data: iceCandidate,
 	}
 
 	var saved *models.SignalingInfo
 	if iceCandidate == "" {
 		// get lastly added signaling info to set is_last to 1
-		lastSignalingInfo, _ := uc.SignalingRepository.FindSignalingInfo(orakkiId, "desc", 1)
+		lastSignalingInfo, _ := uc.SignalingRepo.FindByRunningGameId(runningGameId, 1)
 		lastSignalingInfo.IsLast = true
 
-		saved, err = uc.SignalingRepository.UpdateSignalingInfo(lastSignalingInfo)
+		saved, err = uc.SignalingRepo.Save(lastSignalingInfo)
 	} else {
-		saved, err = uc.SignalingRepository.SaveSignalingInfo(&SignalingInfo)
+		saved, err = uc.SignalingRepo.Save(&SignalingInfo)
 	}
 
 	if err != nil {
@@ -96,8 +101,8 @@ func (uc *SignalingUseCase) AddServerIceCandidate(orakkiId string, iceCandidate 
 	return saved, nil
 }
 
-func (uc *SignalingUseCase) AddIceCandidate(orakkiId string, playerId int64, iceCandidate string) (*models.SignalingInfo, error) {
-	game, _ := uc.GameRepository.FindRunningGameByOrakkiId(orakkiId)
+func (uc *SignalingUseCase) AddIceCandidate(runningGameId int64, playerId int64, iceCandidate string) (*models.SignalingInfo, error) {
+	game, _ := uc.RunningGameRepo.FindById(runningGameId)
 
 	if game == nil {
 		return nil, errors.New("No game exists with given ID")

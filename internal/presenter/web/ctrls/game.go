@@ -2,8 +2,6 @@ package ctrls
 
 import (
 	"net/http"
-	"reflect"
-	"time"
 
 	"clevergo.tech/jsend"
 	"github.com/gin-gonic/gin"
@@ -27,24 +25,17 @@ func (ctrl *GameController) getAvailableGames(c *gin.Context) {
 	c.JSON(http.StatusOK, jsend.New(dto.GamesToDto(games)))
 }
 
-func timeToIntDecodeHook(
-	f reflect.Kind,
-	t reflect.Kind,
-	data interface{}) (interface{}, error) {
-	return data.(time.Time).Second(), nil
-}
-
 func (ctrl *GameController) createNewGame(c *gin.Context) {
 	// TODO: get player id from session
 	// player := ctrl.SessionUseCase.GetPlayerFromSession(...)
 	player := models.Player{Id: 1, Name: "eddy"}
 
-	type QueryParams struct {
-		GameId int `form:"game_id"`
+	type UriParams struct {
+		GameId int `uri:"game_id" binding:"required"`
 	}
 
-	var params QueryParams
-	err := c.BindQuery(&params)
+	var params UriParams
+	err := c.BindUri(&params)
 
 	if err != nil {
 		c.JSON(http.StatusOK, jsend.NewFail(map[string]interface{}{
@@ -69,6 +60,6 @@ func (ctrl *GameController) createNewGame(c *gin.Context) {
 func (ctrl *GameController) Routes() []web.Route {
 	return []web.Route{
 		{Spec: "GET /api/v1/games/available", Handler: ctrl.getAvailableGames},
-		{Spec: "POST /api/v1/newgame", Handler: ctrl.createNewGame},
+		{Spec: "POST /api/v1/games/:game_id/new", Handler: ctrl.createNewGame},
 	}
 }

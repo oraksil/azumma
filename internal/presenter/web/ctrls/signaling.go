@@ -5,6 +5,7 @@ import (
 
 	"clevergo.tech/jsend"
 	"github.com/gin-gonic/gin"
+	"github.com/oraksil/azumma/internal/domain/models"
 	"github.com/oraksil/azumma/internal/domain/usecases"
 	"github.com/oraksil/azumma/internal/presenter/web"
 )
@@ -13,18 +14,20 @@ type SignalingController struct {
 	SignalingUseCase *usecases.SignalingUseCase
 }
 
-func (ctrl *SignalingController) offerHandler(c *gin.Context) {
+func (ctrl *SignalingController) handleSdpExchange(c *gin.Context) {
+	// TODO: get player id from session
+	// player := ctrl.SessionUseCase.GetPlayerFromSession(...)
+	player := models.Player{Id: 1, Name: "eddy"}
 
-	type BodyParams struct {
-		OrakkiId string `json:"orakki_id" form:"orakki_id"`
-		PlayerId int64  `json:"player_id" form:"player_id"`
-		Offer    string `json:"offer" form:"offer"`
+	type JsonParams struct {
+		RunningGameId int64  `json:"running_game_id"`
+		SdpOffer      string `json:"sdp_offer"`
 	}
 
-	var params BodyParams
-	err := c.Bind(&params)
+	var params JsonParams
+	err := c.BindJSON(&params)
 
-	signalingInfo, err := ctrl.SignalingUseCase.NewOffer(params.OrakkiId, params.PlayerId, params.Offer)
+	signalingInfo, err := ctrl.SignalingUseCase.NewOffer(params.RunningGameId, player.Id, params.SdpOffer)
 
 	if err != nil {
 		c.JSON(http.StatusOK, jsend.NewFail(map[string]interface{}{
@@ -32,52 +35,50 @@ func (ctrl *SignalingController) offerHandler(c *gin.Context) {
 			"message": "invalid game or player id",
 		}))
 	} else {
-		response := map[string]string{
-			"data": signalingInfo.Data,
-		}
-		c.JSON(http.StatusOK, jsend.New(response))
+		c.JSON(http.StatusOK, jsend.New(signalingInfo))
 	}
 }
 
-func (ctrl *SignalingController) getIceCandidate(c *gin.Context) {
+func (ctrl *SignalingController) getOrakkiIceCandidates(c *gin.Context) {
+	// TODO: get player id from session
+	// player := ctrl.SessionUseCase.GetPlayerFromSession(...)
+	// player := models.Player{Id: 1, Name: "eddy"}
+
 	type QueryParams struct {
-		OrakkiId string `form:"orakki_id"`
-		PlayerId int64  `form:"player_id"`
-		SeqAfter int    `form:"seq_after"`
+		RunningGameId int64 `json:"running_game_id"`
+		SinceId       int64 `form:"since_id"`
 	}
 
 	var params QueryParams
 	err := c.Bind(&params)
 
-	SignalingInfo, err := ctrl.SignalingUseCase.GetIceCandidate(params.OrakkiId, params.SeqAfter)
+	signalingInfo, err := ctrl.SignalingUseCase.GetIceCandidate(params.RunningGameId, params.SinceId)
 
 	if err != nil {
 		c.JSON(http.StatusOK, jsend.NewFail(map[string]interface{}{
 			"code":    400,
 			"message": "no ice candidates availble with given id, seq",
 		}))
-	} else {
-		result := map[string]interface{}{
-			"seq":          SignalingInfo.Id,
-			"icecandidate": SignalingInfo.Data,
-			"isLast":       SignalingInfo.IsLast,
-		}
-
-		c.JSON(http.StatusOK, jsend.New(result))
+		return
 	}
+
+	c.JSON(http.StatusOK, jsend.New(signalingInfo))
 }
 
-func (ctrl *SignalingController) postIceCandidate(c *gin.Context) {
+func (ctrl *SignalingController) postPlayerIceCandidate(c *gin.Context) {
+	// TODO: get player id from session
+	// player := ctrl.SessionUseCase.GetPlayerFromSession(...)
+	player := models.Player{Id: 1, Name: "eddy"}
+
 	type BodyParams struct {
-		OrakkiId  string `json:"orakki_id" form:"orakki_id"`
-		PlayerId  int64  `json:"player_id" form:"player_id"`
-		Candidate string `json:"candidate" form:"candidate"`
+		RunningGameId int64  `json:"running_game_id"`
+		Candidate     string `json:"candidate"`
 	}
 
 	var params BodyParams
-	err := c.Bind(&params)
+	err := c.BindJSON(&params)
 
-	result, err := ctrl.SignalingUseCase.AddIceCandidate(params.OrakkiId, params.PlayerId, params.Candidate)
+	result, err := ctrl.SignalingUseCase.AddIceCandidate(params.RunningGameId, player.Id, params.Candidate)
 
 	if err != nil {
 		c.JSON(http.StatusOK, jsend.NewFail(map[string]interface{}{
@@ -87,7 +88,7 @@ func (ctrl *SignalingController) postIceCandidate(c *gin.Context) {
 	} else {
 		response := map[string]interface{}{
 			"gameid":   result.Game.Id,
-			"playerid": params.PlayerId,
+			"playerid": player.Id,
 		}
 
 		c.JSON(http.StatusOK, jsend.New(response))
@@ -96,8 +97,8 @@ func (ctrl *SignalingController) postIceCandidate(c *gin.Context) {
 
 func (ctrl *SignalingController) Routes() []web.Route {
 	return []web.Route{
-		{Spec: "POST /api/v1/signaling/offer", Handler: ctrl.offerHandler},
-		{Spec: "GET /api/v1/signaling/ice", Handler: ctrl.getIceCandidate},
-		{Spec: "POST /api/v1/signaling/ice", Handler: ctrl.postIceCandidate},
+		{Spec: "POST /api/v1/signaling/:running_game_id/offer", Handler: ctrl.handleSdpExchange},
+		{Spec: "GET /api/v1/signaling/:running_game_id/ice", Handler: ctrl.getOrakkiIceCandidates},
+		{Spec: "POST /api/v1/signaling/:running_game_id/ice", Handler: ctrl.postPlayerIceCandidate},
 	}
 }

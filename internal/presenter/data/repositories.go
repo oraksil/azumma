@@ -14,7 +14,7 @@ type GameRepositoryMySqlImpl struct {
 	DB *sqlx.DB
 }
 
-func (r *GameRepositoryMySqlImpl) GetGameById(id int) (*models.Game, error) {
+func (r *GameRepositoryMySqlImpl) GetById(id int) (*models.Game, error) {
 	var game *models.Game
 
 	result := dto.GameData{}
@@ -28,7 +28,7 @@ func (r *GameRepositoryMySqlImpl) GetGameById(id int) (*models.Game, error) {
 	return game, nil
 }
 
-func (r *GameRepositoryMySqlImpl) FindAvailableGames(offset, limit int) []*models.Game {
+func (r *GameRepositoryMySqlImpl) Find(offset, limit int) []*models.Game {
 	var games []*models.Game
 
 	result := []dto.GameData{}
@@ -42,11 +42,27 @@ func (r *GameRepositoryMySqlImpl) FindAvailableGames(offset, limit int) []*model
 	return games
 }
 
-func (r *GameRepositoryMySqlImpl) FindRunningGames(offset, limit int) []*models.RunningGame {
+type RunningGameRepositoryMySqlImpl struct {
+	DB *sqlx.DB
+}
+
+func (r *RunningGameRepositoryMySqlImpl) Find(offset, limit int) []*models.RunningGame {
 	return nil
 }
 
-func (r *GameRepositoryMySqlImpl) SaveRunningGame(game *models.RunningGame) (*models.RunningGame, error) {
+func (r *RunningGameRepositoryMySqlImpl) FindById(id int64) (*models.RunningGame, error) {
+	result := dto.RunningGameData{}
+	err := r.DB.Get(&result, "select * from running_game where id = ? limit 1", id)
+	if err != nil {
+		return nil, err
+	}
+
+	game := models.RunningGame{Id: result.Id, PeerName: result.PeerName, Orakki: &models.Orakki{Id: result.OrakkiId}}
+
+	return &game, nil
+}
+
+func (r *RunningGameRepositoryMySqlImpl) Save(game *models.RunningGame) (*models.RunningGame, error) {
 	// map models to dto
 	data := dto.RunningGameData{
 		OrakkiId:      game.Orakki.Id,
@@ -107,71 +123,42 @@ func (r *GameRepositoryMySqlImpl) SaveRunningGame(game *models.RunningGame) (*mo
 	return game, nil
 }
 
-func (r *GameRepositoryMySqlImpl) FindRunningGameByOrakkiId(orakkiId string) (*models.RunningGame, error) {
-
-	result := dto.RunningGameData{}
-	err := r.DB.Get(&result, "select * from running_game where orakki_id = ? limit 1", orakkiId)
-	if err != nil {
-		return nil, err
-	}
-
-	game := models.RunningGame{Id: result.Id, PeerName: result.PeerName, Orakki: &models.Orakki{Id: result.OrakkiId}}
-
-	return &game, nil
-}
-
 type SignalingRepositoryMySqlImpl struct {
 	DB *sqlx.DB
 }
 
-func (r *SignalingRepositoryMySqlImpl) SaveSignalingInfo(signalingInfo *models.SignalingInfo) (*models.SignalingInfo, error) {
+func (r *SignalingRepositoryMySqlImpl) Save(signalingInfo *models.SignalingInfo) (*models.SignalingInfo, error) {
 	data := dto.SignalingInfoData{
 		OrakkiID: signalingInfo.Game.Orakki.Id,
 		Data:     signalingInfo.Data,
 		IsLast:   signalingInfo.IsLast,
 	}
 
-	insertQuery := `insert into signaling_info (
-		orakki_id,
-		data,
-		is_last) values (?, ?, ?) `
+	var err error
+	if signalingInfo.Id > 0 {
+		updateQuery := `update signaling_info set is_last = ? where id = ? `
+		_, err := r.DB.Exec(updateQuery, data.IsLast, signalingInfo.Id)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		insertQuery := `insert into signaling_info (orakki_id, data, is_last) values (?, ?, ?)`
+		result, err := r.DB.Exec(insertQuery, data.OrakkiID, data.Data, data.IsLast)
+		if err != nil {
+			return nil, err
+		}
 
-	result, err := r.DB.Exec(insertQuery, data.OrakkiID, data.Data, data.IsLast)
-
-	if err != nil {
-		return nil, err
+		LastInsertId, _ := result.LastInsertId()
+		signalingInfo.Id = LastInsertId
 	}
-
-	LastInsertId, _ := result.LastInsertId()
-	signalingInfo.Id = LastInsertId
 
 	return signalingInfo, err
 }
-func (r *SignalingRepositoryMySqlImpl) UpdateSignalingInfo(signalingInfo *models.SignalingInfo) (*models.SignalingInfo, error) {
-	data := dto.SignalingInfoData{
-		OrakkiID: signalingInfo.OrakkiId,
-		Data:     signalingInfo.Data,
-		IsLast:   signalingInfo.IsLast,
-	}
 
-	insertQuery := `update signaling_info set 
-		is_last = ? where id = ? `
-
-	result, err := r.DB.Exec(insertQuery, data.IsLast, signalingInfo.Id)
-
-	if err != nil {
-		return nil, err
-	}
-
-	LastInsertId, _ := result.LastInsertId()
-	signalingInfo.Id = LastInsertId
-
-	return signalingInfo, err
-}
-func (r *SignalingRepositoryMySqlImpl) FindSignalingInfo(orakkiId string, order string, num int) (*models.SignalingInfo, error) {
+func (r *SignalingRepositoryMySqlImpl) FindByRunningGameId(runningGameId int64, sinceId int64) (*models.SignalingInfo, error) {
 	var signalingInfo *models.SignalingInfo
 	result := dto.SignalingInfoData{}
-	err := r.DB.Get(&result, "select * from signaling_info where orakki_id = ? order by id desc limit ?", orakkiId, num)
+	err := r.DB.Get(&result, "select * from signaling_info where running_game_id = ? and id > ? order by id asc", runningGameId, sinceId)
 	if err != nil {
 		return nil, err
 	}
@@ -179,18 +166,4 @@ func (r *SignalingRepositoryMySqlImpl) FindSignalingInfo(orakkiId string, order 
 	mapstructure.Decode(result, &signalingInfo)
 
 	return signalingInfo, nil
-}
-
-func (r *SignalingRepositoryMySqlImpl) FindIceCandidate(orakkiId string, seqAfter int) (*models.SignalingInfo, error) {
-	var signalingInfo *models.SignalingInfo
-	result := dto.SignalingInfoData{}
-	err := r.DB.Get(&result, "select * from signaling_info where orakki_id = ? and id > ? order by id asc", orakkiId, seqAfter)
-	if err != nil {
-		return nil, err
-	}
-
-	mapstructure.Decode(result, &signalingInfo)
-
-	return signalingInfo, nil
-
 }

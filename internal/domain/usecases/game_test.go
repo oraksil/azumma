@@ -12,36 +12,39 @@ import (
 
 func TestGameFetchUseCaseFindAvailableGames(t *testing.T) {
 	// given
-	mockRepo := new(MockGameRepository)
-	useCase := GameFetchUseCase{GameRepository: mockRepo}
+	mockGameRepo := new(MockGameRepository)
+	useCase := GameFetchUseCase{
+		GameRepo: mockGameRepo,
+	}
 
 	mockGames := []*models.Game{
 		{Id: 1, Title: "Cadilacs", Description: "Game", MaxPlayers: 3},
 		{Id: 2, Title: "Bobl Bubl", Description: "Game", MaxPlayers: 2},
 	}
-	mockRepo.On("FindAvailableGames", 0, 2).Return(mockGames)
+	mockGameRepo.On("Find", 0, 2).Return(mockGames)
 
 	// when
 	games := useCase.GetAvailableGames(0, 2)
 
 	// then
 	assert.Equal(t, len(games), 2)
-	mockRepo.AssertExpectations(t)
+	mockGameRepo.AssertExpectations(t)
 
 	// given
-	mockRepo.On("FindAvailableGames", 2, 2).Return(mockGames)
+	mockGameRepo.On("Find", 2, 2).Return(mockGames)
 
 	// when
 	games = useCase.GetAvailableGames(1, 2)
 
 	// then
 	assert.Equal(t, len(games), 2)
-	mockRepo.AssertExpectations(t)
+	mockGameRepo.AssertExpectations(t)
 }
 
 func TestGameCtrlUseCaseCreateNewGame(t *testing.T) {
 	// given
-	mockRepo := new(MockGameRepository)
+	mockGameRepo := new(MockGameRepository)
+	mockRunningGameRepo := new(MockRunningGameRepository)
 	mockDriver := new(MockK8SOrakkiDriver)
 	mockMsgSvc := new(MockMessageService)
 	serviceConf := newServiceConfig()
@@ -60,16 +63,17 @@ func TestGameCtrlUseCaseCreateNewGame(t *testing.T) {
 		MaxPlayers:  2,
 	}
 
-	mockRepo.On("GetGameById", 1).Return(&mockGame, nil)
-	mockRepo.On("SaveRunningGame", mock.Anything).Return(mock.Anything, nil)
+	mockGameRepo.On("GetById", 1).Return(&mockGame, nil)
+	mockRunningGameRepo.On("Save", mock.Anything).Return(mock.Anything, nil)
 	mockDriver.On("RunInstance", mock.Anything).Return(serviceConf.StaticOrakkiId, nil)
 
 	// when
 	useCase := GameCtrlUseCase{
-		GameRepository: mockRepo,
-		OrakkiDriver:   mockDriver,
-		MessageService: mockMsgSvc,
-		ServiceConfig:  serviceConf,
+		GameRepo:        mockGameRepo,
+		RunningGameRepo: mockRunningGameRepo,
+		OrakkiDriver:    mockDriver,
+		MessageService:  mockMsgSvc,
+		ServiceConfig:   serviceConf,
 	}
 	runningGame, err := useCase.CreateNewGame(1, &mockPlayer)
 
@@ -81,7 +85,7 @@ func TestGameCtrlUseCaseCreateNewGame(t *testing.T) {
 	assert.Equal(t, 1, len(runningGame.Players))
 	assert.Equal(t, &mockPlayer, runningGame.Players[0])
 
-	mockRepo.AssertExpectations(t)
+	mockGameRepo.AssertExpectations(t)
 	mockDriver.AssertExpectations(t)
 
 	// given

@@ -32,24 +32,24 @@ type RunningGame struct {
 }
 
 type SignalingInfo struct {
-	Id       int64
-	OrakkiId string
-	Game     *RunningGame
-	Data     string
-	IsLast   bool
+	Id     int64
+	Game   *RunningGame
+	Data   string
+	IsLast bool
 }
 
 type GameRepository interface {
-	GetGameById(id int) (*Game, error)
-	FindAvailableGames(offset, limit int) []*Game
-	FindRunningGames(offset, limit int) []*RunningGame
-	FindRunningGameByOrakkiId(orakkiId string) (*RunningGame, error)
-	SaveRunningGame(game *RunningGame) (*RunningGame, error)
+	GetById(id int) (*Game, error)
+	Find(offset, limit int) []*Game
+}
+
+type RunningGameRepository interface {
+	Find(offset, limit int) []*RunningGame
+	FindById(id int64) (*RunningGame, error)
+	Save(game *RunningGame) (*RunningGame, error)
 }
 
 type SignalingRepository interface {
-	SaveSignalingInfo(signalingInfo *SignalingInfo) (*SignalingInfo, error)
-	UpdateSignalingInfo(signalingInfo *SignalingInfo) (*SignalingInfo, error)
-	FindSignalingInfo(orakkiId string, order string, num int) (*SignalingInfo, error)
-	FindIceCandidate(orakkiId string, seqAfter int) (*SignalingInfo, error)
+	Save(signalingInfo *SignalingInfo) (*SignalingInfo, error)
+	FindByRunningGameId(runningGameId int64, sinceId int64) (*SignalingInfo, error)
 }

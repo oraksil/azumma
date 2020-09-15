@@ -10,27 +10,29 @@ import (
 )
 
 type GameFetchUseCase struct {
-	GameRepository models.GameRepository
+	GameRepo        models.GameRepository
+	RunningGameRepo models.RunningGameRepository
 }
 
 func (uc *GameFetchUseCase) GetAvailableGames(page, size int) []*models.Game {
-	return uc.GameRepository.FindAvailableGames(page*size, size)
+	return uc.GameRepo.Find(page*size, size)
 }
 
 func (uc *GameFetchUseCase) GetRunningGames(page, size int) []*models.RunningGame {
-	return uc.GameRepository.FindRunningGames(page*size, size)
+	return uc.RunningGameRepo.Find(page*size, size)
 }
 
 type GameCtrlUseCase struct {
-	GameRepository models.GameRepository
-	OrakkiDriver   services.OrakkiDriver
-	MessageService services.MessageService
-	ServiceConfig  *services.ServiceConfig
+	GameRepo        models.GameRepository
+	RunningGameRepo models.RunningGameRepository
+	OrakkiDriver    services.OrakkiDriver
+	MessageService  services.MessageService
+	ServiceConfig   *services.ServiceConfig
 }
 
 func (uc *GameCtrlUseCase) CreateNewGame(gameId int, firstPlayer *models.Player) (*models.RunningGame, error) {
 	// validate game
-	game, err := uc.GameRepository.GetGameById(gameId)
+	game, err := uc.GameRepo.GetById(gameId)
 	if err != nil {
 		return nil, err
 	}
@@ -47,7 +49,7 @@ func (uc *GameCtrlUseCase) CreateNewGame(gameId int, firstPlayer *models.Player)
 		Game:    game,
 		Players: []*models.Player{firstPlayer},
 	}
-	saved, err := uc.GameRepository.SaveRunningGame(&runningGame)
+	saved, err := uc.RunningGameRepo.Save(&runningGame)
 	if err != nil {
 		uc.OrakkiDriver.DeleteInstance(newOrakki.Id)
 		return nil, err
@@ -101,7 +103,7 @@ func (uc *GameCtrlUseCase) postProvisionHandler(runningGame *models.RunningGame)
 		if orakkiState.OrakkiId == runningGame.Orakki.Id &&
 			orakkiState.State == models.ORAKKI_STATE_READY {
 			runningGame.Orakki.State = models.ORAKKI_STATE_READY
-			uc.GameRepository.SaveRunningGame(runningGame)
+			uc.RunningGameRepo.Save(runningGame)
 			break
 		}
 
@@ -112,7 +114,7 @@ func (uc *GameCtrlUseCase) postProvisionHandler(runningGame *models.RunningGame)
 			}
 
 			runningGame.Orakki.State = models.ORAKKI_STATE_PANIC
-			uc.GameRepository.SaveRunningGame(runningGame)
+			uc.RunningGameRepo.Save(runningGame)
 			break
 		}
 

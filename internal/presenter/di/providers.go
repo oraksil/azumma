@@ -95,16 +95,26 @@ func newGameRepository() models.GameRepository {
 	return &data.GameRepositoryMySqlImpl{DB: db}
 }
 
+func newRunningGameRepository() models.RunningGameRepository {
+	var db *sqlx.DB
+	container.Make(&db)
+
+	return &data.RunningGameRepositoryMySqlImpl{DB: db}
+}
+
 func newGameFetchUseCase() *usecases.GameFetchUseCase {
 	var repo models.GameRepository
 	container.Make(&repo)
 
-	return &usecases.GameFetchUseCase{GameRepository: repo}
+	return &usecases.GameFetchUseCase{GameRepo: repo}
 }
 
 func newGameCtrlUseCase() *usecases.GameCtrlUseCase {
-	var repo models.GameRepository
-	container.Make(&repo)
+	var gameRepo models.GameRepository
+	container.Make(&gameRepo)
+
+	var runningGameRepo models.RunningGameRepository
+	container.Make(&runningGameRepo)
 
 	var msgService services.MessageService
 	container.Make(&msgService)
@@ -116,10 +126,11 @@ func newGameCtrlUseCase() *usecases.GameCtrlUseCase {
 	container.Make(&serviceConf)
 
 	return &usecases.GameCtrlUseCase{
-		GameRepository: repo,
-		MessageService: msgService,
-		OrakkiDriver:   orakkiDrv,
-		ServiceConfig:  serviceConf,
+		GameRepo:        gameRepo,
+		RunningGameRepo: runningGameRepo,
+		MessageService:  msgService,
+		OrakkiDriver:    orakkiDrv,
+		ServiceConfig:   serviceConf,
 	}
 }
 
@@ -137,7 +148,6 @@ func newGameController() *ctrls.GameController {
 }
 
 func newSignalingRepository() models.SignalingRepository {
-
 	var db *sqlx.DB
 	container.Make(&db)
 
@@ -145,8 +155,8 @@ func newSignalingRepository() models.SignalingRepository {
 }
 
 func newSignalingUseCases() *usecases.SignalingUseCase {
-	var gameRepo models.GameRepository
-	container.Make(&gameRepo)
+	var runningGameRepo models.RunningGameRepository
+	container.Make(&runningGameRepo)
 
 	var signalingRepo models.SignalingRepository
 	container.Make(&signalingRepo)
@@ -155,9 +165,9 @@ func newSignalingUseCases() *usecases.SignalingUseCase {
 	container.Make(&msgService)
 
 	return &usecases.SignalingUseCase{
-		GameRepository:      gameRepo,
-		SignalingRepository: signalingRepo,
-		MessageService:      msgService,
+		RunningGameRepo: runningGameRepo,
+		SignalingRepo:   signalingRepo,
+		MessageService:  msgService,
 	}
 }
 
