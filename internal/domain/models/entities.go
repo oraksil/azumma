@@ -16,17 +16,10 @@ type Player struct {
 	TotalCoins int
 }
 
-type Orakki struct {
-	Id       string
-	State    int
-	PeerName string
-}
-
 type Game struct {
 	Id        int64
 	Orakki    *Orakki
 	Pack      *Pack
-	PeerName  string
 	Players   []*Player
 	CreatedAt time.Time
 }
@@ -51,5 +44,5 @@ type GameRepository interface {
 
 type SignalingRepository interface {
 	Save(signaling *Signaling) (*Signaling, error)
-	FindByGameId(gameId int64, sinceId int64) (*Signaling, error)
+	FindByGameId(gameId int64, sinceId int64) ([]*Signaling, error)
 }

@@ -17,42 +17,57 @@ type SignalingController struct {
 func (ctrl *SignalingController) handleSdpExchange(c *gin.Context) {
 	// TODO: get player id from session
 	// player := ctrl.SessionUseCase.GetPlayerFromSession(...)
-	player := models.Player{Id: 1, Name: "eddy"}
+	player := models.Player{Id: 1, Name: "gamz"}
 
-	type JsonParams struct {
-		gameId   int64  `json:"game_id"`
-		sdpOffer string `json:"sdp_offer"`
+	type UriParams struct {
+		GameId int64 `uri:"game_id"`
 	}
 
-	var params JsonParams
-	err := c.BindJSON(&params)
+	type JsonParams struct {
+		SdpOffer string `json:"sdp_offer"`
+	}
 
-	signaling, err := ctrl.SignalingUseCase.NewOffer(params.gameId, player.Id, params.sdpOffer)
+	var uriParams UriParams
+	c.BindUri(&uriParams)
 
+	var jsonParams JsonParams
+	c.BindJSON(&jsonParams)
+
+	sdpInfo, err := ctrl.SignalingUseCase.NewOffer(uriParams.GameId, player.Id, jsonParams.SdpOffer)
 	if err != nil {
 		c.JSON(http.StatusOK, jsend.NewFail(map[string]interface{}{
 			"code":    400,
 			"message": "invalid game or player id",
 		}))
-	} else {
-		c.JSON(http.StatusOK, jsend.New(signaling))
+		return
 	}
+
+	c.JSON(http.StatusOK, jsend.New(sdpInfo))
 }
 
 func (ctrl *SignalingController) getOrakkiIceCandidates(c *gin.Context) {
 	// TODO: get player id from session
 	// player := ctrl.SessionUseCase.GetPlayerFromSession(...)
-	// player := models.Player{Id: 1, Name: "eddy"}
+	// player := models.Player{Id: 1, Name: "gamz"}
 
-	type QueryParams struct {
-		gameId  int64 `json:"game_id"`
-		sinceId int64 `form:"since_id"`
+	type UriParams struct {
+		GameId int64 `uri:"game_id"`
 	}
 
-	var params QueryParams
-	err := c.Bind(&params)
+	type QueryParams struct {
+		SinceId int64 `form:"since_id"`
+	}
 
-	signaling, err := ctrl.SignalingUseCase.GetIceCandidate(params.gameId, params.sinceId)
+	var uriParams UriParams
+	c.BindUri(&uriParams)
+
+	var queryParams QueryParams
+	c.BindQuery(&queryParams)
+
+	iceCandidates, err := ctrl.SignalingUseCase.GetOrakkiIceCandidates(
+		uriParams.GameId,
+		queryParams.SinceId,
+	)
 
 	if err != nil {
 		c.JSON(http.StatusOK, jsend.NewFail(map[string]interface{}{
@@ -62,43 +77,51 @@ func (ctrl *SignalingController) getOrakkiIceCandidates(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, jsend.New(signaling))
+	c.JSON(http.StatusOK, jsend.New(iceCandidates))
 }
 
 func (ctrl *SignalingController) postPlayerIceCandidate(c *gin.Context) {
 	// TODO: get player id from session
 	// player := ctrl.SessionUseCase.GetPlayerFromSession(...)
-	player := models.Player{Id: 1, Name: "eddy"}
+	player := models.Player{Id: 1, Name: "gamz"}
 
-	type JsonParams struct {
-		gameId    int64  `json:"game_id"`
-		candidate string `json:"candidate"`
+	type UriParams struct {
+		GameId int64 `uri:"game_id"`
 	}
 
-	var params JsonParams
-	err := c.BindJSON(&params)
+	type JsonParams struct {
+		IceCandidate string `json:"ice_candidate"`
+	}
 
-	result, err := ctrl.SignalingUseCase.AddIceCandidate(params.gameId, player.Id, params.candidate)
+	var uriParams UriParams
+	c.BindUri(&uriParams)
+
+	var jsonParams JsonParams
+	c.BindJSON(&jsonParams)
+
+	err := ctrl.SignalingUseCase.OnPlayerIceCandidate(
+		uriParams.GameId,
+		player.Id,
+		jsonParams.IceCandidate,
+	)
 
 	if err != nil {
 		c.JSON(http.StatusOK, jsend.NewFail(map[string]interface{}{
 			"code":    400,
-			"message": "invalid game id",
+			"message": "failed to post ice candidate",
 		}))
-	} else {
-		response := map[string]interface{}{
-			"gameid":   result.Game.Id,
-			"playerid": player.Id,
-		}
-
-		c.JSON(http.StatusOK, jsend.New(response))
+		return
 	}
+
+	response := map[string]interface{}{}
+
+	c.JSON(http.StatusOK, jsend.New(response))
 }
 
 func (ctrl *SignalingController) Routes() []web.Route {
 	return []web.Route{
-		{Spec: "POST /api/v1/signaling/:running_game_id/offer", Handler: ctrl.handleSdpExchange},
-		{Spec: "GET /api/v1/signaling/:running_game_id/ice", Handler: ctrl.getOrakkiIceCandidates},
-		{Spec: "POST /api/v1/signaling/:running_game_id/ice", Handler: ctrl.postPlayerIceCandidate},
+		{Spec: "POST /api/v1/games/:game_id/signaling/sdp", Handler: ctrl.handleSdpExchange},
+		{Spec: "GET /api/v1/games/:game_id/signaling/ice", Handler: ctrl.getOrakkiIceCandidates},
+		{Spec: "POST /api/v1/games/:game_id/signaling/ice", Handler: ctrl.postPlayerIceCandidate},
 	}
 }

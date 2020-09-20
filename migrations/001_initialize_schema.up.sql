@@ -1,43 +1,42 @@
-create table pack (
-    id int not null auto_increment,
-    title varchar(64) not null,
-    maker varchar(64) not null,
+CREATE TABLE pack (
+    id INT NOT NULL AUTO_INCREMENT,
+    title VARCHAR(64) NOT NULL,
+    maker VARCHAR(64) NOT NULL,
     description text,
-    max_players int, 
+    max_players INT, 
 
-    primary key (id)
-) character set utf8mb4 collate utf8mb4_unicode_ci;
+    PRIMARY KEY (id)
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
-create table player (
-    id bigint not null auto_increment,
-    name varchar(64) not null,
-    total_coins int,
+CREATE TABLE player (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    name VARCHAR(64) NOT NULL,
+    total_coins INT,
 
-    primary key (id)
-) character set utf8mb4 collate utf8mb4_unicode_ci;
+    PRIMARY KEY (id)
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
-create table game (
-    id bigint not null auto_increment,
-    peer_name varchar(128) not null,
-    orakki_id varchar(128) not null,
-    orakki_state int not null,
-    game_id int not null,
-    first_player_id bigint not null,
-    joined_player_ids varchar(128),
-    created_at timestamp,
+CREATE TABLE game (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    pack_id INT NOT NULL,
+    orakki_id VARCHAR(128) NOT NULL,
+    orakki_state INT NOT NULL,
+    first_player_id BIGINT NOT NULL,
+    joined_player_ids VARCHAR(128),
+    created_at TIMESTAMP,
     
-    primary key (id),
-    unique (peer_name),
-    foreign key (game_id) references game(id),
-    foreign key (first_player_id) references player(id)
-) character set utf8mb4 collate utf8mb4_unicode_ci;
+    PRIMARY KEY (id),
+    FOREIGN KEY (pack_id) REFERENCES pack(id),
+    FOREIGN KEY (first_player_id) REFERENCES player(id)
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
-create table signaling (
-    id bigint not null auto_increment,
-    orakki_id varchar(128) not null,
-    data varchar(8196),
-    created_at timestamp,
-    is_last boolean not null,
+CREATE TABLE signaling (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    game_id BIGINT NOT NULL,
+    data VARCHAR(8196),
+    created_at TIMESTAMP,
+    is_last BOOLEAN NOT NULL,
 
-    primary key (id)
-) character set utf8mb4 collate utf8mb4_unicode_ci;
+    PRIMARY KEY (id),
+    FOREIGN KEY (game_id) REFERENCES game(id)
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;

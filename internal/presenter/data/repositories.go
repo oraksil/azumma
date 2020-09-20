@@ -18,7 +18,7 @@ func (r *PackRepositoryMySqlImpl) GetById(id int) (*models.Pack, error) {
 	var pack *models.Pack
 
 	result := dto.PackData{}
-	err := r.DB.Get(&result, "select * from pack where id = ? limit 1", id)
+	err := r.DB.Get(&result, "SELECT * FROM pack WHERE id = ? LIMIT 1", id)
 	if err != nil {
 		return pack, err
 	}
@@ -32,7 +32,7 @@ func (r *PackRepositoryMySqlImpl) Find(offset, limit int) []*models.Pack {
 	var packs []*models.Pack
 
 	result := []dto.PackData{}
-	err := r.DB.Select(&result, "select * from pack limit ? offset ?", limit, offset)
+	err := r.DB.Select(&result, "SELECT * FROM pack LIMIT ? OFFSET ?", limit, offset)
 	if err != nil {
 		return packs
 	}
@@ -52,15 +52,17 @@ func (r *GameRepositoryMySqlImpl) Find(offset, limit int) []*models.Game {
 
 func (r *GameRepositoryMySqlImpl) FindById(id int64) (*models.Game, error) {
 	result := dto.GameData{}
-	err := r.DB.Get(&result, "select * from game where id = ? limit 1", id)
+	err := r.DB.Get(&result, "SELECT * FROM game WHERE id = ? LIMIT 1", id)
 	if err != nil {
 		return nil, err
 	}
 
 	game := models.Game{
-		Id:       result.Id,
-		PeerName: result.PeerName,
-		Orakki:   &models.Orakki{Id: result.OrakkiId},
+		Id: result.Id,
+		Orakki: &models.Orakki{
+			Id:    result.OrakkiId,
+			State: result.OrakkiState,
+		},
 	}
 
 	return &game, nil
@@ -71,7 +73,6 @@ func (r *GameRepositoryMySqlImpl) Save(game *models.Game) (*models.Game, error) 
 	data := dto.GameData{
 		OrakkiId:      game.Orakki.Id,
 		OrakkiState:   game.Orakki.State,
-		PeerName:      game.Orakki.PeerName,
 		PackId:        game.Pack.Id,
 		FirstPlayerId: game.Players[0].Id,
 		CreatedAt:     time.Now(),
@@ -85,17 +86,16 @@ func (r *GameRepositoryMySqlImpl) Save(game *models.Game) (*models.Game, error) 
 
 	// insert and return id aware model
 	insertQuery := `
-		insert into game (
-			peer_name,
+		INSERT INTO game (
 			orakki_id,
 			orakki_state,
 			pack_id,
 			first_player_id,
 			joined_player_ids,
 			created_at)
-		values
-			(?, ?, ?, ?, ?, ?, ?)
-		on duplicate key update
+		VALUES
+			(?, ?, ?, ?, ?, ?)
+		ON DUPLICATE KEY UPDATE
 			orakki_state = ?,
 			first_player_id = ?,
 			joined_player_ids = ?`
@@ -103,7 +103,6 @@ func (r *GameRepositoryMySqlImpl) Save(game *models.Game) (*models.Game, error) 
 	result, err := r.DB.Exec(
 		// insert args
 		insertQuery,
-		data.PeerName,
 		data.OrakkiId,
 		data.OrakkiState,
 		data.PackId,
@@ -133,21 +132,21 @@ type SignalingRepositoryMySqlImpl struct {
 
 func (r *SignalingRepositoryMySqlImpl) Save(signaling *models.Signaling) (*models.Signaling, error) {
 	data := dto.SignalingData{
-		OrakkiId: signaling.Game.Orakki.Id,
-		Data:     signaling.Data,
-		IsLast:   signaling.IsLast,
+		GameId: signaling.Game.Id,
+		Data:   signaling.Data,
+		IsLast: signaling.IsLast,
 	}
 
 	var err error
 	if signaling.Id > 0 {
-		updateQuery := `update signaling set is_last = ? where id = ? `
+		updateQuery := `UPDATE signaling SET is_last = ? WHERE id = ? `
 		_, err := r.DB.Exec(updateQuery, data.IsLast, signaling.Id)
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		insertQuery := `insert into signaling (orakki_id, data, is_last) values (?, ?, ?)`
-		result, err := r.DB.Exec(insertQuery, data.OrakkiId, data.Data, data.IsLast)
+		insertQuery := `INSERT INTO signaling (game_id, data, is_last) VALUES (?, ?, ?, ?)`
+		result, err := r.DB.Exec(insertQuery, data.GameId, data.Data, data.IsLast)
 		if err != nil {
 			return nil, err
 		}
@@ -159,15 +158,22 @@ func (r *SignalingRepositoryMySqlImpl) Save(signaling *models.Signaling) (*model
 	return signaling, err
 }
 
-func (r *SignalingRepositoryMySqlImpl) FindByGameId(gameId int64, sinceId int64) (*models.Signaling, error) {
-	var signaling *models.Signaling
-	result := dto.SignalingData{}
-	err := r.DB.Get(&result, "select * from signaling where game_id = ? and id > ? order by id asc", gameId, sinceId)
+func (r *SignalingRepositoryMySqlImpl) FindByGameId(gameId int64, sinceId int64) ([]*models.Signaling, error) {
+	var signalings []*models.Signaling
+	result := []dto.SignalingData{}
+
+	query := `
+		SELECT * FROM signaling
+		WHERE game_id = ? AND id > ?
+		ORDER BY id ASC`
+
+	err := r.DB.Get(&result, query, gameId, sinceId)
+
 	if err != nil {
 		return nil, err
 	}
 
-	mapstructure.Decode(result, &signaling)
+	mapstructure.Decode(result, &signalings)
 
-	return signaling, nil
+	return signalings, nil
 }

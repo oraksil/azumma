@@ -14,3 +14,9 @@ type GameDto struct {
 	// Game      *Game
 	CreatedAt int64 `json:"created_at"`
 }
+
+type SdpDto struct {
+}
+
+type IceCandidateDto struct {
+}

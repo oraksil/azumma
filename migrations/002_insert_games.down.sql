@@ -1,4 +1,4 @@
-delete from game;
-delete from signaling;
-delete from pack;
-delete from player;
+DELETE FROM signaling;
+DELETE FROM game;
+DELETE FROM pack;
+DELETE FROM player;

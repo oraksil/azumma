@@ -14,7 +14,7 @@ func main() {
 	mqSvc.AddHandler(di.InjectSignalingHandler())
 
 	conf := di.InjectServiceConfig()
-	go func() { mqSvc.Run(conf.PeerName) }()
+	go func() { mqSvc.Run(conf.MqRpcIdentifier) }()
 
 	webSvc := di.InjectWebService()
 	webSvc.AddController(di.InjectGameController())

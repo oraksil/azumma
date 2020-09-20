@@ -20,17 +20,14 @@ import (
 )
 
 func newServiceConfig() *services.ServiceConfig {
-	useStaticOrakki := utils.GetBoolEnv("USE_STATIC_ORAKKI", false)
 	hostname, _ := os.Hostname()
+
 	return &services.ServiceConfig{
-		MqRpcUri:       utils.GetStrEnv("MQRPC_URI", "amqp://oraksil:oraksil@localhost:5672/"),
-		MqRpcNamespace: utils.GetStrEnv("MQRPC_NAMESPACE", "oraksil"),
+		MqRpcUri:        utils.GetStrEnv("MQRPC_URI", "amqp://oraksil:oraksil@localhost:5672/"),
+		MqRpcNamespace:  utils.GetStrEnv("MQRPC_NAMESPACE", "oraksil"),
+		MqRpcIdentifier: utils.GetStrEnv("MQRPC_IDENTIFIER", hostname),
 
-		PeerName: utils.GetStrEnv("PEER_NAME", hostname),
-
-		UseStaticOrakki:      useStaticOrakki,
-		StaticOrakkiId:       utils.GetStrEnv("STATIC_ORAKKI_ID", "orakki-static"),
-		StaticOrakkiPeerName: utils.GetStrEnv("STATIC_ORAKKI_PEER_NAME", "orakki-local"),
+		StaticOrakkiId: utils.GetStrEnv("STATIC_ORAKKI_ID", "orakki-static"),
 
 		OrakkiContainerImage: utils.GetStrEnv("ORAKKI_CONTAINER_IMAGE", "registry.gitlab.com/oraksil/orakki:latest"),
 		GipanContainerImage:  utils.GetStrEnv("GIPAN_CONTAINER_IMAGE", "registry.gitlab.com/oraksil/gipan:latest"),
@@ -78,7 +75,7 @@ func newMessageService() services.MessageService {
 }
 
 func newMySqlDb() *sqlx.DB {
-	db, err := sqlx.Open("mysql", "oraksil:qlqjswha!@(localhost:3306)/oraksil?parseTime=true")
+	db, err := sqlx.Open("mysql", "oraksil:oraksil@(localhost:3306)/oraksil?parseTime=true")
 	if err != nil {
 		panic(err)
 	}

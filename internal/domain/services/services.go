@@ -11,6 +11,6 @@ type MessageService interface {
 }
 
 type OrakkiDriver interface {
-	RunInstance(peerName string) (string, error)
+	RunInstance() (string, error)
 	DeleteInstance(id string) error
 }

@@ -3,14 +3,10 @@ package usecases
 import (
 	"errors"
 
-	"encoding/json"
-
 	"github.com/mitchellh/mapstructure"
 	"github.com/oraksil/azumma/internal/domain/models"
 	"github.com/oraksil/azumma/internal/domain/services"
 	"github.com/oraksil/azumma/pkg/utils"
-
-	"github.com/pion/webrtc/v2"
 
 	"time"
 )
@@ -21,113 +17,108 @@ type SignalingUseCase struct {
 	MessageService services.MessageService
 }
 
-func (uc *SignalingUseCase) NewOffer(gameId int64, playerId int64, sdpString string) (*models.Signaling, error) {
-	offer := webrtc.SessionDescription{}
-
-	err := json.Unmarshal([]byte(sdpString), &offer)
-
+func (uc *SignalingUseCase) NewOffer(gameId int64, playerId int64, b64EncodedOffer string) (*models.SdpInfo, error) {
+	// validation
+	var offer map[string]interface{}
+	err := utils.DecodeFromB64EncodedJsonStr(b64EncodedOffer, &offer)
 	if err != nil {
 		return nil, err
+	}
+
+	if v, ok := offer["type"]; !ok || v.(string) != "offer" {
+		return nil, errors.New("invalid sdp type")
 	}
 
 	game, err := uc.GameRepo.FindById(gameId)
-
 	if game == nil {
-		return nil, errors.New("No game exists with given ID")
-	}
-
-	b64EncodedOffer, err := utils.EncodeToB64EncodedJsonStr(offer)
-	if err != nil {
-		return nil, err
+		return nil, errors.New("no game exists with given gameId")
 	}
 
 	// sdp response from orakki
 	resp, err := uc.MessageService.Request(
-		game.PeerName,
-		models.MSG_SETUP_WITH_NEW_OFFER,
-		b64EncodedOffer,
-		5*time.Second,
+		game.Orakki.Id,
+		models.MsgSetupWithNewOffer,
+		models.SdpInfo{PeerId: playerId, SdpBase64Encoded: b64EncodedOffer},
+		10*time.Second,
 	)
 
-	var setupAnswer models.SetupAnswer
-	mapstructure.Decode(resp, &setupAnswer)
+	var answerSdpInfo models.SdpInfo
+	mapstructure.Decode(resp, &answerSdpInfo)
 
-	Signaling := models.Signaling{
-		Game: game,
-		// PlayerId: playerId,
-		// State:    models.POLLING_STATE_DATA_FETCHED,
-		Data: setupAnswer.Answer,
-	}
-
-	return &Signaling, err
+	return &answerSdpInfo, err
 }
 
-func (uc *SignalingUseCase) GetIceCandidate(gameId int64, sinceId int64) (*models.Signaling, error) {
-	signaling, err := uc.SignalingRepo.FindByGameId(gameId, sinceId)
-
+func (uc *SignalingUseCase) GetOrakkiIceCandidates(gameId int64, sinceId int64) ([]*models.IceCandidate, error) {
+	signalings, err := uc.SignalingRepo.FindByGameId(gameId, sinceId)
 	if err != nil {
 		return nil, err
 	}
 
-	return signaling, nil
+	numSignalings := len(signalings)
+	iceCandidates := make([]*models.IceCandidate, numSignalings, numSignalings)
+
+	for _, s := range signalings {
+		ice := &models.IceCandidate{
+			PeerId:           s.Game.Id,
+			IceBase64Encoded: s.Data,
+		}
+
+		iceCandidates = append(iceCandidates, ice)
+	}
+
+	return iceCandidates, nil
 }
 
-func (uc *SignalingUseCase) AddServerIceCandidate(gameId int64, iceCandidate string) (*models.Signaling, error) {
+func (uc *SignalingUseCase) OnOrakkiIceCandidate(gameId int64, iceBase64Encoded string) error {
 	game, err := uc.GameRepo.FindById(gameId)
-
 	if game == nil {
-		return nil, errors.New("No game matched to given ID")
+		return errors.New("no game matched to given gameId")
 	}
 
-	signaling := models.Signaling{
-		Game: game,
-		Data: iceCandidate,
-	}
-
-	var saved *models.Signaling
-	if iceCandidate == "" {
+	if iceBase64Encoded == "" {
 		// get lastly added signaling info to set is_last to 1
-		lastSignaling, _ := uc.SignalingRepo.FindByGameId(gameId, 1)
-		lastSignaling.IsLast = true
+		signalings, _ := uc.SignalingRepo.FindByGameId(gameId, 0)
+		if len(signalings) > 0 {
+			lastSignaling := signalings[len(signalings)-1]
+			lastSignaling.IsLast = true
 
-		saved, err = uc.SignalingRepo.Save(lastSignaling)
+			_, err = uc.SignalingRepo.Save(lastSignaling)
+		}
 	} else {
-		saved, err = uc.SignalingRepo.Save(&signaling)
+		signaling := models.Signaling{
+			Game: game,
+			Data: iceBase64Encoded,
+		}
+
+		_, err = uc.SignalingRepo.Save(&signaling)
 	}
 
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return saved, nil
+
+	return nil
 }
 
-func (uc *SignalingUseCase) AddIceCandidate(gameId int64, playerId int64, iceCandidate string) (*models.Signaling, error) {
+func (uc *SignalingUseCase) OnPlayerIceCandidate(gameId int64, playerId int64, b64EncodedIceCandidate string) error {
 	game, _ := uc.GameRepo.FindById(gameId)
-
 	if game == nil {
-		return nil, errors.New("No game exists with given ID")
+		return errors.New("no game exists with given gameId")
 	}
 
-	resp, err := uc.MessageService.Request(
-		game.PeerName,
-		models.MSG_REMOTE_ICE_CANDIDATE,
-		models.Icecandidate{
-			PlayerId:  playerId,
-			IceString: iceCandidate,
+	_, err := uc.MessageService.Request(
+		game.Orakki.Id,
+		models.MsgRemoteIceCandidate,
+		models.IceCandidate{
+			PeerId:           playerId,
+			IceBase64Encoded: b64EncodedIceCandidate,
 		},
 		5*time.Second,
 	)
 
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	var setupAnswer models.SetupAnswer
-	mapstructure.Decode(resp, &setupAnswer)
-
-	Signaling := models.Signaling{
-		Game: game,
-	}
-
-	return &Signaling, nil
+	return nil
 }

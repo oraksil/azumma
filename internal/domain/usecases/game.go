@@ -6,7 +6,6 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/oraksil/azumma/internal/domain/models"
 	"github.com/oraksil/azumma/internal/domain/services"
-	"github.com/oraksil/azumma/pkg/utils"
 )
 
 type GameFetchUseCase struct {
@@ -62,24 +61,21 @@ func (uc *GameCtrlUseCase) CreateNewGame(packId int, firstPlayer *models.Player)
 }
 
 func (uc *GameCtrlUseCase) provisionOrakki() (*models.Orakki, error) {
-	var newOrakkiId, newPeerName string
+	var newOrakkiId string
+	var err error
 
-	if uc.ServiceConfig.UseStaticOrakki {
-		newPeerName = uc.ServiceConfig.StaticOrakkiPeerName
+	if uc.ServiceConfig.StaticOrakkiId != "" {
 		newOrakkiId = uc.ServiceConfig.StaticOrakkiId
 	} else {
-		newPeerName = utils.NewId("orakki")
-		orakkiId, err := uc.OrakkiDriver.RunInstance(newPeerName)
+		newOrakkiId, err = uc.OrakkiDriver.RunInstance()
 		if err != nil {
 			return nil, err
 		}
-		newOrakkiId = orakkiId
 	}
 
 	return &models.Orakki{
-		Id:       newOrakkiId,
-		PeerName: newPeerName,
-		State:    models.ORAKKI_STATE_INIT,
+		Id:    newOrakkiId,
+		State: models.OrakkiStateInit,
 	}, nil
 }
 
@@ -91,29 +87,29 @@ func (uc *GameCtrlUseCase) postProvisionHandler(game *models.Game) {
 
 	for {
 		resp, _ := uc.MessageService.Request(
-			newOrakki.PeerName,
-			models.MSG_FETCH_ORAKKI_STATE,
-			"",
+			newOrakki.Id,
+			models.MsgPrepareOrakki,
+			&models.PrepareOrakki{GameId: game.Id},
 			5*time.Second,
 		)
 
-		var orakkiState models.OrakkiState
-		mapstructure.Decode(resp, &orakkiState)
+		var orakki models.Orakki
+		mapstructure.Decode(resp, &orakki)
 
-		if orakkiState.OrakkiId == game.Orakki.Id &&
-			orakkiState.State == models.ORAKKI_STATE_READY {
-			game.Orakki.State = models.ORAKKI_STATE_READY
+		if orakki.Id == game.Orakki.Id &&
+			orakki.State == models.OrakkiStateReady {
+			game.Orakki.State = models.OrakkiStateReady
 			uc.GameRepo.Save(game)
 			break
 		}
 
 		elapsedTime := time.Since(startTime)
 		if elapsedTime > maxWaitTime {
-			if !uc.ServiceConfig.UseStaticOrakki {
+			if uc.ServiceConfig.StaticOrakkiId == "" {
 				uc.OrakkiDriver.DeleteInstance(newOrakki.Id)
 			}
 
-			game.Orakki.State = models.ORAKKI_STATE_PANIC
+			game.Orakki.State = models.OrakkiStatePanic
 			uc.GameRepo.Save(game)
 			break
 		}

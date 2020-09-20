@@ -28,15 +28,14 @@ func (ctrl *GameController) getAvailablePacks(c *gin.Context) {
 func (ctrl *GameController) createNewGame(c *gin.Context) {
 	// TODO: get player id from session
 	// player := ctrl.SessionUseCase.GetPlayerFromSession(...)
-	player := models.Player{Id: 1, Name: "eddy"}
+	player := models.Player{Id: 1, Name: "gamz"}
 
 	type UriParams struct {
-		packId int `uri:"pack_id" binding:"required"`
+		PackId int `uri:"pack_id"`
 	}
 
-	var params UriParams
-	err := c.BindUri(&params)
-
+	var uriParams UriParams
+	err := c.BindUri(&uriParams)
 	if err != nil {
 		c.JSON(http.StatusOK, jsend.NewFail(map[string]interface{}{
 			"code":    400,
@@ -45,7 +44,7 @@ func (ctrl *GameController) createNewGame(c *gin.Context) {
 		return
 	}
 
-	game, err := ctrl.GameCtrlUseCase.CreateNewGame(params.packId, &player)
+	game, err := ctrl.GameCtrlUseCase.CreateNewGame(uriParams.PackId, &player)
 	if err != nil {
 		c.JSON(http.StatusOK, jsend.NewFail(map[string]interface{}{
 			"code":    400,

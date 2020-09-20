@@ -81,7 +81,7 @@ func TestGameCtrlUseCaseCreateNewGame(t *testing.T) {
 	assert.NotNil(t, game)
 	assert.Nil(t, err)
 	assert.Equal(t, serviceConf.StaticOrakkiId, game.Orakki.Id)
-	assert.Equal(t, models.ORAKKI_STATE_INIT, game.Orakki.State)
+	assert.Equal(t, models.OrakkiStateInit, game.Orakki.State)
 	assert.Equal(t, 1, len(game.Players))
 	assert.Equal(t, &mockPlayer, game.Players[0])
 
@@ -89,25 +89,24 @@ func TestGameCtrlUseCaseCreateNewGame(t *testing.T) {
 	mockDriver.AssertExpectations(t)
 
 	// given
-	mockState := models.OrakkiState{
-		OrakkiId: game.Orakki.Id,
-		State:    models.ORAKKI_STATE_READY,
+	mockOrakki := models.Orakki{
+		Id:    game.Orakki.Id,
+		State: models.OrakkiStateReady,
 	}
 	mockMsgSvc.
 		On("Request", mock.Anything, mock.Anything, mock.Anything, mock.Anything).
-		Return(mockState, nil)
+		Return(mockOrakki, nil)
 
 	// when
 	useCase.postProvisionHandler(game)
 
 	// then
-	assert.Equal(t, models.ORAKKI_STATE_READY, game.Orakki.State)
+	assert.Equal(t, models.OrakkiStateReady, game.Orakki.State)
 }
 
 func newServiceConfig() *services.ServiceConfig {
 	return &services.ServiceConfig{
-		UseStaticOrakki:  false,
-		StaticOrakkiId:   "test-orakki-id",
+		StaticOrakkiId:   "",
 		ProvisionMaxWait: time.Duration(5),
 	}
 }
