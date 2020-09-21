@@ -48,19 +48,25 @@ func (uc *SignalingUseCase) NewOffer(gameId int64, playerId int64, b64EncodedOff
 	return &answerSdpInfo, err
 }
 
-func (uc *SignalingUseCase) GetOrakkiIceCandidate(gameId int64, lastSeq int64) (*models.IceCandidate, error) {
-	signaling, err := uc.SignalingRepo.FindOneByGameId(gameId, lastSeq)
+func (uc *SignalingUseCase) GetOrakkiIceCandidates(gameId int64, lastSeq int64) ([]*models.IceCandidate, error) {
+	signalings, err := uc.SignalingRepo.FindByGameId(gameId, lastSeq)
 	if err != nil {
 		return nil, err
 	}
 
-	iceCandidate := &models.IceCandidate{
-		PeerId:           signaling.GameId,
-		IceBase64Encoded: signaling.Data,
-		Seq:              signaling.Id,
+	iceCandidates := make([]*models.IceCandidate, 0, 0)
+
+	for _, s := range signalings {
+		ice := &models.IceCandidate{
+			PeerId:           s.GameId,
+			IceBase64Encoded: s.Data,
+			Seq:              s.Id,
+		}
+
+		iceCandidates = append(iceCandidates, ice)
 	}
 
-	return iceCandidate, nil
+	return iceCandidates, nil
 }
 
 func (uc *SignalingUseCase) OnOrakkiIceCandidate(gameId int64, iceBase64Encoded string) error {

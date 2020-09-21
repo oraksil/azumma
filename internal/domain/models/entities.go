@@ -43,5 +43,5 @@ type GameRepository interface {
 
 type SignalingRepository interface {
 	Save(signaling *Signaling) (*Signaling, error)
-	FindOneByGameId(gameId int64, sinceId int64) (*Signaling, error)
+	FindByGameId(gameId int64, sinceId int64) ([]*Signaling, error)
 }

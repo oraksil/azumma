@@ -50,9 +50,9 @@ func (m *MockSignalingRepository) Save(signaling *models.Signaling) (*models.Sig
 	return args.Get(0).(*models.Signaling), args.Error(1)
 }
 
-func (m *MockSignalingRepository) FindOneByGameId(gameId int64, sinceId int64) (*models.Signaling, error) {
+func (m *MockSignalingRepository) FindByGameId(gameId int64, sinceId int64) ([]*models.Signaling, error) {
 	args := m.Called(gameId, sinceId)
-	return args.Get(0).(*models.Signaling), args.Error(1)
+	return args.Get(0).([]*models.Signaling), args.Error(1)
 }
 
 type MockK8SOrakkiDriver struct {

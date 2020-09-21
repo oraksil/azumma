@@ -65,17 +65,17 @@ func (ctrl *SignalingController) getOrakkiIceCandidates(c *gin.Context) {
 	var queryParams QueryParams
 	c.BindQuery(&queryParams)
 
-	iceCandidate, err := ctrl.SignalingUseCase.GetOrakkiIceCandidate(
+	iceCandidates, err := ctrl.SignalingUseCase.GetOrakkiIceCandidates(
 		uriParams.GameId,
 		queryParams.LastSeq,
 	)
 
 	if err != nil {
-		c.JSON(http.StatusOK, jsend.New(nil))
+		c.JSON(http.StatusOK, jsend.New(dto.IcesToDto([]*models.IceCandidate{})))
 		return
 	}
 
-	c.JSON(http.StatusOK, jsend.New(dto.IceToDto(iceCandidate)))
+	c.JSON(http.StatusOK, jsend.New(dto.IcesToDto(iceCandidates)))
 }
 
 func (ctrl *SignalingController) postPlayerIceCandidate(c *gin.Context) {

@@ -28,9 +28,9 @@ func SdpToDto(src *models.SdpInfo) *SdpDto {
 	return &sdpDto
 }
 
-func IceToDto(src *models.IceCandidate) *IceCandidateDto {
-	var iceDto IceCandidateDto
-	mapstructure.Decode(src, &iceDto)
+func IcesToDto(src []*models.IceCandidate) []*IceCandidateDto {
+	var icesDto []*IceCandidateDto
+	mapstructure.Decode(src, &icesDto)
 
-	return &iceDto
+	return icesDto
 }

@@ -149,17 +149,17 @@ func (r *SignalingRepositoryMySqlImpl) Save(signaling *models.Signaling) (*model
 	return signaling, err
 }
 
-func (r *SignalingRepositoryMySqlImpl) FindOneByGameId(gameId int64, sinceId int64) (*models.Signaling, error) {
-	var signalings models.Signaling
+func (r *SignalingRepositoryMySqlImpl) FindByGameId(gameId int64, sinceId int64) ([]*models.Signaling, error) {
+	var signalings []*models.Signaling
 
-	result := dto.SignalingData{}
-	query := "SELECT * FROM signaling WHERE game_id = ? AND id > ? ORDER BY id ASC LIMIT 1"
-	err := r.DB.Get(&result, query, gameId, sinceId)
+	result := []*dto.SignalingData{}
+	query := "SELECT * FROM signaling WHERE game_id = ? AND id > ? ORDER BY id ASC"
+	err := r.DB.Select(&result, query, gameId, sinceId)
 	if err != nil {
 		return nil, err
 	}
 
 	mapstructure.Decode(result, &signalings)
 
-	return &signalings, nil
+	return signalings, nil
 }
