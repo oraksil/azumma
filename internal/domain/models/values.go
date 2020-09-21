@@ -17,4 +17,5 @@ type SdpInfo struct {
 type IceCandidate struct {
 	PeerId           int64 // game-id or player-id
 	IceBase64Encoded string
+	Seq              int64
 }

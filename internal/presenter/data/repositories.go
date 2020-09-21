@@ -132,48 +132,34 @@ type SignalingRepositoryMySqlImpl struct {
 
 func (r *SignalingRepositoryMySqlImpl) Save(signaling *models.Signaling) (*models.Signaling, error) {
 	data := dto.SignalingData{
-		GameId: signaling.Game.Id,
+		GameId: signaling.GameId,
 		Data:   signaling.Data,
-		IsLast: signaling.IsLast,
 	}
 
 	var err error
-	if signaling.Id > 0 {
-		updateQuery := `UPDATE signaling SET is_last = ? WHERE id = ? `
-		_, err := r.DB.Exec(updateQuery, data.IsLast, signaling.Id)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		insertQuery := `INSERT INTO signaling (game_id, data, is_last) VALUES (?, ?, ?, ?)`
-		result, err := r.DB.Exec(insertQuery, data.GameId, data.Data, data.IsLast)
-		if err != nil {
-			return nil, err
-		}
-
-		LastInsertId, _ := result.LastInsertId()
-		signaling.Id = LastInsertId
+	insertQuery := `INSERT INTO signaling (game_id, data) VALUES (?, ?)`
+	result, err := r.DB.Exec(insertQuery, data.GameId, data.Data)
+	if err != nil {
+		return nil, err
 	}
+
+	LastInsertId, _ := result.LastInsertId()
+	signaling.Id = LastInsertId
 
 	return signaling, err
 }
 
-func (r *SignalingRepositoryMySqlImpl) FindByGameId(gameId int64, sinceId int64) ([]*models.Signaling, error) {
-	var signalings []*models.Signaling
-	result := []dto.SignalingData{}
+func (r *SignalingRepositoryMySqlImpl) FindOneByGameId(gameId int64, sinceId int64) (*models.Signaling, error) {
+	var signalings models.Signaling
 
-	query := `
-		SELECT * FROM signaling
-		WHERE game_id = ? AND id > ?
-		ORDER BY id ASC`
-
+	result := dto.SignalingData{}
+	query := "SELECT * FROM signaling WHERE game_id = ? AND id > ? ORDER BY id ASC LIMIT 1"
 	err := r.DB.Get(&result, query, gameId, sinceId)
-
 	if err != nil {
 		return nil, err
 	}
 
 	mapstructure.Decode(result, &signalings)
 
-	return signalings, nil
+	return &signalings, nil
 }

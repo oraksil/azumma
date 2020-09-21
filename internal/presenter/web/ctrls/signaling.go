@@ -8,6 +8,7 @@ import (
 	"github.com/oraksil/azumma/internal/domain/models"
 	"github.com/oraksil/azumma/internal/domain/usecases"
 	"github.com/oraksil/azumma/internal/presenter/web"
+	"github.com/oraksil/azumma/internal/presenter/web/ctrls/dto"
 )
 
 type SignalingController struct {
@@ -42,7 +43,7 @@ func (ctrl *SignalingController) handleSdpExchange(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, jsend.New(sdpInfo))
+	c.JSON(http.StatusOK, jsend.New(dto.SdpToDto(sdpInfo)))
 }
 
 func (ctrl *SignalingController) getOrakkiIceCandidates(c *gin.Context) {
@@ -55,7 +56,7 @@ func (ctrl *SignalingController) getOrakkiIceCandidates(c *gin.Context) {
 	}
 
 	type QueryParams struct {
-		SinceId int64 `form:"since_id"`
+		LastSeq int64 `form:"last_seq"`
 	}
 
 	var uriParams UriParams
@@ -64,20 +65,17 @@ func (ctrl *SignalingController) getOrakkiIceCandidates(c *gin.Context) {
 	var queryParams QueryParams
 	c.BindQuery(&queryParams)
 
-	iceCandidates, err := ctrl.SignalingUseCase.GetOrakkiIceCandidates(
+	iceCandidate, err := ctrl.SignalingUseCase.GetOrakkiIceCandidate(
 		uriParams.GameId,
-		queryParams.SinceId,
+		queryParams.LastSeq,
 	)
 
 	if err != nil {
-		c.JSON(http.StatusOK, jsend.NewFail(map[string]interface{}{
-			"code":    400,
-			"message": "no ice candidates availble with given id, seq",
-		}))
+		c.JSON(http.StatusOK, jsend.New(nil))
 		return
 	}
 
-	c.JSON(http.StatusOK, jsend.New(iceCandidates))
+	c.JSON(http.StatusOK, jsend.New(dto.IceToDto(iceCandidate)))
 }
 
 func (ctrl *SignalingController) postPlayerIceCandidate(c *gin.Context) {

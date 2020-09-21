@@ -48,25 +48,19 @@ func (uc *SignalingUseCase) NewOffer(gameId int64, playerId int64, b64EncodedOff
 	return &answerSdpInfo, err
 }
 
-func (uc *SignalingUseCase) GetOrakkiIceCandidates(gameId int64, sinceId int64) ([]*models.IceCandidate, error) {
-	signalings, err := uc.SignalingRepo.FindByGameId(gameId, sinceId)
+func (uc *SignalingUseCase) GetOrakkiIceCandidate(gameId int64, lastSeq int64) (*models.IceCandidate, error) {
+	signaling, err := uc.SignalingRepo.FindOneByGameId(gameId, lastSeq)
 	if err != nil {
 		return nil, err
 	}
 
-	numSignalings := len(signalings)
-	iceCandidates := make([]*models.IceCandidate, numSignalings, numSignalings)
-
-	for _, s := range signalings {
-		ice := &models.IceCandidate{
-			PeerId:           s.Game.Id,
-			IceBase64Encoded: s.Data,
-		}
-
-		iceCandidates = append(iceCandidates, ice)
+	iceCandidate := &models.IceCandidate{
+		PeerId:           signaling.GameId,
+		IceBase64Encoded: signaling.Data,
+		Seq:              signaling.Id,
 	}
 
-	return iceCandidates, nil
+	return iceCandidate, nil
 }
 
 func (uc *SignalingUseCase) OnOrakkiIceCandidate(gameId int64, iceBase64Encoded string) error {
@@ -75,24 +69,12 @@ func (uc *SignalingUseCase) OnOrakkiIceCandidate(gameId int64, iceBase64Encoded 
 		return errors.New("no game matched to given gameId")
 	}
 
-	if iceBase64Encoded == "" {
-		// get lastly added signaling info to set is_last to 1
-		signalings, _ := uc.SignalingRepo.FindByGameId(gameId, 0)
-		if len(signalings) > 0 {
-			lastSignaling := signalings[len(signalings)-1]
-			lastSignaling.IsLast = true
-
-			_, err = uc.SignalingRepo.Save(lastSignaling)
-		}
-	} else {
-		signaling := models.Signaling{
-			Game: game,
-			Data: iceBase64Encoded,
-		}
-
-		_, err = uc.SignalingRepo.Save(&signaling)
+	signaling := models.Signaling{
+		GameId: game.Id,
+		Data:   iceBase64Encoded,
 	}
 
+	_, err = uc.SignalingRepo.Save(&signaling)
 	if err != nil {
 		return err
 	}

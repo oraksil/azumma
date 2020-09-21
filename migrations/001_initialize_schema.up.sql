@@ -35,7 +35,6 @@ CREATE TABLE signaling (
     game_id BIGINT NOT NULL,
     data VARCHAR(8196),
     created_at TIMESTAMP,
-    is_last BOOLEAN NOT NULL,
 
     PRIMARY KEY (id),
     FOREIGN KEY (game_id) REFERENCES game(id)

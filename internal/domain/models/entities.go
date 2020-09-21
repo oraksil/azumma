@@ -26,9 +26,8 @@ type Game struct {
 
 type Signaling struct {
 	Id     int64
-	Game   *Game
+	GameId int64
 	Data   string
-	IsLast bool
 }
 
 type PackRepository interface {
@@ -44,5 +43,5 @@ type GameRepository interface {
 
 type SignalingRepository interface {
 	Save(signaling *Signaling) (*Signaling, error)
-	FindByGameId(gameId int64, sinceId int64) ([]*Signaling, error)
+	FindOneByGameId(gameId int64, sinceId int64) (*Signaling, error)
 }

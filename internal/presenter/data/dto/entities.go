@@ -24,6 +24,5 @@ type SignalingData struct {
 	Id        int64     `db:"id"`
 	GameId    int64     `db:"game_id"`
 	Data      string    `db:"data"`
-	IsLast    bool      `db:"is_last"`
 	CreatedAt time.Time `db:"created_at"`
 }

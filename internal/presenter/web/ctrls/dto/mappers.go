@@ -20,3 +20,17 @@ func GameToDto(src *models.Game) *GameDto {
 
 	return &gameDto
 }
+
+func SdpToDto(src *models.SdpInfo) *SdpDto {
+	var sdpDto SdpDto
+	mapstructure.Decode(src, &sdpDto)
+
+	return &sdpDto
+}
+
+func IceToDto(src *models.IceCandidate) *IceCandidateDto {
+	var iceDto IceCandidateDto
+	mapstructure.Decode(src, &iceDto)
+
+	return &iceDto
+}
