@@ -116,6 +116,14 @@ func (uc *GameCtrlUseCase) postProvisionHandler(game *models.Game) {
 
 		time.Sleep(5 * time.Second)
 	}
+
+	if game.Orakki.State == models.OrakkiStateReady {
+		uc.MessageService.Send(
+			newOrakki.Id,
+			models.MsgStartGame,
+			nil,
+		)
+	}
 }
 
 func (uc *GameCtrlUseCase) JoinGame() {

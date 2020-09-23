@@ -105,15 +105,15 @@ func (d *K8SOrakkiDriver) createOrakkiPod(podName string) *core.Pod {
 						},
 						{
 							Name:  "IPC_IMAGE_FRAMES",
-							Value: "/var/oraksil/ipc/images.ipc",
+							Value: "ipc:///var/oraksil/ipc/images.ipc",
 						},
 						{
 							Name:  "IPC_SOUND_FRAMES",
-							Value: "/var/oraksil/ipc/sounds.ipc",
+							Value: "ipc:///var/oraksil/ipc/sounds.ipc",
 						},
 						{
 							Name:  "IPC_KEY_INPUTS",
-							Value: "/var/oraksil/ipc/keys.ipc",
+							Value: "ipc:///var/oraksil/ipc/keys.ipc",
 						},
 					},
 				},
