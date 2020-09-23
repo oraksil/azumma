@@ -2,7 +2,7 @@ package models
 
 import "time"
 
-type Game struct {
+type Pack struct {
 	Id          int
 	Title       string
 	Maker       string
@@ -16,25 +16,32 @@ type Player struct {
 	TotalCoins int
 }
 
-type Orakki struct {
-	Id       string
-	State    int
-	PeerName string
-}
-
-type RunningGame struct {
+type Game struct {
 	Id        int64
 	Orakki    *Orakki
-	Game      *Game
+	Pack      *Pack
 	Players   []*Player
 	CreatedAt time.Time
 }
 
+type Signaling struct {
+	Id     int64
+	GameId int64
+	Data   string
+}
+
+type PackRepository interface {
+	GetById(id int) (*Pack, error)
+	Find(offset, limit int) []*Pack
+}
+
 type GameRepository interface {
-	GetGameById(id int) (*Game, error)
+	Find(offset, limit int) []*Game
+	FindById(id int64) (*Game, error)
+	Save(game *Game) (*Game, error)
+}
 
-	FindAvailableGames(offset, limit int) []*Game
-	FindRunningGames(offset, limit int) []*RunningGame
-
-	SaveRunningGame(game *RunningGame) (*RunningGame, error)
+type SignalingRepository interface {
+	Save(signaling *Signaling) (*Signaling, error)
+	FindByGameId(gameId int64, sinceId int64) ([]*Signaling, error)
 }

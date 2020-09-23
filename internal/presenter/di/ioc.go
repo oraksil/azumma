@@ -16,11 +16,15 @@ func InitContainer() {
 	container.Singleton(newMqService)
 	container.Singleton(newMessageService)
 	container.Singleton(newMySqlDb)
+	container.Singleton(newPackRepository)
 	container.Singleton(newGameRepository)
+	container.Singleton(newSignalingRepository)
 	container.Singleton(newGameFetchUseCase)
 	container.Singleton(newGameCtrlUseCase)
 	container.Singleton(newGameController)
-	container.Singleton(newHelloHandler)
+	container.Singleton(newSignalingUseCases)
+	container.Singleton(newSignalingHandler)
+	container.Singleton(newSignalingController)
 }
 
 func InjectServiceConfig() *services.ServiceConfig {
@@ -41,14 +45,20 @@ func InjectMqService() *mqrpc.MqService {
 	return svc
 }
 
-func InjectHelloHandler() *handlers.HelloHandler {
-	var handler *handlers.HelloHandler
+func InjectSignalingHandler() *handlers.SignalingHandler {
+	var handler *handlers.SignalingHandler
 	container.Make(&handler)
 	return handler
 }
 
 func InjectGameController() *ctrls.GameController {
 	var ctrl *ctrls.GameController
+	container.Make(&ctrl)
+	return ctrl
+}
+
+func InjectSignalingController() *ctrls.SignalingController {
+	var ctrl *ctrls.SignalingController
 	container.Make(&ctrl)
 	return ctrl
 }

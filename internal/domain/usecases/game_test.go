@@ -10,106 +10,41 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-type MockGameRepository struct {
-	mock.Mock
-}
-
-func (r *MockGameRepository) GetGameById(id int) (*models.Game, error) {
-	args := r.Called(id)
-	return args.Get(0).(*models.Game), args.Error(1)
-}
-
-func (r *MockGameRepository) FindAvailableGames(offset, limit int) []*models.Game {
-	args := r.Called(offset, limit)
-	return args.Get(0).([]*models.Game)
-}
-
-func (r *MockGameRepository) FindRunningGames(offset, limit int) []*models.RunningGame {
-	args := r.Called(offset, limit)
-	return args.Get(0).([]*models.RunningGame)
-}
-
-func (r *MockGameRepository) SaveRunningGame(game *models.RunningGame) (*models.RunningGame, error) {
-	args := r.Called(game)
-	game.Id = 1
-	return game, args.Error(1)
-}
-
-type MockK8SOrakkiDriver struct {
-	mock.Mock
-}
-
-func (d *MockK8SOrakkiDriver) RunInstance(peerName string) (string, error) {
-	args := d.Called(peerName)
-	return args.String(0), args.Error(1)
-}
-
-func (d *MockK8SOrakkiDriver) DeleteInstance(id string) error {
-	args := d.Called(id)
-	return args.Error(0)
-}
-
-type MockMessageService struct {
-	mock.Mock
-}
-
-func (m *MockMessageService) Identifier() string {
-	args := m.Called()
-	return args.String(0)
-}
-
-func (m *MockMessageService) Send(to, msgType string, payload interface{}) error {
-	args := m.Called(to, msgType, payload)
-	return args.Error(0)
-}
-
-func (m *MockMessageService) SendToAny(msgType string, payload interface{}) error {
-	args := m.Called(msgType, payload)
-	return args.Error(0)
-}
-
-func (m *MockMessageService) Broadcast(msgType string, payload interface{}) error {
-	args := m.Called(msgType, payload)
-	return args.Error(0)
-}
-
-func (m *MockMessageService) Request(to, msgType string, payload interface{}, timeout time.Duration) (interface{}, error) {
-	args := m.Called(to, msgType, payload, timeout)
-	return args.Get(0), args.Error(1)
-}
-
-func TestGameFetchUseCaseFindAvailableGames(t *testing.T) {
+func TestGameFetchUseCaseFindAvailablePacks(t *testing.T) {
 	// given
-	mockRepo := new(MockGameRepository)
-	useCase := GameFetchUseCase{GameRepository: mockRepo}
+	mockPackRepo := new(MockPackRepository)
+	useCase := GameFetchUseCase{
+		PackRepo: mockPackRepo,
+	}
 
-	mockGames := []*models.Game{
+	mockPacks := []*models.Pack{
 		{Id: 1, Title: "Cadilacs", Description: "Game", MaxPlayers: 3},
 		{Id: 2, Title: "Bobl Bubl", Description: "Game", MaxPlayers: 2},
 	}
-	mockRepo.On("FindAvailableGames", 0, 2).Return(mockGames)
+	mockPackRepo.On("Find", 0, 2).Return(mockPacks)
 
 	// when
-	games := useCase.GetAvailableGames(0, 2)
+	packs := useCase.GetPacks(0, 2)
 
 	// then
-	assert.Equal(t, len(games), 2)
-	mockRepo.AssertExpectations(t)
+	assert.Equal(t, len(packs), 2)
+	mockPackRepo.AssertExpectations(t)
 
 	// given
-	mockRepo.On("FindAvailableGames", 2, 2).Return(mockGames)
+	mockPackRepo.On("Find", 2, 2).Return(mockPacks)
 
 	// when
-	games = useCase.GetAvailableGames(1, 2)
+	packs = useCase.GetPacks(1, 2)
 
 	// then
-	assert.Equal(t, len(games), 2)
-	mockRepo.AssertExpectations(t)
+	assert.Equal(t, len(packs), 2)
+	mockPackRepo.AssertExpectations(t)
 }
 
 func TestGameCtrlUseCaseCreateNewGame(t *testing.T) {
 	// given
-	mockRepo := new(MockGameRepository)
+	mockPackRepo := new(MockPackRepository)
+	mockGameRepo := new(MockGameRepository)
 	mockDriver := new(MockK8SOrakkiDriver)
 	mockMsgSvc := new(MockMessageService)
 	serviceConf := newServiceConfig()
@@ -120,7 +55,7 @@ func TestGameCtrlUseCaseCreateNewGame(t *testing.T) {
 		TotalCoins: 10,
 	}
 
-	mockGame := models.Game{
+	mockPack := models.Pack{
 		Id:          1,
 		Title:       "Bubl Boble",
 		Maker:       "TAITO",
@@ -128,50 +63,50 @@ func TestGameCtrlUseCaseCreateNewGame(t *testing.T) {
 		MaxPlayers:  2,
 	}
 
-	mockRepo.On("GetGameById", 1).Return(&mockGame, nil)
-	mockRepo.On("SaveRunningGame", mock.Anything).Return(mock.Anything, nil)
+	mockPackRepo.On("GetById", 1).Return(&mockPack, nil)
+	mockGameRepo.On("Save", mock.Anything).Return(mock.Anything, nil)
 	mockDriver.On("RunInstance", mock.Anything).Return(serviceConf.StaticOrakkiId, nil)
 
 	// when
 	useCase := GameCtrlUseCase{
-		GameRepository: mockRepo,
+		PackRepo:       mockPackRepo,
+		GameRepo:       mockGameRepo,
 		OrakkiDriver:   mockDriver,
 		MessageService: mockMsgSvc,
 		ServiceConfig:  serviceConf,
 	}
-	runningGame, err := useCase.CreateNewGame(1, &mockPlayer)
+	game, err := useCase.CreateNewGame(1, &mockPlayer)
 
 	// then
-	assert.NotNil(t, runningGame)
+	assert.NotNil(t, game)
 	assert.Nil(t, err)
-	assert.Equal(t, serviceConf.StaticOrakkiId, runningGame.Orakki.Id)
-	assert.Equal(t, models.ORAKKI_STATE_INIT, runningGame.Orakki.State)
-	assert.Equal(t, 1, len(runningGame.Players))
-	assert.Equal(t, &mockPlayer, runningGame.Players[0])
+	assert.Equal(t, serviceConf.StaticOrakkiId, game.Orakki.Id)
+	assert.Equal(t, models.OrakkiStateInit, game.Orakki.State)
+	assert.Equal(t, 1, len(game.Players))
+	assert.Equal(t, &mockPlayer, game.Players[0])
 
-	mockRepo.AssertExpectations(t)
+	mockGameRepo.AssertExpectations(t)
 	mockDriver.AssertExpectations(t)
 
 	// given
-	mockState := models.OrakkiState{
-		OrakkiId: runningGame.Orakki.Id,
-		State:    models.ORAKKI_STATE_READY,
+	mockOrakki := models.Orakki{
+		Id:    game.Orakki.Id,
+		State: models.OrakkiStateReady,
 	}
 	mockMsgSvc.
 		On("Request", mock.Anything, mock.Anything, mock.Anything, mock.Anything).
-		Return(mockState, nil)
+		Return(mockOrakki, nil)
 
 	// when
-	useCase.postProvisionHandler(runningGame)
+	useCase.postProvisionHandler(game)
 
 	// then
-	assert.Equal(t, models.ORAKKI_STATE_READY, runningGame.Orakki.State)
+	assert.Equal(t, models.OrakkiStateReady, game.Orakki.State)
 }
 
 func newServiceConfig() *services.ServiceConfig {
 	return &services.ServiceConfig{
-		UseStaticOrakki:  false,
-		StaticOrakkiId:   "test-orakki-id",
+		StaticOrakkiId:   "",
 		ProvisionMaxWait: time.Duration(5),
 	}
 }

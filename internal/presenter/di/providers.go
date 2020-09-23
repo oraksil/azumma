@@ -20,17 +20,14 @@ import (
 )
 
 func newServiceConfig() *services.ServiceConfig {
-	useStaticOrakki := utils.GetBoolEnv("USE_STATIC_ORAKKI", false)
 	hostname, _ := os.Hostname()
+
 	return &services.ServiceConfig{
-		MqRpcUri:       utils.GetStrEnv("MQRPC_URI", "amqp://oraksil:oraksil@localhost:5672/"),
-		MqRpcNamespace: utils.GetStrEnv("MQRPC_NAMESPACE", "oraksil"),
+		MqRpcUri:        utils.GetStrEnv("MQRPC_URI", "amqp://oraksil:oraksil@localhost:5672/"),
+		MqRpcNamespace:  utils.GetStrEnv("MQRPC_NAMESPACE", "oraksil"),
+		MqRpcIdentifier: utils.GetStrEnv("MQRPC_IDENTIFIER", hostname),
 
-		PeerName: utils.GetStrEnv("PEER_NAME", hostname),
-
-		UseStaticOrakki:      useStaticOrakki,
-		StaticOrakkiId:       utils.GetStrEnv("STATIC_ORAKKI_ID", "orakki-static"),
-		StaticOrakkiPeerName: utils.GetStrEnv("STATIC_ORAKKI_PEER_NAME", "orakki-local"),
+		StaticOrakkiId: utils.GetStrEnv("STATIC_ORAKKI_ID", "orakki-static"),
 
 		OrakkiContainerImage: utils.GetStrEnv("ORAKKI_CONTAINER_IMAGE", "registry.gitlab.com/oraksil/orakki:latest"),
 		GipanContainerImage:  utils.GetStrEnv("GIPAN_CONTAINER_IMAGE", "registry.gitlab.com/oraksil/gipan:latest"),
@@ -78,7 +75,7 @@ func newMessageService() services.MessageService {
 }
 
 func newMySqlDb() *sqlx.DB {
-	db, err := sqlx.Open("mysql", "oraksil:oraksil@(localhost:3306)/oraksil")
+	db, err := sqlx.Open("mysql", "oraksil:oraksil@(localhost:3306)/oraksil?parseTime=true")
 	if err != nil {
 		panic(err)
 	}
@@ -88,6 +85,13 @@ func newMySqlDb() *sqlx.DB {
 	return db
 }
 
+func newPackRepository() models.PackRepository {
+	var db *sqlx.DB
+	container.Make(&db)
+
+	return &data.PackRepositoryMySqlImpl{DB: db}
+}
+
 func newGameRepository() models.GameRepository {
 	var db *sqlx.DB
 	container.Make(&db)
@@ -95,16 +99,32 @@ func newGameRepository() models.GameRepository {
 	return &data.GameRepositoryMySqlImpl{DB: db}
 }
 
-func newGameFetchUseCase() *usecases.GameFetchUseCase {
-	var repo models.GameRepository
-	container.Make(&repo)
+func newSignalingRepository() models.SignalingRepository {
+	var db *sqlx.DB
+	container.Make(&db)
 
-	return &usecases.GameFetchUseCase{GameRepository: repo}
+	return &data.SignalingRepositoryMySqlImpl{DB: db}
+}
+
+func newGameFetchUseCase() *usecases.GameFetchUseCase {
+	var packRepo models.PackRepository
+	container.Make(&packRepo)
+
+	var gameRepo models.GameRepository
+	container.Make(&gameRepo)
+
+	return &usecases.GameFetchUseCase{
+		PackRepo: packRepo,
+		GameRepo: gameRepo,
+	}
 }
 
 func newGameCtrlUseCase() *usecases.GameCtrlUseCase {
-	var repo models.GameRepository
-	container.Make(&repo)
+	var packRepo models.PackRepository
+	container.Make(&packRepo)
+
+	var gameRepo models.GameRepository
+	container.Make(&gameRepo)
 
 	var msgService services.MessageService
 	container.Make(&msgService)
@@ -116,7 +136,8 @@ func newGameCtrlUseCase() *usecases.GameCtrlUseCase {
 	container.Make(&serviceConf)
 
 	return &usecases.GameCtrlUseCase{
-		GameRepository: repo,
+		PackRepo:       packRepo,
+		GameRepo:       gameRepo,
 		MessageService: msgService,
 		OrakkiDriver:   orakkiDrv,
 		ServiceConfig:  serviceConf,
@@ -136,11 +157,37 @@ func newGameController() *ctrls.GameController {
 	}
 }
 
-func newHelloHandler() *handlers.HelloHandler {
-	var gameCtrlUseCase *usecases.GameCtrlUseCase
-	container.Make(&gameCtrlUseCase)
+func newSignalingUseCases() *usecases.SignalingUseCase {
+	var gameRepo models.GameRepository
+	container.Make(&gameRepo)
 
-	return &handlers.HelloHandler{
-		GameCtrlUseCase: gameCtrlUseCase,
+	var signalingRepo models.SignalingRepository
+	container.Make(&signalingRepo)
+
+	var msgService services.MessageService
+	container.Make(&msgService)
+
+	return &usecases.SignalingUseCase{
+		GameRepo:       gameRepo,
+		SignalingRepo:  signalingRepo,
+		MessageService: msgService,
+	}
+}
+
+func newSignalingController() *ctrls.SignalingController {
+	var signalingUseCase *usecases.SignalingUseCase
+	container.Make(&signalingUseCase)
+
+	return &ctrls.SignalingController{
+		SignalingUseCase: signalingUseCase,
+	}
+}
+
+func newSignalingHandler() *handlers.SignalingHandler {
+	var signalingUseCase *usecases.SignalingUseCase
+	container.Make(&signalingUseCase)
+
+	return &handlers.SignalingHandler{
+		SignalingUseCase: signalingUseCase,
 	}
 }

@@ -1,3 +1,4 @@
-drop table if exists running_game;
-drop table if exists player;
-drop table if exists game;
+DROP TABLE IF EXISTS signaling;
+DROP TABLE IF EXISTS game;
+DROP TABLE IF EXISTS player;
+DROP TABLE IF EXISTS pack;

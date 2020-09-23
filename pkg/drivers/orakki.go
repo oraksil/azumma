@@ -27,9 +27,9 @@ type K8SOrakkiDriver struct {
 	kubeOpSet  *kubernetes.Clientset
 }
 
-func (d *K8SOrakkiDriver) RunInstance(peerName string) (string, error) {
+func (d *K8SOrakkiDriver) RunInstance() (string, error) {
 	podName := d.newOrakkiPodName()
-	podObj := d.createOrakkiPod(podName, peerName)
+	podObj := d.createOrakkiPod(podName)
 
 	_, err := d.kubeOpSet.CoreV1().Pods(d.namespace).Create(podObj)
 	if err != nil {
@@ -58,7 +58,7 @@ func (d *K8SOrakkiDriver) newOrakkiPodName() string {
 	return fmt.Sprintf("%s-%s", d.baseAppName, id)
 }
 
-func (d *K8SOrakkiDriver) createOrakkiPod(podName, peerName string) *core.Pod {
+func (d *K8SOrakkiDriver) createOrakkiPod(podName string) *core.Pod {
 	return &core.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      podName,
@@ -92,16 +92,16 @@ func (d *K8SOrakkiDriver) createOrakkiPod(podName, peerName string) *core.Pod {
 					},
 					Env: []core.EnvVar{
 						{
-							Name:  "PEER_NAME",
-							Value: peerName,
-						},
-						{
 							Name:  "MQRPC_URI",
 							Value: d.mqRpcUri,
 						},
 						{
 							Name:  "MQRPC_NAMESPACE",
 							Value: d.mqRpcNs,
+						},
+						{
+							Name:  "MQRPC_IDENTIFIER",
+							Value: podName,
 						},
 						{
 							Name:  "IPC_IMAGE_FRAMES",
