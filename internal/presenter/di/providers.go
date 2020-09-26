@@ -23,14 +23,14 @@ func newServiceConfig() *services.ServiceConfig {
 	hostname, _ := os.Hostname()
 
 	return &services.ServiceConfig{
-		MqRpcUri:        utils.GetStrEnv("MQRPC_URI", "amqp://oraksil:oraksil@localhost:5672/"),
+		MqRpcUri:        utils.GetStrEnv("MQRPC_URI", "amqp://oraksil:oraksil@oraksil-mq-svc:5672/"),
 		MqRpcNamespace:  utils.GetStrEnv("MQRPC_NAMESPACE", "oraksil"),
 		MqRpcIdentifier: utils.GetStrEnv("MQRPC_IDENTIFIER", hostname),
 
-		StaticOrakkiId: utils.GetStrEnv("STATIC_ORAKKI_ID", "orakki-static"),
+		StaticOrakkiId: utils.GetStrEnv("STATIC_ORAKKI_ID", ""),
 
-		OrakkiContainerImage: utils.GetStrEnv("ORAKKI_CONTAINER_IMAGE", "registry.gitlab.com/oraksil/orakki:latest"),
-		GipanContainerImage:  utils.GetStrEnv("GIPAN_CONTAINER_IMAGE", "registry.gitlab.com/oraksil/gipan:latest"),
+		OrakkiContainerImage: utils.GetStrEnv("ORAKKI_CONTAINER_IMAGE", "oraksil/orakki:latest"),
+		GipanContainerImage:  utils.GetStrEnv("GIPAN_CONTAINER_IMAGE", "oraksil/gipan:latest"),
 		ProvisionMaxWait:     time.Duration(utils.GetIntEnv("PROVISION_MAX_WAIT", 30)),
 	}
 }

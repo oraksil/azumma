@@ -34,6 +34,10 @@ func (uc *SignalingUseCase) NewOffer(gameId int64, playerId int64, b64EncodedOff
 		return nil, errors.New("no game exists with given gameId")
 	}
 
+	if game.Orakki.State != models.OrakkiStateReady {
+		return nil, errors.New("game machine is not ready for signaling")
+	}
+
 	// sdp response from orakki
 	resp, err := uc.MessageService.Request(
 		game.Orakki.Id,

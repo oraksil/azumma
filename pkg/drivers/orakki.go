@@ -68,28 +68,11 @@ func (d *K8SOrakkiDriver) createOrakkiPod(podName string) *core.Pod {
 			},
 		},
 		Spec: core.PodSpec{
-			Volumes: []core.Volume{
-				{
-					Name: "shared-vol-for-ipc",
-					VolumeSource: core.VolumeSource{
-						EmptyDir: &core.EmptyDirVolumeSource{
-							Medium: "",
-						},
-					},
-				},
-			},
 			Containers: []core.Container{
 				{
 					Name:            "orakki",
 					Image:           d.orakkiImage,
 					ImagePullPolicy: core.PullIfNotPresent,
-					VolumeMounts: []core.VolumeMount{
-						{
-							Name:      "shared-vol-for-ipc",
-							MountPath: "/var/oraksil/ipc",
-							ReadOnly:  true,
-						},
-					},
 					Env: []core.EnvVar{
 						{
 							Name:  "MQRPC_URI",
@@ -105,15 +88,15 @@ func (d *K8SOrakkiDriver) createOrakkiPod(podName string) *core.Pod {
 						},
 						{
 							Name:  "IPC_IMAGE_FRAMES",
-							Value: "ipc:///var/oraksil/ipc/images.ipc",
+							Value: "tcp://127.0.0.1:8765",
 						},
 						{
 							Name:  "IPC_SOUND_FRAMES",
-							Value: "ipc:///var/oraksil/ipc/sounds.ipc",
+							Value: "tcp://127.0.0.1:8766",
 						},
 						{
 							Name:  "IPC_KEY_INPUTS",
-							Value: "ipc:///var/oraksil/ipc/keys.ipc",
+							Value: "tcp://127.0.0.1:8767",
 						},
 					},
 				},
@@ -121,12 +104,6 @@ func (d *K8SOrakkiDriver) createOrakkiPod(podName string) *core.Pod {
 					Name:            "gipan",
 					Image:           d.gipanImage,
 					ImagePullPolicy: core.PullIfNotPresent,
-					VolumeMounts: []core.VolumeMount{
-						{
-							Name:      "shared-vol-for-ipc",
-							MountPath: "/var/oraksil/ipc",
-						},
-					},
 					Env: []core.EnvVar{
 						{
 							Name:  "GAME",
@@ -134,15 +111,15 @@ func (d *K8SOrakkiDriver) createOrakkiPod(podName string) *core.Pod {
 						},
 						{
 							Name:  "IPC_IMAGE_FRAMES",
-							Value: "/var/oraksil/ipc/images.ipc",
+							Value: "tcp://127.0.0.1:8765",
 						},
 						{
 							Name:  "IPC_SOUND_FRAMES",
-							Value: "/var/oraksil/ipc/sounds.ipc",
+							Value: "tcp://127.0.0.1:8766",
 						},
 						{
 							Name:  "IPC_KEY_INPUTS",
-							Value: "/var/oraksil/ipc/keys.ipc",
+							Value: "tcp://127.0.0.1:8767",
 						},
 					},
 				},

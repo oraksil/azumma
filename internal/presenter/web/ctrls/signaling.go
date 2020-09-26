@@ -38,7 +38,7 @@ func (ctrl *SignalingController) handleSdpExchange(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusOK, jsend.NewFail(map[string]interface{}{
 			"code":    400,
-			"message": "invalid game or player id",
+			"message": err.Error(),
 		}))
 		return
 	}
