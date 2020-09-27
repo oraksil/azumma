@@ -32,6 +32,10 @@ func newServiceConfig() *services.ServiceConfig {
 		OrakkiContainerImage: utils.GetStrEnv("ORAKKI_CONTAINER_IMAGE", "oraksil/orakki:latest"),
 		GipanContainerImage:  utils.GetStrEnv("GIPAN_CONTAINER_IMAGE", "oraksil/gipan:latest"),
 		ProvisionMaxWait:     time.Duration(utils.GetIntEnv("PROVISION_MAX_WAIT", 30)),
+
+		TurnServerUri:      utils.GetStrEnv("TURN_URI", ""),
+		TurnServerUsername: utils.GetStrEnv("TURN_USERNAME", ""),
+		TurnServerPassword: utils.GetStrEnv("TURN_PASSWORD", ""),
 	}
 }
 
@@ -45,6 +49,9 @@ func newOrakkiDriver() services.OrakkiDriver {
 		serviceConf.GipanContainerImage,
 		serviceConf.MqRpcUri,
 		serviceConf.MqRpcNamespace,
+		serviceConf.TurnServerUri,
+		serviceConf.TurnServerUsername,
+		serviceConf.TurnServerPassword,
 	)
 	if err != nil {
 		panic(err)
