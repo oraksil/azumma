@@ -12,7 +12,7 @@ import (
 )
 
 func TestSignalingUseCaseNewOffer(t *testing.T) {
-	mockGame := &models.Game{Id: 1, Orakki: &models.Orakki{Id: "orakki1"}}
+	mockGame := &models.Game{Id: 1, Orakki: &models.Orakki{Id: "orakki1", State: models.OrakkiStateReady}}
 	mockGameRepo := new(MockGameRepository)
 	mockGameRepo.On("FindById", mock.Anything).Return(mockGame, nil)
 

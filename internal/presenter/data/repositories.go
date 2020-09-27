@@ -1,6 +1,7 @@
 package data
 
 import (
+	"strconv"
 	"strings"
 	"time"
 
@@ -78,50 +79,61 @@ func (r *GameRepositoryMySqlImpl) Save(game *models.Game) (*models.Game, error) 
 		CreatedAt:     time.Now(),
 	}
 
-	playerNames := make([]string, len(game.Players))
+	playerIds := make([]string, len(game.Players))
 	for i, p := range game.Players {
-		playerNames[i] = p.Name
+		playerIds[i] = strconv.FormatInt(p.Id, 10)
 	}
-	data.JoinedPlayerIds = strings.Join(playerNames, ",")
+	data.JoinedPlayerIds = strings.Join(playerIds, ",")
 
-	// insert and return id aware model
-	insertQuery := `
-		INSERT INTO game (
-			orakki_id,
-			orakki_state,
-			pack_id,
-			first_player_id,
-			joined_player_ids,
-			created_at)
-		VALUES
-			(?, ?, ?, ?, ?, ?)
-		ON DUPLICATE KEY UPDATE
-			orakki_state = ?,
-			first_player_id = ?,
-			joined_player_ids = ?`
+	if game.Id > 0 {
+		updateQuery := `
+			UPDATE game
+				SET orakki_state = ?,
+				first_player_id = ?,
+				joined_player_ids = ?
+			WHERE id = ?`
 
-	result, err := r.DB.Exec(
-		// insert args
-		insertQuery,
-		data.OrakkiId,
-		data.OrakkiState,
-		data.PackId,
-		data.FirstPlayerId,
-		data.JoinedPlayerIds,
-		data.CreatedAt,
-		// update args on duplicate key
-		data.OrakkiState,
-		data.FirstPlayerId,
-		data.JoinedPlayerIds,
-	)
+		_, err := r.DB.Exec(
+			updateQuery,
+			data.OrakkiState,
+			data.FirstPlayerId,
+			data.JoinedPlayerIds,
+			game.Id,
+		)
 
-	if err != nil {
-		return nil, err
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		insertQuery := `
+			INSERT INTO game (
+				orakki_id,
+				orakki_state,
+				pack_id,
+				first_player_id,
+				joined_player_ids,
+				created_at)
+			VALUES
+				(?, ?, ?, ?, ?, ?)`
+
+		result, err := r.DB.Exec(
+			insertQuery,
+			data.OrakkiId,
+			data.OrakkiState,
+			data.PackId,
+			data.FirstPlayerId,
+			data.JoinedPlayerIds,
+			data.CreatedAt,
+		)
+
+		if err != nil {
+			return nil, err
+		}
+
+		lastInsertedId, _ := result.LastInsertId()
+		game.Id = lastInsertedId
+		game.CreatedAt = data.CreatedAt
 	}
-
-	lastInsertedId, _ := result.LastInsertId()
-	game.Id = lastInsertedId
-	game.CreatedAt = data.CreatedAt
 
 	return game, nil
 }

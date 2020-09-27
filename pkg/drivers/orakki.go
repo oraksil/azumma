@@ -20,8 +20,13 @@ type K8SOrakkiDriver struct {
 
 	orakkiImage string
 	gipanImage  string
-	mqRpcUri    string
-	mqRpcNs     string
+
+	mqRpcUri string
+	mqRpcNs  string
+
+	turnUri      string
+	turnUsername string
+	turnPassword string
 
 	kubeConfig *restclient.Config
 	kubeOpSet  *kubernetes.Clientset
@@ -68,28 +73,11 @@ func (d *K8SOrakkiDriver) createOrakkiPod(podName string) *core.Pod {
 			},
 		},
 		Spec: core.PodSpec{
-			Volumes: []core.Volume{
-				{
-					Name: "shared-vol-for-ipc",
-					VolumeSource: core.VolumeSource{
-						EmptyDir: &core.EmptyDirVolumeSource{
-							Medium: "",
-						},
-					},
-				},
-			},
 			Containers: []core.Container{
 				{
 					Name:            "orakki",
 					Image:           d.orakkiImage,
 					ImagePullPolicy: core.PullIfNotPresent,
-					VolumeMounts: []core.VolumeMount{
-						{
-							Name:      "shared-vol-for-ipc",
-							MountPath: "/var/oraksil/ipc",
-							ReadOnly:  true,
-						},
-					},
 					Env: []core.EnvVar{
 						{
 							Name:  "MQRPC_URI",
@@ -105,15 +93,27 @@ func (d *K8SOrakkiDriver) createOrakkiPod(podName string) *core.Pod {
 						},
 						{
 							Name:  "IPC_IMAGE_FRAMES",
-							Value: "/var/oraksil/ipc/images.ipc",
+							Value: "tcp://127.0.0.1:8765",
 						},
 						{
 							Name:  "IPC_SOUND_FRAMES",
-							Value: "/var/oraksil/ipc/sounds.ipc",
+							Value: "tcp://127.0.0.1:8766",
 						},
 						{
 							Name:  "IPC_KEY_INPUTS",
-							Value: "/var/oraksil/ipc/keys.ipc",
+							Value: "tcp://127.0.0.1:8767",
+						},
+						{
+							Name:  "TURN_URI",
+							Value: d.turnUri,
+						},
+						{
+							Name:  "TURN_USERNAME",
+							Value: d.turnUsername,
+						},
+						{
+							Name:  "TURN_PASSWORD",
+							Value: d.turnPassword,
 						},
 					},
 				},
@@ -121,12 +121,6 @@ func (d *K8SOrakkiDriver) createOrakkiPod(podName string) *core.Pod {
 					Name:            "gipan",
 					Image:           d.gipanImage,
 					ImagePullPolicy: core.PullIfNotPresent,
-					VolumeMounts: []core.VolumeMount{
-						{
-							Name:      "shared-vol-for-ipc",
-							MountPath: "/var/oraksil/ipc",
-						},
-					},
 					Env: []core.EnvVar{
 						{
 							Name:  "GAME",
@@ -134,15 +128,15 @@ func (d *K8SOrakkiDriver) createOrakkiPod(podName string) *core.Pod {
 						},
 						{
 							Name:  "IPC_IMAGE_FRAMES",
-							Value: "/var/oraksil/ipc/images.ipc",
+							Value: "tcp://127.0.0.1:8765",
 						},
 						{
 							Name:  "IPC_SOUND_FRAMES",
-							Value: "/var/oraksil/ipc/sounds.ipc",
+							Value: "tcp://127.0.0.1:8766",
 						},
 						{
 							Name:  "IPC_KEY_INPUTS",
-							Value: "/var/oraksil/ipc/keys.ipc",
+							Value: "tcp://127.0.0.1:8767",
 						},
 					},
 				},
@@ -151,7 +145,16 @@ func (d *K8SOrakkiDriver) createOrakkiPod(podName string) *core.Pod {
 	}
 }
 
-func NewK8SOrakkiDriver(kubeConfigPath, orakkiImage, gipanImage, mqRpcUri, mqRpcNs string) (*K8SOrakkiDriver, error) {
+func NewK8SOrakkiDriver(
+	kubeConfigPath,
+	orakkiImage,
+	gipanImage,
+	mqRpcUri,
+	mqRpcNs,
+	turnUri,
+	turnUsername,
+	turnPassword string) (*K8SOrakkiDriver, error) {
+
 	if kubeConfigPath == "" {
 		kubeConfigPath = filepath.Join(homedir.HomeDir(), ".kube", "config")
 	}
@@ -176,5 +179,8 @@ func NewK8SOrakkiDriver(kubeConfigPath, orakkiImage, gipanImage, mqRpcUri, mqRpc
 		gipanImage:     gipanImage,
 		mqRpcUri:       mqRpcUri,
 		mqRpcNs:        mqRpcNs,
+		turnUri:        turnUri,
+		turnUsername:   turnUsername,
+		turnPassword:   turnPassword,
 	}, nil
 }

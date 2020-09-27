@@ -11,4 +11,8 @@ type ServiceConfig struct {
 	OrakkiContainerImage string
 	GipanContainerImage  string
 	ProvisionMaxWait     time.Duration
+
+	TurnServerUri      string
+	TurnServerUsername string
+	TurnServerPassword string
 }
