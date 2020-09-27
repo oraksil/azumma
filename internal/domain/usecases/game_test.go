@@ -65,7 +65,7 @@ func TestGameCtrlUseCaseCreateNewGame(t *testing.T) {
 
 	mockPackRepo.On("GetById", 1).Return(&mockPack, nil)
 	mockGameRepo.On("Save", mock.Anything).Return(mock.Anything, nil)
-	mockDriver.On("RunInstance", mock.Anything).Return(serviceConf.StaticOrakkiId, nil)
+	mockDriver.On("RunInstance").Return(serviceConf.StaticOrakkiId, nil)
 
 	// when
 	useCase := GameCtrlUseCase{
@@ -96,6 +96,10 @@ func TestGameCtrlUseCaseCreateNewGame(t *testing.T) {
 	mockMsgSvc.
 		On("Request", mock.Anything, mock.Anything, mock.Anything, mock.Anything).
 		Return(mockOrakki, nil)
+
+	mockMsgSvc.
+		On("Send", mock.Anything, mock.Anything, mock.Anything).
+		Return(nil)
 
 	// when
 	useCase.postProvisionHandler(game)
