@@ -22,14 +22,16 @@ func (uc *GameFetchUseCase) GetGames(page, size int) []*models.Game {
 }
 
 type GameCtrlUseCase struct {
-	PackRepo       models.PackRepository
-	GameRepo       models.GameRepository
+	ServiceConfig *services.ServiceConfig
+
+	PackRepo models.PackRepository
+	GameRepo models.GameRepository
+
 	OrakkiDriver   services.OrakkiDriver
 	MessageService services.MessageService
-	ServiceConfig  *services.ServiceConfig
 }
 
-func (uc *GameCtrlUseCase) CreateNewGame(packId int, firstPlayer *models.Player) (*models.Game, error) {
+func (uc *GameCtrlUseCase) CreateNewGame(packId int, sessionCtx services.SessionContext) (*models.Game, error) {
 	// validate game
 	pack, err := uc.PackRepo.GetById(packId)
 	if err != nil {
@@ -43,10 +45,11 @@ func (uc *GameCtrlUseCase) CreateNewGame(packId int, firstPlayer *models.Player)
 	}
 
 	// persist orakki context
+	session, _ := sessionCtx.GetSession()
 	game := models.Game{
 		Orakki:  newOrakki,
 		Pack:    pack,
-		Players: []*models.Player{firstPlayer},
+		Players: []*models.Player{session.Player},
 	}
 	saved, err := uc.GameRepo.Save(&game)
 	if err != nil {

@@ -1,5 +1,12 @@
 package dto
 
+type PlayerDto struct {
+	Id         int64  `json:"id"`
+	Name       string `json:"name"`
+	Hash       string `json:"hash"`
+	TotalCoins int    `json:"total_coins"`
+}
+
 type PackDto struct {
 	Id         int    `json:"id"`
 	Title      string `json:"title"`

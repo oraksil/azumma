@@ -5,10 +5,10 @@ import (
 
 	"clevergo.tech/jsend"
 	"github.com/gin-gonic/gin"
-	"github.com/oraksil/azumma/internal/domain/models"
 	"github.com/oraksil/azumma/internal/domain/usecases"
 	"github.com/oraksil/azumma/internal/presenter/web"
 	"github.com/oraksil/azumma/internal/presenter/web/ctrls/dto"
+	"github.com/oraksil/azumma/internal/presenter/web/ctrls/helpers"
 )
 
 type GameController struct {
@@ -26,9 +26,14 @@ func (ctrl *GameController) getAvailablePacks(c *gin.Context) {
 }
 
 func (ctrl *GameController) createNewGame(c *gin.Context) {
-	// TODO: get player id from session
-	// player := ctrl.SessionUseCase.GetPlayerFromSession(...)
-	player := models.Player{Id: 1, Name: "gamz"}
+	sessionCtx := helpers.NewSessionCtx(c)
+	if sessionCtx.Validate() != nil {
+		c.JSON(http.StatusOK, jsend.NewFail(map[string]interface{}{
+			"code":    400,
+			"message": "invalid session",
+		}))
+		return
+	}
 
 	type UriParams struct {
 		PackId int `uri:"pack_id"`
@@ -44,7 +49,7 @@ func (ctrl *GameController) createNewGame(c *gin.Context) {
 		return
 	}
 
-	game, err := ctrl.GameCtrlUseCase.CreateNewGame(uriParams.PackId, &player)
+	game, err := ctrl.GameCtrlUseCase.CreateNewGame(uriParams.PackId, sessionCtx)
 	if err != nil {
 		c.JSON(http.StatusOK, jsend.NewFail(map[string]interface{}{
 			"code":    400,

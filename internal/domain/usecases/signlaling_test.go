@@ -12,16 +12,32 @@ import (
 )
 
 func TestSignalingUseCaseNewOffer(t *testing.T) {
-	mockGame := &models.Game{Id: 1, Orakki: &models.Orakki{Id: "orakki1", State: models.OrakkiStateReady}}
+	// given
 	mockGameRepo := new(MockGameRepository)
-	mockGameRepo.On("FindById", mock.Anything).Return(mockGame, nil)
-
 	mockSignalRepo := new(MockSignalingRepository)
-	mockSignalRepo.On("Save", mock.Anything).Return(mock.Anything, nil)
-
-	mockSdpInfo := models.SdpInfo{PeerId: 1, SdpBase64Encoded: "sdp answer..."}
 	mockMsgSvc := new(MockMessageService)
-	mockMsgSvc.On("Request", mock.Anything, models.MsgSetupWithNewOffer, mock.Anything, mock.Anything).Return(mockSdpInfo, nil)
+	mockSessionCtx := new(MockSessionContext)
+
+	mockGame := models.Game{
+		Id:     1,
+		Orakki: &models.Orakki{Id: "orakki1", State: models.OrakkiStateReady},
+	}
+	mockSdpInfo := models.SdpInfo{
+		PeerId:           mockGame.Id,
+		SdpBase64Encoded: "sdp answer...",
+	}
+	mockPlayer := models.Player{
+		Id:   1,
+		Name: "nick",
+	}
+	mockSession := models.Session{
+		Player: &mockPlayer,
+	}
+
+	mockGameRepo.On("FindById", mock.Anything).Return(&mockGame, nil)
+	mockSignalRepo.On("Save", mock.Anything).Return(mock.Anything, nil)
+	mockMsgSvc.On("Request", mock.Anything, models.MsgSetupWithNewOffer, mock.Anything, mock.Anything).Return(&mockSdpInfo, nil)
+	mockSessionCtx.On("GetSession").Return(&mockSession, nil)
 
 	// when
 	useCase := SignalingUseCase{
@@ -37,7 +53,7 @@ func TestSignalingUseCaseNewOffer(t *testing.T) {
 
 	b64Encoded := base64.StdEncoding.EncodeToString([]byte(sdpString))
 
-	connectionInfo, err := useCase.NewOffer(mockGame.Id, 1, b64Encoded)
+	connectionInfo, err := useCase.NewOffer(mockGame.Id, b64Encoded, mockSessionCtx)
 
 	// then
 	fmt.Print(err)

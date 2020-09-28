@@ -5,6 +5,13 @@ import (
 	"github.com/oraksil/azumma/internal/domain/models"
 )
 
+func PlayerToDto(src *models.Player) *PlayerDto {
+	var playerDto PlayerDto
+	mapstructure.Decode(src, &playerDto)
+
+	return &playerDto
+}
+
 func PackToDto(src []*models.Pack) []*PackDto {
 	var packsDto []*PackDto
 	mapstructure.Decode(src, &packsDto)

@@ -1,5 +1,9 @@
 package models
 
+type Session struct {
+	Player *Player
+}
+
 type PrepareOrakki struct {
 	GameId int64
 }

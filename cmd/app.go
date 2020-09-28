@@ -17,6 +17,7 @@ func main() {
 	go func() { mqSvc.Run(conf.MqRpcIdentifier, true) }()
 
 	webSvc := di.InjectWebService()
+	webSvc.AddController(di.InjectPlayerController())
 	webSvc.AddController(di.InjectGameController())
 	webSvc.AddController(di.InjectSignalingController())
 	webSvc.Run("8000")

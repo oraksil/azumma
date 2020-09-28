@@ -1,6 +1,16 @@
 package services
 
-import "time"
+import (
+	"time"
+
+	"github.com/oraksil/azumma/internal/domain/models"
+)
+
+type SessionContext interface {
+	GetSession() (*models.Session, error)
+	SetSession(session *models.Session) error
+	Validate() error
+}
 
 type MessageService interface {
 	Identifier() string

@@ -9,6 +9,7 @@ import (
 	"github.com/oraksil/azumma/internal/domain/usecases"
 	"github.com/oraksil/azumma/internal/presenter/web"
 	"github.com/oraksil/azumma/internal/presenter/web/ctrls/dto"
+	"github.com/oraksil/azumma/internal/presenter/web/ctrls/helpers"
 )
 
 type SignalingController struct {
@@ -16,9 +17,14 @@ type SignalingController struct {
 }
 
 func (ctrl *SignalingController) handleSdpExchange(c *gin.Context) {
-	// TODO: get player id from session
-	// player := ctrl.SessionUseCase.GetPlayerFromSession(...)
-	player := models.Player{Id: 1, Name: "gamz"}
+	sessionCtx := helpers.NewSessionCtx(c)
+	if sessionCtx.Validate() != nil {
+		c.JSON(http.StatusOK, jsend.NewFail(map[string]interface{}{
+			"code":    400,
+			"message": "invalid session",
+		}))
+		return
+	}
 
 	type UriParams struct {
 		GameId int64 `uri:"game_id"`
@@ -34,7 +40,7 @@ func (ctrl *SignalingController) handleSdpExchange(c *gin.Context) {
 	var jsonParams JsonParams
 	c.BindJSON(&jsonParams)
 
-	sdpInfo, err := ctrl.SignalingUseCase.NewOffer(uriParams.GameId, player.Id, jsonParams.SdpOffer)
+	sdpInfo, err := ctrl.SignalingUseCase.NewOffer(uriParams.GameId, jsonParams.SdpOffer, sessionCtx)
 	if err != nil {
 		c.JSON(http.StatusOK, jsend.NewFail(map[string]interface{}{
 			"code":    400,
@@ -47,9 +53,14 @@ func (ctrl *SignalingController) handleSdpExchange(c *gin.Context) {
 }
 
 func (ctrl *SignalingController) getOrakkiIceCandidates(c *gin.Context) {
-	// TODO: get player id from session
-	// player := ctrl.SessionUseCase.GetPlayerFromSession(...)
-	// player := models.Player{Id: 1, Name: "gamz"}
+	sessionCtx := helpers.NewSessionCtx(c)
+	if sessionCtx.Validate() != nil {
+		c.JSON(http.StatusOK, jsend.NewFail(map[string]interface{}{
+			"code":    400,
+			"message": "invalid session",
+		}))
+		return
+	}
 
 	type UriParams struct {
 		GameId int64 `uri:"game_id"`
@@ -68,6 +79,7 @@ func (ctrl *SignalingController) getOrakkiIceCandidates(c *gin.Context) {
 	iceCandidates, err := ctrl.SignalingUseCase.GetOrakkiIceCandidates(
 		uriParams.GameId,
 		queryParams.LastSeq,
+		sessionCtx,
 	)
 
 	if err != nil {
@@ -79,9 +91,14 @@ func (ctrl *SignalingController) getOrakkiIceCandidates(c *gin.Context) {
 }
 
 func (ctrl *SignalingController) postPlayerIceCandidate(c *gin.Context) {
-	// TODO: get player id from session
-	// player := ctrl.SessionUseCase.GetPlayerFromSession(...)
-	player := models.Player{Id: 1, Name: "gamz"}
+	sessionCtx := helpers.NewSessionCtx(c)
+	if sessionCtx.Validate() != nil {
+		c.JSON(http.StatusOK, jsend.NewFail(map[string]interface{}{
+			"code":    400,
+			"message": "invalid session",
+		}))
+		return
+	}
 
 	type UriParams struct {
 		GameId int64 `uri:"game_id"`
@@ -99,8 +116,8 @@ func (ctrl *SignalingController) postPlayerIceCandidate(c *gin.Context) {
 
 	err := ctrl.SignalingUseCase.OnPlayerIceCandidate(
 		uriParams.GameId,
-		player.Id,
 		jsonParams.IceCandidate,
+		sessionCtx,
 	)
 
 	if err != nil {
