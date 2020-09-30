@@ -28,10 +28,29 @@ type Game struct {
 	CreatedAt time.Time
 }
 
+func (g *Game) Join(p *Player) {
+	for _, pl := range g.Players {
+		if pl.Id == p.Id {
+			return
+		}
+	}
+	g.Players = append(g.Players, p)
+}
+
+func (g *Game) Leave(p *Player) {
+	for i, pl := range g.Players {
+		if pl.Id == p.Id {
+			g.Players = append(g.Players[:i], g.Players[i+1:]...)
+			break
+		}
+	}
+}
+
 type Signaling struct {
-	Id     int64
-	GameId int64
-	Data   string
+	Id       int64
+	GameId   int64
+	PlayerId int64
+	Data     string
 }
 
 type PlayerRepository interface {
@@ -45,12 +64,12 @@ type PackRepository interface {
 }
 
 type GameRepository interface {
+	GetById(id int64) (*Game, error)
 	Find(offset, limit int) []*Game
-	FindById(id int64) (*Game, error)
 	Save(game *Game) (*Game, error)
 }
 
 type SignalingRepository interface {
+	Find(gameId int64, playerId int64, sinceId int64) ([]*Signaling, error)
 	Save(signaling *Signaling) (*Signaling, error)
-	FindByGameId(gameId int64, sinceId int64) ([]*Signaling, error)
 }

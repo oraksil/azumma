@@ -128,9 +128,7 @@ func (ctrl *SignalingController) postPlayerIceCandidate(c *gin.Context) {
 		return
 	}
 
-	response := map[string]interface{}{}
-
-	c.JSON(http.StatusOK, jsend.New(response))
+	c.JSON(http.StatusOK, jsend.New(dto.Empty()))
 }
 
 func (ctrl *SignalingController) Routes() []web.Route {

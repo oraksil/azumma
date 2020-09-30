@@ -143,6 +143,9 @@ func newGameCtrlUseCase() *usecases.GameCtrlUseCase {
 	var gameRepo models.GameRepository
 	container.Make(&gameRepo)
 
+	var playerRepo models.PlayerRepository
+	container.Make(&playerRepo)
+
 	var msgService services.MessageService
 	container.Make(&msgService)
 
@@ -153,6 +156,7 @@ func newGameCtrlUseCase() *usecases.GameCtrlUseCase {
 		ServiceConfig:  serviceConf,
 		PackRepo:       packRepo,
 		GameRepo:       gameRepo,
+		PlayerRepo:     playerRepo,
 		MessageService: msgService,
 		OrakkiDriver:   orakkiDrv,
 	}
@@ -169,6 +173,13 @@ func newGameController() *ctrls.GameController {
 		GameFetchUseCase: gameFetchUseCase,
 		GameCtrlUseCase:  gameCtrlUseCase,
 	}
+}
+
+func newGameHandler() *handlers.GameHandler {
+	var gameCtrlUseCase *usecases.GameCtrlUseCase
+	container.Make(&gameCtrlUseCase)
+
+	return &handlers.GameHandler{GameCtrlUseCase: gameCtrlUseCase}
 }
 
 func newSignalingUseCases() *usecases.SignalingUseCase {

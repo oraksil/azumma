@@ -1,8 +1,6 @@
 package data
 
 import (
-	"strconv"
-	"strings"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -18,15 +16,15 @@ type PlayerRepositoryMySqlImpl struct {
 func (r *PlayerRepositoryMySqlImpl) GetById(id int64) (*models.Player, error) {
 	var player *models.Player
 
-	result := dto.PlayerData{}
-	err := r.DB.Get(&result, "SELECT * FROM player WHERE id = ? LIMIT 1", id)
+	playerData := dto.PlayerData{}
+	err := r.DB.Get(&playerData, "SELECT * FROM player WHERE id = ? LIMIT 1", id)
 	if err != nil {
 		return player, err
 	}
 
-	mapstructure.Decode(result, &player)
+	mapstructure.Decode(playerData, &player)
 
-	return nil, nil
+	return player, nil
 }
 
 func (r *PlayerRepositoryMySqlImpl) Save(player *models.Player) (*models.Player, error) {
@@ -91,43 +89,51 @@ type GameRepositoryMySqlImpl struct {
 	DB *sqlx.DB
 }
 
-func (r *GameRepositoryMySqlImpl) Find(offset, limit int) []*models.Game {
-	return nil
-}
+func (r *GameRepositoryMySqlImpl) GetById(id int64) (*models.Game, error) {
+	gameData := dto.GameData{}
+	err := r.DB.Get(&gameData, "SELECT * FROM game WHERE id = ? LIMIT 1", id)
+	if err != nil {
+		return nil, err
+	}
 
-func (r *GameRepositoryMySqlImpl) FindById(id int64) (*models.Game, error) {
-	result := dto.GameData{}
-	err := r.DB.Get(&result, "SELECT * FROM game WHERE id = ? LIMIT 1", id)
+	packData := dto.PackData{}
+	err = r.DB.Get(&packData, "SELECT * FROM pack WHERE id = ? LIMIT 1", gameData.PackId)
 	if err != nil {
 		return nil, err
 	}
 
 	game := models.Game{
-		Id: result.Id,
+		Id: gameData.Id,
 		Orakki: &models.Orakki{
-			Id:    result.OrakkiId,
-			State: result.OrakkiState,
+			Id:    gameData.OrakkiId,
+			State: gameData.OrakkiState,
 		},
+		Pack: &models.Pack{
+			Id:         packData.Id,
+			Title:      packData.Title,
+			MaxPlayers: packData.MaxPlayers,
+		},
+		Players:   gameData.GetJoinedPlayers(),
+		CreatedAt: gameData.CreatedAt,
 	}
 
 	return &game, nil
 }
 
+func (r *GameRepositoryMySqlImpl) Find(offset, limit int) []*models.Game {
+	return nil
+}
+
 func (r *GameRepositoryMySqlImpl) Save(game *models.Game) (*models.Game, error) {
 	// map models to dto
 	data := dto.GameData{
+		PackId:        game.Pack.Id,
 		OrakkiId:      game.Orakki.Id,
 		OrakkiState:   game.Orakki.State,
-		PackId:        game.Pack.Id,
 		FirstPlayerId: game.Players[0].Id,
 		CreatedAt:     time.Now(),
 	}
-
-	playerIds := make([]string, len(game.Players))
-	for i, p := range game.Players {
-		playerIds[i] = strconv.FormatInt(p.Id, 10)
-	}
-	data.JoinedPlayerIds = strings.Join(playerIds, ",")
+	data.SetJoinedPlayers(game.Players)
 
 	if game.Id > 0 {
 		updateQuery := `
@@ -151,9 +157,9 @@ func (r *GameRepositoryMySqlImpl) Save(game *models.Game) (*models.Game, error) 
 	} else {
 		insertQuery := `
 			INSERT INTO game (
+				pack_id,
 				orakki_id,
 				orakki_state,
-				pack_id,
 				first_player_id,
 				joined_player_ids,
 				created_at)
@@ -162,9 +168,9 @@ func (r *GameRepositoryMySqlImpl) Save(game *models.Game) (*models.Game, error) 
 
 		result, err := r.DB.Exec(
 			insertQuery,
+			data.PackId,
 			data.OrakkiId,
 			data.OrakkiState,
-			data.PackId,
 			data.FirstPlayerId,
 			data.JoinedPlayerIds,
 			data.CreatedAt,
@@ -186,15 +192,31 @@ type SignalingRepositoryMySqlImpl struct {
 	DB *sqlx.DB
 }
 
+func (r *SignalingRepositoryMySqlImpl) Find(gameId int64, playerId int64, sinceId int64) ([]*models.Signaling, error) {
+	var signalings []*models.Signaling
+
+	result := []*dto.SignalingData{}
+	query := "SELECT * FROM signaling WHERE game_id = ? AND player_id = ? AND id > ? ORDER BY id ASC"
+	err := r.DB.Select(&result, query, gameId, playerId, sinceId)
+	if err != nil {
+		return nil, err
+	}
+
+	mapstructure.Decode(result, &signalings)
+
+	return signalings, nil
+}
+
 func (r *SignalingRepositoryMySqlImpl) Save(signaling *models.Signaling) (*models.Signaling, error) {
 	data := dto.SignalingData{
-		GameId: signaling.GameId,
-		Data:   signaling.Data,
+		GameId:   signaling.GameId,
+		PlayerId: signaling.PlayerId,
+		Data:     signaling.Data,
 	}
 
 	var err error
-	insertQuery := `INSERT INTO signaling (game_id, data) VALUES (?, ?)`
-	result, err := r.DB.Exec(insertQuery, data.GameId, data.Data)
+	insertQuery := `INSERT INTO signaling (game_id, player_id, data) VALUES (?, ?, ?)`
+	result, err := r.DB.Exec(insertQuery, data.GameId, data.PlayerId, data.Data)
 	if err != nil {
 		return nil, err
 	}
@@ -203,19 +225,4 @@ func (r *SignalingRepositoryMySqlImpl) Save(signaling *models.Signaling) (*model
 	signaling.Id = lastInsertId
 
 	return signaling, err
-}
-
-func (r *SignalingRepositoryMySqlImpl) FindByGameId(gameId int64, sinceId int64) ([]*models.Signaling, error) {
-	var signalings []*models.Signaling
-
-	result := []*dto.SignalingData{}
-	query := "SELECT * FROM signaling WHERE game_id = ? AND id > ? ORDER BY id ASC"
-	err := r.DB.Select(&result, query, gameId, sinceId)
-	if err != nil {
-		return nil, err
-	}
-
-	mapstructure.Decode(result, &signalings)
-
-	return signalings, nil
 }

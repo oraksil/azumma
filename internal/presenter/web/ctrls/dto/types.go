@@ -28,8 +28,7 @@ type SdpDto struct {
 }
 
 type IceCandidateDto struct {
-	PeerId int64  `json:"peer_id"`
+	PeerId int64  `mapstructure:"SrcPeerId" json:"peer_id"`
 	Ice    string `mapstructure:"IceBase64Encoded" json:"ice"`
-	IsLast bool   `json:"is_last"`
 	Seq    int64  `json:"seq"`
 }

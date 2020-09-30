@@ -1,6 +1,12 @@
 package dto
 
-import "time"
+import (
+	"strconv"
+	"strings"
+	"time"
+
+	"github.com/oraksil/azumma/internal/domain/models"
+)
 
 type PlayerData struct {
 	Id         int64  `db:"id"`
@@ -25,10 +31,30 @@ type GameData struct {
 	CreatedAt       time.Time `db:"created_at"`
 }
 
+func (d *GameData) SetJoinedPlayers(players []*models.Player) {
+	playerIds := make([]string, len(players))
+	for i, p := range players {
+		playerIds[i] = strconv.FormatInt(p.Id, 10)
+	}
+	d.JoinedPlayerIds = strings.Join(playerIds, ",")
+}
+
+func (d *GameData) GetJoinedPlayers() []*models.Player {
+	playerIds := strings.Split(d.JoinedPlayerIds, ",")
+	players := make([]*models.Player, 0)
+	for _, pIdString := range playerIds {
+		pId, _ := strconv.ParseInt(pIdString, 10, 0)
+		players = append(players, &models.Player{Id: pId})
+	}
+
+	return players
+}
+
 // ConnectionDescriptionData : record info of connection for each player, such as signaling state
 type SignalingData struct {
 	Id        int64     `db:"id"`
 	GameId    int64     `db:"game_id"`
+	PlayerId  int64     `db:"player_id"`
 	Data      string    `db:"data"`
 	CreatedAt time.Time `db:"created_at"`
 }

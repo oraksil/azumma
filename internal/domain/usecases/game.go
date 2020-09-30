@@ -1,6 +1,7 @@
 package usecases
 
 import (
+	"errors"
 	"time"
 
 	"github.com/mitchellh/mapstructure"
@@ -24,8 +25,9 @@ func (uc *GameFetchUseCase) GetGames(page, size int) []*models.Game {
 type GameCtrlUseCase struct {
 	ServiceConfig *services.ServiceConfig
 
-	PackRepo models.PackRepository
-	GameRepo models.GameRepository
+	PackRepo   models.PackRepository
+	GameRepo   models.GameRepository
+	PlayerRepo models.PlayerRepository
 
 	OrakkiDriver   services.OrakkiDriver
 	MessageService services.MessageService
@@ -124,11 +126,67 @@ func (uc *GameCtrlUseCase) postProvisionHandler(game *models.Game) {
 		uc.MessageService.Send(
 			newOrakki.Id,
 			models.MsgStartGame,
-			nil,
+			&models.GameInfo{GameId: game.Id, MaxPlayers: game.Pack.MaxPlayers},
 		)
 	}
 }
 
-func (uc *GameCtrlUseCase) JoinGame() {
+func (uc *GameCtrlUseCase) CanJoinGame(gameId int64, sessionCtx services.SessionContext) error {
+	game, err := uc.GameRepo.GetById(gameId)
+	if err != nil {
+		return errors.New("game not found")
+	}
 
+	session, err := sessionCtx.GetSession()
+	if err != nil || session.Player == nil {
+		return errors.New("invalid player")
+	}
+
+	if len(game.Players) >= game.Pack.MaxPlayers {
+		return errors.New("game is full")
+	}
+
+	return nil
+}
+
+func (uc *GameCtrlUseCase) JoinGame(gameId int64, playerId int64) (*models.Game, error) {
+	game, err := uc.GameRepo.GetById(gameId)
+	if err != nil {
+		return nil, err
+	}
+
+	player, err := uc.PlayerRepo.GetById(playerId)
+	if err != nil {
+		return nil, err
+	}
+
+	game.Join(player)
+
+	_, err = uc.GameRepo.Save(game)
+	if err != nil {
+		return nil, err
+	}
+
+	return game, nil
+}
+
+func (uc *GameCtrlUseCase) LeaveGame(gameId int64, playerId int64) error {
+	game, err := uc.GameRepo.GetById(gameId)
+	if err != nil {
+		return err
+	}
+
+	player, err := uc.PlayerRepo.GetById(playerId)
+	if err != nil {
+		return err
+	}
+
+	game.Leave(player)
+
+	_, err = uc.GameRepo.Save(game)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

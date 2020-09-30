@@ -22,13 +22,14 @@ func TestSignalingUseCaseNewOffer(t *testing.T) {
 		Id:     1,
 		Orakki: &models.Orakki{Id: "orakki1", State: models.OrakkiStateReady},
 	}
-	mockSdpInfo := models.SdpInfo{
-		PeerId:           mockGame.Id,
-		SdpBase64Encoded: "sdp answer...",
-	}
 	mockPlayer := models.Player{
 		Id:   1,
 		Name: "nick",
+	}
+	mockSdpInfo := models.SdpInfo{
+		SrcPeerId:        mockGame.Id,
+		DstPeerId:        mockPlayer.Id,
+		SdpBase64Encoded: "sdp answer...",
 	}
 	mockSession := models.Session{
 		Player: &mockPlayer,
