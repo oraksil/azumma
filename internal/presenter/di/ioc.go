@@ -16,9 +16,12 @@ func InitContainer() {
 	container.Singleton(newMqService)
 	container.Singleton(newMessageService)
 	container.Singleton(newMySqlDb)
+	container.Singleton(newPlayerRepository)
 	container.Singleton(newPackRepository)
 	container.Singleton(newGameRepository)
 	container.Singleton(newSignalingRepository)
+	container.Singleton(newPlayerUseCase)
+	container.Singleton(newPlayerController)
 	container.Singleton(newGameFetchUseCase)
 	container.Singleton(newGameCtrlUseCase)
 	container.Singleton(newGameController)
@@ -49,6 +52,12 @@ func InjectSignalingHandler() *handlers.SignalingHandler {
 	var handler *handlers.SignalingHandler
 	container.Make(&handler)
 	return handler
+}
+
+func InjectPlayerController() *ctrls.PlayerController {
+	var ctrl *ctrls.PlayerController
+	container.Make(&ctrl)
+	return ctrl
 }
 
 func InjectGameController() *ctrls.GameController {

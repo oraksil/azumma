@@ -47,6 +47,7 @@ func TestGameCtrlUseCaseCreateNewGame(t *testing.T) {
 	mockGameRepo := new(MockGameRepository)
 	mockDriver := new(MockK8SOrakkiDriver)
 	mockMsgSvc := new(MockMessageService)
+	mockSessionCtx := new(MockSessionContext)
 	serviceConf := newServiceConfig()
 
 	mockPlayer := models.Player{
@@ -63,9 +64,14 @@ func TestGameCtrlUseCaseCreateNewGame(t *testing.T) {
 		MaxPlayers:  2,
 	}
 
+	mockSession := models.Session{
+		Player: &mockPlayer,
+	}
+
 	mockPackRepo.On("GetById", 1).Return(&mockPack, nil)
 	mockGameRepo.On("Save", mock.Anything).Return(mock.Anything, nil)
 	mockDriver.On("RunInstance").Return(serviceConf.StaticOrakkiId, nil)
+	mockSessionCtx.On("GetSession").Return(&mockSession, nil)
 
 	// when
 	useCase := GameCtrlUseCase{
@@ -75,7 +81,7 @@ func TestGameCtrlUseCaseCreateNewGame(t *testing.T) {
 		MessageService: mockMsgSvc,
 		ServiceConfig:  serviceConf,
 	}
-	game, err := useCase.CreateNewGame(1, &mockPlayer)
+	game, err := useCase.CreateNewGame(1, mockSessionCtx)
 
 	// then
 	assert.NotNil(t, game)

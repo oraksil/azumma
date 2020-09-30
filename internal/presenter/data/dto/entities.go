@@ -2,6 +2,12 @@ package dto
 
 import "time"
 
+type PlayerData struct {
+	Id         int64  `db:"id"`
+	Name       string `db:"name"`
+	TotalCoins int    `db:"total_coins"`
+}
+
 type PackData struct {
 	Id          int    `db:"id"`
 	Title       string `db:"title"`

@@ -16,6 +16,10 @@ type Player struct {
 	TotalCoins int
 }
 
+func (p *Player) Hash() string {
+	return ""
+}
+
 type Game struct {
 	Id        int64
 	Orakki    *Orakki
@@ -28,6 +32,11 @@ type Signaling struct {
 	Id     int64
 	GameId int64
 	Data   string
+}
+
+type PlayerRepository interface {
+	GetById(id int64) (*Player, error)
+	Save(player *Player) (*Player, error)
 }
 
 type PackRepository interface {

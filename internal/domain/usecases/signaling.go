@@ -12,12 +12,13 @@ import (
 )
 
 type SignalingUseCase struct {
-	GameRepo       models.GameRepository
-	SignalingRepo  models.SignalingRepository
+	GameRepo      models.GameRepository
+	SignalingRepo models.SignalingRepository
+
 	MessageService services.MessageService
 }
 
-func (uc *SignalingUseCase) NewOffer(gameId int64, playerId int64, b64EncodedOffer string) (*models.SdpInfo, error) {
+func (uc *SignalingUseCase) NewOffer(gameId int64, b64EncodedOffer string, sessionCtx services.SessionContext) (*models.SdpInfo, error) {
 	// validation
 	var offer map[string]interface{}
 	err := utils.DecodeFromB64EncodedJsonStr(b64EncodedOffer, &offer)
@@ -39,10 +40,11 @@ func (uc *SignalingUseCase) NewOffer(gameId int64, playerId int64, b64EncodedOff
 	}
 
 	// sdp response from orakki
+	session, _ := sessionCtx.GetSession()
 	resp, err := uc.MessageService.Request(
 		game.Orakki.Id,
 		models.MsgSetupWithNewOffer,
-		models.SdpInfo{PeerId: playerId, SdpBase64Encoded: b64EncodedOffer},
+		models.SdpInfo{PeerId: session.Player.Id, SdpBase64Encoded: b64EncodedOffer},
 		10*time.Second,
 	)
 
@@ -52,7 +54,9 @@ func (uc *SignalingUseCase) NewOffer(gameId int64, playerId int64, b64EncodedOff
 	return &answerSdpInfo, err
 }
 
-func (uc *SignalingUseCase) GetOrakkiIceCandidates(gameId int64, lastSeq int64) ([]*models.IceCandidate, error) {
+func (uc *SignalingUseCase) GetOrakkiIceCandidates(
+	gameId int64, lastSeq int64, sessionCtx services.SessionContext) ([]*models.IceCandidate, error) {
+
 	signalings, err := uc.SignalingRepo.FindByGameId(gameId, lastSeq)
 	if err != nil {
 		return nil, err
@@ -92,17 +96,20 @@ func (uc *SignalingUseCase) OnOrakkiIceCandidate(gameId int64, iceBase64Encoded 
 	return nil
 }
 
-func (uc *SignalingUseCase) OnPlayerIceCandidate(gameId int64, playerId int64, b64EncodedIceCandidate string) error {
+func (uc *SignalingUseCase) OnPlayerIceCandidate(
+	gameId int64, b64EncodedIceCandidate string, sessionCtx services.SessionContext) error {
+
 	game, _ := uc.GameRepo.FindById(gameId)
 	if game == nil {
 		return errors.New("no game exists with given gameId")
 	}
 
+	session, _ := sessionCtx.GetSession()
 	_, err := uc.MessageService.Request(
 		game.Orakki.Id,
 		models.MsgRemoteIceCandidate,
 		models.IceCandidate{
-			PeerId:           playerId,
+			PeerId:           session.Player.Id,
 			IceBase64Encoded: b64EncodedIceCandidate,
 		},
 		5*time.Second,

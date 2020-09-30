@@ -55,6 +55,25 @@ func (m *MockSignalingRepository) FindByGameId(gameId int64, sinceId int64) ([]*
 	return args.Get(0).([]*models.Signaling), args.Error(1)
 }
 
+type MockSessionContext struct {
+	mock.Mock
+}
+
+func (m *MockSessionContext) GetSession() (*models.Session, error) {
+	args := m.Called()
+	return args.Get(0).(*models.Session), args.Error(1)
+}
+
+func (m *MockSessionContext) SetSession(session *models.Session) error {
+	args := m.Called(session)
+	return args.Error(0)
+}
+
+func (m *MockSessionContext) Validate() error {
+	args := m.Called()
+	return args.Error(0)
+}
+
 type MockK8SOrakkiDriver struct {
 	mock.Mock
 }

@@ -92,6 +92,13 @@ func newMySqlDb() *sqlx.DB {
 	return db
 }
 
+func newPlayerRepository() models.PlayerRepository {
+	var db *sqlx.DB
+	container.Make(&db)
+
+	return &data.PlayerRepositoryMySqlImpl{DB: db}
+}
+
 func newPackRepository() models.PackRepository {
 	var db *sqlx.DB
 	container.Make(&db)
@@ -127,6 +134,9 @@ func newGameFetchUseCase() *usecases.GameFetchUseCase {
 }
 
 func newGameCtrlUseCase() *usecases.GameCtrlUseCase {
+	var serviceConf *services.ServiceConfig
+	container.Make(&serviceConf)
+
 	var packRepo models.PackRepository
 	container.Make(&packRepo)
 
@@ -139,15 +149,12 @@ func newGameCtrlUseCase() *usecases.GameCtrlUseCase {
 	var orakkiDrv services.OrakkiDriver
 	container.Make(&orakkiDrv)
 
-	var serviceConf *services.ServiceConfig
-	container.Make(&serviceConf)
-
 	return &usecases.GameCtrlUseCase{
+		ServiceConfig:  serviceConf,
 		PackRepo:       packRepo,
 		GameRepo:       gameRepo,
 		MessageService: msgService,
 		OrakkiDriver:   orakkiDrv,
-		ServiceConfig:  serviceConf,
 	}
 }
 
@@ -196,5 +203,23 @@ func newSignalingHandler() *handlers.SignalingHandler {
 
 	return &handlers.SignalingHandler{
 		SignalingUseCase: signalingUseCase,
+	}
+}
+
+func newPlayerUseCase() *usecases.PlayerUseCase {
+	var playerRepo models.PlayerRepository
+	container.Make(&playerRepo)
+
+	return &usecases.PlayerUseCase{
+		PlayerRepo: playerRepo,
+	}
+}
+
+func newPlayerController() *ctrls.PlayerController {
+	var playerUseCase *usecases.PlayerUseCase
+	container.Make(&playerUseCase)
+
+	return &ctrls.PlayerController{
+		PlayerUseCase: playerUseCase,
 	}
 }

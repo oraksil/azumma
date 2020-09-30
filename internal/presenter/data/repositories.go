@@ -11,6 +11,50 @@ import (
 	"github.com/oraksil/azumma/internal/presenter/data/dto"
 )
 
+type PlayerRepositoryMySqlImpl struct {
+	DB *sqlx.DB
+}
+
+func (r *PlayerRepositoryMySqlImpl) GetById(id int64) (*models.Player, error) {
+	var player *models.Player
+
+	result := dto.PlayerData{}
+	err := r.DB.Get(&result, "SELECT * FROM player WHERE id = ? LIMIT 1", id)
+	if err != nil {
+		return player, err
+	}
+
+	mapstructure.Decode(result, &player)
+
+	return nil, nil
+}
+
+func (r *PlayerRepositoryMySqlImpl) Save(player *models.Player) (*models.Player, error) {
+	data := dto.PlayerData{
+		Name:       player.Name,
+		TotalCoins: player.TotalCoins,
+	}
+
+	if player.Id > 0 {
+		updateQuery := `UPDATE player SET name = ?, total_coins = ? WHERE id = ?`
+		_, err := r.DB.Exec(updateQuery, data.Name, data.TotalCoins, player.Id)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		insertQuery := `INSERT INTO player (name, total_coins) VALUES (?, ?)`
+		result, err := r.DB.Exec(insertQuery, data.Name, data.TotalCoins)
+		if err != nil {
+			return nil, err
+		}
+
+		lastInsertId, _ := result.LastInsertId()
+		player.Id = lastInsertId
+	}
+
+	return player, nil
+}
+
 type PackRepositoryMySqlImpl struct {
 	DB *sqlx.DB
 }
@@ -130,8 +174,8 @@ func (r *GameRepositoryMySqlImpl) Save(game *models.Game) (*models.Game, error) 
 			return nil, err
 		}
 
-		lastInsertedId, _ := result.LastInsertId()
-		game.Id = lastInsertedId
+		lastInsertId, _ := result.LastInsertId()
+		game.Id = lastInsertId
 		game.CreatedAt = data.CreatedAt
 	}
 
@@ -155,8 +199,8 @@ func (r *SignalingRepositoryMySqlImpl) Save(signaling *models.Signaling) (*model
 		return nil, err
 	}
 
-	LastInsertId, _ := result.LastInsertId()
-	signaling.Id = LastInsertId
+	lastInsertId, _ := result.LastInsertId()
+	signaling.Id = lastInsertId
 
 	return signaling, err
 }

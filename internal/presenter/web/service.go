@@ -6,6 +6,8 @@ import (
 	"strings"
 
 	"github.com/gin-contrib/cors"
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
 )
 
@@ -21,6 +23,10 @@ type WebService struct {
 func NewWebService() *WebService {
 	routes := gin.Default()
 	routes.Use(cors.Default())
+
+	// cookie-based session
+	store := cookie.NewStore([]byte("423F4528482B4D62"))
+	routes.Use(sessions.Sessions("session", store))
 
 	return &WebService{routes: routes, controllers: nil}
 }
