@@ -35,7 +35,7 @@ func TestSignalingUseCaseNewOffer(t *testing.T) {
 		Player: &mockPlayer,
 	}
 
-	mockGameRepo.On("FindById", mock.Anything).Return(&mockGame, nil)
+	mockGameRepo.On("GetById", mock.Anything).Return(&mockGame, nil)
 	mockSignalRepo.On("Save", mock.Anything).Return(mock.Anything, nil)
 	mockMsgSvc.On("Request", mock.Anything, models.MsgSetupWithNewOffer, mock.Anything, mock.Anything).Return(&mockSdpInfo, nil)
 	mockSessionCtx.On("GetSession").Return(&mockSession, nil)
