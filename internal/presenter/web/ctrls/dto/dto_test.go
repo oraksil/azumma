@@ -19,3 +19,20 @@ func TestMapGameEntityToDto(t *testing.T) {
 	assert.Equal(t, e.Description, dto.Desc)
 	assert.Equal(t, e.MaxPlayers, dto.MaxPlayers)
 }
+
+func TestMapNestedFields(t *testing.T) {
+	ices := make([]*models.IceCandidate, 0)
+	ices = append(ices, &models.IceCandidate{
+		Peer: models.PeerInfo{
+			Token:    "abcd",
+			GameId:   1234,
+			PlayerId: 789,
+		},
+		IceBase64Encoded: "xyz",
+	})
+
+	iceDto := IcesToDto(ices)
+
+	assert.Equal(t, iceDto[0].Token, ices[0].Peer.Token)
+	assert.Equal(t, iceDto[0].Base64Encoded, ices[0].IceBase64Encoded)
+}

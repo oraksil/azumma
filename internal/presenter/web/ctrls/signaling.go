@@ -31,6 +31,7 @@ func (ctrl *SignalingController) handleSdpExchange(c *gin.Context) {
 	}
 
 	type JsonParams struct {
+		Token    string `json:"token"`
 		SdpOffer string `json:"sdp_offer"`
 	}
 
@@ -40,7 +41,8 @@ func (ctrl *SignalingController) handleSdpExchange(c *gin.Context) {
 	var jsonParams JsonParams
 	c.BindJSON(&jsonParams)
 
-	sdpInfo, err := ctrl.SignalingUseCase.NewOffer(uriParams.GameId, jsonParams.SdpOffer, sessionCtx)
+	sdpInfo, err := ctrl.SignalingUseCase.NewOffer(
+		uriParams.GameId, jsonParams.Token, jsonParams.SdpOffer, sessionCtx)
 	if err != nil {
 		c.JSON(http.StatusOK, jsend.NewFail(map[string]interface{}{
 			"code":    400,
@@ -67,7 +69,8 @@ func (ctrl *SignalingController) getOrakkiIceCandidates(c *gin.Context) {
 	}
 
 	type QueryParams struct {
-		LastSeq int64 `form:"last_seq"`
+		Token   string `form:"token"`
+		LastSeq int64  `form:"last_seq"`
 	}
 
 	var uriParams UriParams
@@ -77,7 +80,7 @@ func (ctrl *SignalingController) getOrakkiIceCandidates(c *gin.Context) {
 	c.BindQuery(&queryParams)
 
 	iceCandidates, err := ctrl.SignalingUseCase.GetOrakkiIceCandidates(
-		uriParams.GameId,
+		queryParams.Token,
 		queryParams.LastSeq,
 		sessionCtx,
 	)
@@ -105,6 +108,7 @@ func (ctrl *SignalingController) postPlayerIceCandidate(c *gin.Context) {
 	}
 
 	type JsonParams struct {
+		Token        string `json:"token"`
 		IceCandidate string `json:"ice_candidate"`
 	}
 
@@ -116,6 +120,7 @@ func (ctrl *SignalingController) postPlayerIceCandidate(c *gin.Context) {
 
 	err := ctrl.SignalingUseCase.OnPlayerIceCandidate(
 		uriParams.GameId,
+		jsonParams.Token,
 		jsonParams.IceCandidate,
 		sessionCtx,
 	)

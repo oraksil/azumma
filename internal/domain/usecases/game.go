@@ -7,6 +7,7 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/oraksil/azumma/internal/domain/models"
 	"github.com/oraksil/azumma/internal/domain/services"
+	"github.com/oraksil/azumma/pkg/utils"
 )
 
 type GameFetchUseCase struct {
@@ -131,22 +132,24 @@ func (uc *GameCtrlUseCase) postProvisionHandler(game *models.Game) {
 	}
 }
 
-func (uc *GameCtrlUseCase) CanJoinGame(gameId int64, sessionCtx services.SessionContext) error {
+func (uc *GameCtrlUseCase) CanJoinGame(gameId int64, sessionCtx services.SessionContext) (string, error) {
 	game, err := uc.GameRepo.GetById(gameId)
 	if err != nil {
-		return errors.New("game not found")
+		return "", errors.New("game not found")
 	}
 
 	session, err := sessionCtx.GetSession()
 	if err != nil || session.Player == nil {
-		return errors.New("invalid player")
+		return "", errors.New("invalid player")
 	}
 
 	if len(game.Players) >= game.Pack.MaxPlayers {
-		return errors.New("game is full")
+		return "", errors.New("game is full")
 	}
 
-	return nil
+	joinToken := utils.NewId("")
+
+	return joinToken, nil
 }
 
 func (uc *GameCtrlUseCase) JoinGame(gameId int64, playerId int64) (*models.Game, error) {

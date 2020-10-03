@@ -48,6 +48,7 @@ func (g *Game) Leave(p *Player) {
 
 type Signaling struct {
 	Id       int64
+	Token    string
 	GameId   int64
 	PlayerId int64
 	Data     string
@@ -70,6 +71,6 @@ type GameRepository interface {
 }
 
 type SignalingRepository interface {
-	Find(gameId int64, playerId int64, sinceId int64) ([]*Signaling, error)
+	Find(token string, sinceId int64) ([]*Signaling, error)
 	Save(signaling *Signaling) (*Signaling, error)
 }

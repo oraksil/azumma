@@ -45,8 +45,8 @@ type MockSignalingRepository struct {
 	mock.Mock
 }
 
-func (m *MockSignalingRepository) Find(gameId int64, playerId int64, sinceId int64) ([]*models.Signaling, error) {
-	args := m.Called(gameId, playerId, sinceId)
+func (m *MockSignalingRepository) Find(token string, sinceId int64) ([]*models.Signaling, error) {
+	args := m.Called(token, sinceId)
 	return args.Get(0).([]*models.Signaling), args.Error(1)
 }
 

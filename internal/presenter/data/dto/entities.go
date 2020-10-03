@@ -53,6 +53,7 @@ func (d *GameData) GetJoinedPlayers() []*models.Player {
 // ConnectionDescriptionData : record info of connection for each player, such as signaling state
 type SignalingData struct {
 	Id        int64     `db:"id"`
+	Token     string    `db:"token"`
 	GameId    int64     `db:"game_id"`
 	PlayerId  int64     `db:"player_id"`
 	Data      string    `db:"data"`

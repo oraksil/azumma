@@ -27,8 +27,11 @@ func TestSignalingUseCaseNewOffer(t *testing.T) {
 		Name: "nick",
 	}
 	mockSdpInfo := models.SdpInfo{
-		SrcPeerId:        mockGame.Id,
-		DstPeerId:        mockPlayer.Id,
+		Peer: models.PeerInfo{
+			Token:    "abcd",
+			GameId:   mockGame.Id,
+			PlayerId: mockPlayer.Id,
+		},
 		SdpBase64Encoded: "sdp answer...",
 	}
 	mockSession := models.Session{
@@ -54,7 +57,7 @@ func TestSignalingUseCaseNewOffer(t *testing.T) {
 
 	b64Encoded := base64.StdEncoding.EncodeToString([]byte(sdpString))
 
-	connectionInfo, err := useCase.NewOffer(mockGame.Id, b64Encoded, mockSessionCtx)
+	connectionInfo, err := useCase.NewOffer(mockGame.Id, "abcd", b64Encoded, mockSessionCtx)
 
 	// then
 	fmt.Print(err)

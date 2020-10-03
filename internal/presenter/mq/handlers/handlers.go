@@ -52,7 +52,7 @@ func (h *SignalingHandler) handleOrakkiIceCandidate(ctx *mqrpc.Context) interfac
 	var orakkiIce models.IceCandidate
 	json.Unmarshal(ctx.GetMessage().Payload, &orakkiIce)
 
-	h.SignalingUseCase.OnOrakkiIceCandidate(orakkiIce.SrcPeerId, orakkiIce.DstPeerId, orakkiIce.IceBase64Encoded)
+	h.SignalingUseCase.OnOrakkiIceCandidate(orakkiIce)
 
 	return nil
 }

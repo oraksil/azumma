@@ -127,11 +127,10 @@ func (r *GameRepositoryMySqlImpl) Find(offset, limit int) []*models.Game {
 func (r *GameRepositoryMySqlImpl) Save(game *models.Game) (*models.Game, error) {
 	// map models to dto
 	data := dto.GameData{
-		PackId:        game.Pack.Id,
-		OrakkiId:      game.Orakki.Id,
-		OrakkiState:   game.Orakki.State,
-		FirstPlayerId: game.Players[0].Id,
-		CreatedAt:     time.Now(),
+		PackId:      game.Pack.Id,
+		OrakkiId:    game.Orakki.Id,
+		OrakkiState: game.Orakki.State,
+		CreatedAt:   time.Now(),
 	}
 	data.SetJoinedPlayers(game.Players)
 
@@ -139,14 +138,12 @@ func (r *GameRepositoryMySqlImpl) Save(game *models.Game) (*models.Game, error) 
 		updateQuery := `
 			UPDATE game
 				SET orakki_state = ?,
-				first_player_id = ?,
 				joined_player_ids = ?
 			WHERE id = ?`
 
 		_, err := r.DB.Exec(
 			updateQuery,
 			data.OrakkiState,
-			data.FirstPlayerId,
 			data.JoinedPlayerIds,
 			game.Id,
 		)
@@ -155,6 +152,8 @@ func (r *GameRepositoryMySqlImpl) Save(game *models.Game) (*models.Game, error) 
 			return nil, err
 		}
 	} else {
+		data.FirstPlayerId = game.Players[0].Id
+
 		insertQuery := `
 			INSERT INTO game (
 				pack_id,
@@ -192,12 +191,12 @@ type SignalingRepositoryMySqlImpl struct {
 	DB *sqlx.DB
 }
 
-func (r *SignalingRepositoryMySqlImpl) Find(gameId int64, playerId int64, sinceId int64) ([]*models.Signaling, error) {
+func (r *SignalingRepositoryMySqlImpl) Find(token string, sinceId int64) ([]*models.Signaling, error) {
 	var signalings []*models.Signaling
 
 	result := []*dto.SignalingData{}
-	query := "SELECT * FROM signaling WHERE game_id = ? AND player_id = ? AND id > ? ORDER BY id ASC"
-	err := r.DB.Select(&result, query, gameId, playerId, sinceId)
+	query := "SELECT * FROM signaling WHERE token = ? AND id > ? ORDER BY id ASC"
+	err := r.DB.Select(&result, query, token, sinceId)
 	if err != nil {
 		return nil, err
 	}
@@ -209,14 +208,15 @@ func (r *SignalingRepositoryMySqlImpl) Find(gameId int64, playerId int64, sinceI
 
 func (r *SignalingRepositoryMySqlImpl) Save(signaling *models.Signaling) (*models.Signaling, error) {
 	data := dto.SignalingData{
+		Token:    signaling.Token,
 		GameId:   signaling.GameId,
 		PlayerId: signaling.PlayerId,
 		Data:     signaling.Data,
 	}
 
 	var err error
-	insertQuery := `INSERT INTO signaling (game_id, player_id, data) VALUES (?, ?, ?)`
-	result, err := r.DB.Exec(insertQuery, data.GameId, data.PlayerId, data.Data)
+	insertQuery := `INSERT INTO signaling (token, game_id, player_id, data) VALUES (?, ?, ?, ?)`
+	result, err := r.DB.Exec(insertQuery, data.Token, data.GameId, data.PlayerId, data.Data)
 	if err != nil {
 		return nil, err
 	}

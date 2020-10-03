@@ -85,7 +85,7 @@ func (ctrl *GameController) canJoinGame(c *gin.Context) {
 		return
 	}
 
-	err = ctrl.GameCtrlUseCase.CanJoinGame(uriParams.GameId, sessionCtx)
+	joinToken, err := ctrl.GameCtrlUseCase.CanJoinGame(uriParams.GameId, sessionCtx)
 	if err != nil {
 		c.JSON(http.StatusOK, jsend.NewFail(map[string]interface{}{
 			"code":    400,
@@ -94,7 +94,7 @@ func (ctrl *GameController) canJoinGame(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, jsend.New(dto.Empty()))
+	c.JSON(http.StatusOK, jsend.New(dto.JoinableDto{Token: joinToken}))
 }
 
 func (ctrl *GameController) Routes() []web.Route {
