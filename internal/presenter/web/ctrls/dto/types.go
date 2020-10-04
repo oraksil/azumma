@@ -23,13 +23,16 @@ type GameDto struct {
 }
 
 type SdpDto struct {
-	PeerId int64  `json:"peer_id"`
-	Sdp    string `mapstructure:"SdpBase64Encoded" json:"sdp"`
+	Token         string `json:"token"`
+	Base64Encoded string `json:"encoded"`
 }
 
 type IceCandidateDto struct {
-	PeerId int64  `json:"peer_id"`
-	Ice    string `mapstructure:"IceBase64Encoded" json:"ice"`
-	IsLast bool   `json:"is_last"`
-	Seq    int64  `json:"seq"`
+	Token         string `json:"token"`
+	Base64Encoded string `json:"encoded"`
+	Seq           int64  `json:"seq"`
+}
+
+type JoinableDto struct {
+	Token string `json:"token"`
 }

@@ -25,6 +25,7 @@ func InitContainer() {
 	container.Singleton(newGameFetchUseCase)
 	container.Singleton(newGameCtrlUseCase)
 	container.Singleton(newGameController)
+	container.Singleton(newGameHandler)
 	container.Singleton(newSignalingUseCases)
 	container.Singleton(newSignalingHandler)
 	container.Singleton(newSignalingController)
@@ -46,6 +47,12 @@ func InjectMqService() *mqrpc.MqService {
 	var svc *mqrpc.MqService
 	container.Make(&svc)
 	return svc
+}
+
+func InjectGameHandler() *handlers.GameHandler {
+	var handler *handlers.GameHandler
+	container.Make(&handler)
+	return handler
 }
 
 func InjectSignalingHandler() *handlers.SignalingHandler {

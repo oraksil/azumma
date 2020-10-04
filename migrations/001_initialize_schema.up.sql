@@ -32,7 +32,9 @@ CREATE TABLE game (
 
 CREATE TABLE signaling (
     id BIGINT NOT NULL AUTO_INCREMENT,
+    token VARCHAR(24) NOT NULL,
     game_id BIGINT NOT NULL,
+    player_id BIGINT NOT NULL,
     data VARCHAR(8196),
     created_at TIMESTAMP,
 

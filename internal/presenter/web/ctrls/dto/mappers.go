@@ -29,15 +29,21 @@ func GameToDto(src *models.Game) *GameDto {
 }
 
 func SdpToDto(src *models.SdpInfo) *SdpDto {
-	var sdpDto SdpDto
-	mapstructure.Decode(src, &sdpDto)
-
-	return &sdpDto
+	return &SdpDto{
+		Token:         src.Peer.Token,
+		Base64Encoded: src.SdpBase64Encoded,
+	}
 }
 
 func IcesToDto(src []*models.IceCandidate) []*IceCandidateDto {
-	var icesDto []*IceCandidateDto
-	mapstructure.Decode(src, &icesDto)
+	icesDto := make([]*IceCandidateDto, 0)
+
+	for _, ice := range src {
+		icesDto = append(icesDto, &IceCandidateDto{
+			Token:         ice.Peer.Token,
+			Base64Encoded: ice.IceBase64Encoded,
+		})
+	}
 
 	return icesDto
 }

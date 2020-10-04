@@ -11,6 +11,39 @@ import (
 	"github.com/sangwonl/mqrpc"
 )
 
+type GameHandler struct {
+	GameCtrlUseCase *usecases.GameCtrlUseCase
+}
+
+func (h *GameHandler) handlePlayerJoined(ctx *mqrpc.Context) interface{} {
+	var playerPart models.PlayerParticipation
+	json.Unmarshal(ctx.GetMessage().Payload, &playerPart)
+
+	h.GameCtrlUseCase.JoinGame(playerPart.GameId, playerPart.PlayerId)
+
+	return nil
+}
+
+func (h *GameHandler) handlePlayerJoinFailed(ctx *mqrpc.Context) interface{} {
+	return nil
+}
+
+func (h *GameHandler) handlePlayerLeft(ctx *mqrpc.Context) interface{} {
+	var playerPart models.PlayerParticipation
+	json.Unmarshal(ctx.GetMessage().Payload, &playerPart)
+
+	h.GameCtrlUseCase.LeaveGame(playerPart.GameId, playerPart.PlayerId)
+
+	return nil
+}
+
+func (h *GameHandler) Routes() []mqrpc.Route {
+	return []mqrpc.Route{
+		{MsgType: models.MsgPlayerJoined, Handler: h.handlePlayerJoined},
+		{MsgType: models.MsgPlayerLeft, Handler: h.handlePlayerLeft},
+	}
+}
+
 type SignalingHandler struct {
 	SignalingUseCase *usecases.SignalingUseCase
 }
@@ -19,7 +52,7 @@ func (h *SignalingHandler) handleOrakkiIceCandidate(ctx *mqrpc.Context) interfac
 	var orakkiIce models.IceCandidate
 	json.Unmarshal(ctx.GetMessage().Payload, &orakkiIce)
 
-	h.SignalingUseCase.OnOrakkiIceCandidate(orakkiIce.PeerId, orakkiIce.IceBase64Encoded)
+	h.SignalingUseCase.OnOrakkiIceCandidate(orakkiIce)
 
 	return nil
 }

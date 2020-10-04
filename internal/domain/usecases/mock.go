@@ -25,14 +25,14 @@ type MockGameRepository struct {
 	mock.Mock
 }
 
+func (r *MockGameRepository) GetById(id int64) (*models.Game, error) {
+	args := r.Called(id)
+	return args.Get(0).(*models.Game), args.Error(1)
+}
+
 func (r *MockGameRepository) Find(offset, limit int) []*models.Game {
 	args := r.Called(offset, limit)
 	return args.Get(0).([]*models.Game)
-}
-
-func (r *MockGameRepository) FindById(id int64) (*models.Game, error) {
-	args := r.Called(id)
-	return args.Get(0).(*models.Game), args.Error(1)
 }
 
 func (r *MockGameRepository) Save(game *models.Game) (*models.Game, error) {
@@ -45,14 +45,14 @@ type MockSignalingRepository struct {
 	mock.Mock
 }
 
+func (m *MockSignalingRepository) Find(token string, sinceId int64) ([]*models.Signaling, error) {
+	args := m.Called(token, sinceId)
+	return args.Get(0).([]*models.Signaling), args.Error(1)
+}
+
 func (m *MockSignalingRepository) Save(signaling *models.Signaling) (*models.Signaling, error) {
 	args := m.Called(signaling)
 	return args.Get(0).(*models.Signaling), args.Error(1)
-}
-
-func (m *MockSignalingRepository) FindByGameId(gameId int64, sinceId int64) ([]*models.Signaling, error) {
-	args := m.Called(gameId, sinceId)
-	return args.Get(0).([]*models.Signaling), args.Error(1)
 }
 
 type MockSessionContext struct {

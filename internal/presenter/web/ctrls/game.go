@@ -61,14 +61,46 @@ func (ctrl *GameController) createNewGame(c *gin.Context) {
 	c.JSON(http.StatusOK, jsend.New(dto.GameToDto(game)))
 }
 
-func (ctrl *GameController) joinGame(c *gin.Context) {
+func (ctrl *GameController) canJoinGame(c *gin.Context) {
+	sessionCtx := helpers.NewSessionCtx(c)
+	if sessionCtx.Validate() != nil {
+		c.JSON(http.StatusOK, jsend.NewFail(map[string]interface{}{
+			"code":    400,
+			"message": "invalid session",
+		}))
+		return
+	}
 
+	type UriParams struct {
+		GameId int64 `uri:"game_id"`
+	}
+
+	var uriParams UriParams
+	err := c.BindUri(&uriParams)
+	if err != nil {
+		c.JSON(http.StatusOK, jsend.NewFail(map[string]interface{}{
+			"code":    400,
+			"message": "invalid game id",
+		}))
+		return
+	}
+
+	joinToken, err := ctrl.GameCtrlUseCase.CanJoinGame(uriParams.GameId, sessionCtx)
+	if err != nil {
+		c.JSON(http.StatusOK, jsend.NewFail(map[string]interface{}{
+			"code":    400,
+			"message": err.Error(),
+		}))
+		return
+	}
+
+	c.JSON(http.StatusOK, jsend.New(dto.JoinableDto{Token: joinToken}))
 }
 
 func (ctrl *GameController) Routes() []web.Route {
 	return []web.Route{
 		{Spec: "GET /api/v1/packs", Handler: ctrl.getAvailablePacks},
 		{Spec: "POST /api/v1/packs/:pack_id/new", Handler: ctrl.createNewGame},
-		{Spec: "POST /api/v1/games/:game_id/join", Handler: ctrl.joinGame},
+		{Spec: "GET /api/v1/games/:game_id/joinable", Handler: ctrl.canJoinGame},
 	}
 }
