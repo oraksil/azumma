@@ -19,7 +19,6 @@ type GameDto struct {
 	Id int64 `json:"id"`
 	// Orakki    *Orakki
 	// Game      *Game
-	CreatedAt int64 `json:"created_at"`
 }
 
 type SdpDto struct {

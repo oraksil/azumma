@@ -20,12 +20,7 @@ func PackToDto(src []*models.Pack) []*PackDto {
 }
 
 func GameToDto(src *models.Game) *GameDto {
-	gameDto := GameDto{
-		Id:        src.Id,
-		CreatedAt: src.CreatedAt.Unix(),
-	}
-
-	return &gameDto
+	return &GameDto{Id: src.Id}
 }
 
 func SdpToDto(src *models.SdpInfo) *SdpDto {

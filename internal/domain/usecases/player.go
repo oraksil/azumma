@@ -33,3 +33,14 @@ func (uc *PlayerUseCase) CreateNewPlayer(
 
 	return newPlayer, nil
 }
+
+func (uc *PlayerUseCase) GetPlayerFromSession(
+	sessionCtx services.SessionContext) (*models.Player, error) {
+
+	session, err := sessionCtx.GetSession()
+	if err != nil {
+		return nil, err
+	}
+
+	return session.Player, nil
+}
