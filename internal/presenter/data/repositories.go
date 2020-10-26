@@ -239,3 +239,26 @@ func (r *SignalingRepositoryMySqlImpl) Save(signaling *models.Signaling) (*model
 
 	return signaling, err
 }
+
+type UserFeedbackRepositoryMySqlImpl struct {
+	DB *sqlx.DB
+}
+
+func (r *UserFeedbackRepositoryMySqlImpl) Save(feedback *models.UserFeedback) (*models.UserFeedback, error) {
+	data := dto.UserFeedbackData{
+		Content:   feedback.Content,
+		CreatedAt: time.Now(),
+	}
+
+	var err error
+	insertQuery := `INSERT INTO feedback (content, created_at) VALUES (?, ?)`
+	result, err := r.DB.Exec(insertQuery, data.Content, data.CreatedAt)
+	if err != nil {
+		return nil, err
+	}
+
+	lastInsertId, _ := result.LastInsertId()
+	feedback.Id = lastInsertId
+
+	return feedback, err
+}

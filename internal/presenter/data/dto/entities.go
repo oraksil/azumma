@@ -61,3 +61,9 @@ type SignalingData struct {
 	Data      string    `db:"data"`
 	CreatedAt time.Time `db:"created_at"`
 }
+
+type UserFeedbackData struct {
+	Id        int64     `db:"id"`
+	Content   string    `db:"content"`
+	CreatedAt time.Time `db:"created_at"`
+}
