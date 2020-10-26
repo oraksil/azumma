@@ -21,20 +21,20 @@ func TestGameFetchUseCaseFindAvailablePacks(t *testing.T) {
 		{Id: 1, Title: "Cadilacs", Description: "Game", MaxPlayers: 3},
 		{Id: 2, Title: "Bobl Bubl", Description: "Game", MaxPlayers: 2},
 	}
-	mockPackRepo.On("FindByStatus", models.PackStatusReady, 0, 2).Return(mockPacks)
+	mockPackRepo.On("FindAll", 0, 2).Return(mockPacks)
 
 	// when
-	packs := useCase.GetAvailablePacks(0, 2)
+	packs := useCase.GetAllPacks(0, 2)
 
 	// then
 	assert.Equal(t, len(packs), 2)
 	mockPackRepo.AssertExpectations(t)
 
 	// given
-	mockPackRepo.On("FindByStatus", models.PackStatusReady, 2, 2).Return(mockPacks)
+	mockPackRepo.On("FindAll", 2, 2).Return(mockPacks)
 
 	// when
-	packs = useCase.GetAvailablePacks(1, 2)
+	packs = useCase.GetAllPacks(1, 2)
 
 	// then
 	assert.Equal(t, len(packs), 2)

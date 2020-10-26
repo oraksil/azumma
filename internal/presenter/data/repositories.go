@@ -71,13 +71,20 @@ func (r *PackRepositoryMySqlImpl) GetById(id int) (*models.Pack, error) {
 	return pack, nil
 }
 
-func (r *PackRepositoryMySqlImpl) FindByStatus(status, offset, limit int) []*models.Pack {
+func (r *PackRepositoryMySqlImpl) findPacks(status, offset, limit int) []*models.Pack {
 	var packs []*models.Pack
 
 	result := []dto.PackData{}
 
-	query := "SELECT * FROM pack WHERE status = ? LIMIT ? OFFSET ?"
-	err := r.DB.Select(&result, query, status, limit, offset)
+	var err error
+	if status > 0 {
+		query := "SELECT * FROM pack WHERE status = ? LIMIT ? OFFSET ?"
+		err = r.DB.Select(&result, query, status, limit, offset)
+	} else {
+		query := "SELECT * FROM pack ORDER BY status ASC LIMIT ? OFFSET ?"
+		err = r.DB.Select(&result, query, limit, offset)
+	}
+
 	if err != nil {
 		return packs
 	}
@@ -85,7 +92,14 @@ func (r *PackRepositoryMySqlImpl) FindByStatus(status, offset, limit int) []*mod
 	mapstructure.Decode(result, &packs)
 
 	return packs
+}
 
+func (r *PackRepositoryMySqlImpl) FindAll(offset, limit int) []*models.Pack {
+	return r.findPacks(-1, offset, limit)
+}
+
+func (r *PackRepositoryMySqlImpl) FindByStatus(status, offset, limit int) []*models.Pack {
+	return r.findPacks(status, offset, limit)
 }
 
 type GameRepositoryMySqlImpl struct {

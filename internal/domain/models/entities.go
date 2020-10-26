@@ -62,6 +62,7 @@ type PlayerRepository interface {
 
 type PackRepository interface {
 	GetById(id int) (*Pack, error)
+	FindAll(offset, limit int) []*Pack
 	FindByStatus(status, offset, limit int) []*Pack
 }
 
