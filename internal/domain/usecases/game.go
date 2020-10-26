@@ -15,12 +15,12 @@ type GameFetchUseCase struct {
 	GameRepo models.GameRepository
 }
 
-func (uc *GameFetchUseCase) GetPacks(page, size int) []*models.Pack {
-	return uc.PackRepo.Find(page*size, size)
+func (uc *GameFetchUseCase) GetAvailablePacks(page, size int) []*models.Pack {
+	return uc.PackRepo.FindByStatus(models.PackStatusReady, page*size, size)
 }
 
-func (uc *GameFetchUseCase) GetGames(page, size int) []*models.Game {
-	return uc.GameRepo.Find(page*size, size)
+func (uc *GameFetchUseCase) GetPreparingPacks(page, size int) []*models.Pack {
+	return uc.PackRepo.FindByStatus(models.PackStatusPreparing, page*size, size)
 }
 
 type GameCtrlUseCase struct {

@@ -1,5 +1,6 @@
 CREATE TABLE pack (
     id INT NOT NULL AUTO_INCREMENT,
+    status INT NOT NULL,
     title VARCHAR(64) NOT NULL,
     maker VARCHAR(64) NOT NULL,
     description text,

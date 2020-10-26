@@ -5,6 +5,7 @@ import (
 
 	"clevergo.tech/jsend"
 	"github.com/gin-gonic/gin"
+	"github.com/oraksil/azumma/internal/domain/models"
 	"github.com/oraksil/azumma/internal/domain/usecases"
 	"github.com/oraksil/azumma/internal/presenter/web"
 	"github.com/oraksil/azumma/internal/presenter/web/ctrls/dto"
@@ -16,11 +17,25 @@ type GameController struct {
 	GameCtrlUseCase  *usecases.GameCtrlUseCase
 }
 
-func (ctrl *GameController) getAvailablePacks(c *gin.Context) {
+func (ctrl *GameController) getPacks(c *gin.Context) {
 	p := dto.Pagination{Page: 0, Size: 10}
 	c.BindQuery(&p)
 
-	packs := ctrl.GameFetchUseCase.GetPacks(p.Page, p.Size)
+	type QueryParams struct {
+		Status string `form:"status"`
+	}
+
+	var queryParams QueryParams
+	c.BindQuery(&queryParams)
+
+	var packs []*models.Pack
+	switch queryParams.Status {
+	case "prepare":
+		packs = ctrl.GameFetchUseCase.GetPreparingPacks(p.Page, p.Size)
+		break
+	default:
+		packs = ctrl.GameFetchUseCase.GetAvailablePacks(p.Page, p.Size)
+	}
 
 	c.JSON(http.StatusOK, jsend.New(dto.PackToDto(packs)))
 }
@@ -99,7 +114,7 @@ func (ctrl *GameController) canJoinGame(c *gin.Context) {
 
 func (ctrl *GameController) Routes() []web.Route {
 	return []web.Route{
-		{Spec: "GET /api/v1/packs", Handler: ctrl.getAvailablePacks},
+		{Spec: "GET /api/v1/packs", Handler: ctrl.getPacks},
 		{Spec: "POST /api/v1/packs/:pack_id/new", Handler: ctrl.createNewGame},
 		{Spec: "GET /api/v1/games/:game_id/joinable", Handler: ctrl.canJoinGame},
 	}

@@ -16,11 +16,13 @@ type PlayerData struct {
 
 type PackData struct {
 	Id          int    `db:"id"`
+	Status      int    `db:"status"`
 	Title       string `db:"title"`
 	Maker       string `db:"maker"`
 	Description string `db:"description"`
 	MaxPlayers  int    `db:"max_players"`
 }
+
 type GameData struct {
 	Id              int64     `db:"id"`
 	PackId          int       `db:"pack_id"`

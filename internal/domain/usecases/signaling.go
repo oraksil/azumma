@@ -66,7 +66,7 @@ func (uc *SignalingUseCase) GetOrakkiIceCandidates(
 
 	session, _ := sessionCtx.GetSession()
 
-	signalings, err := uc.SignalingRepo.Find(token, lastSeq)
+	signalings, err := uc.SignalingRepo.FindByToken(token, lastSeq)
 	if err != nil {
 		return nil, err
 	}

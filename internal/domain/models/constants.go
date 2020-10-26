@@ -1,6 +1,11 @@
 package models
 
 const (
+	PackStatusReady = iota + 1
+	PackStatusPreparing
+)
+
+const (
 	MsgPrepareOrakki      = "MsgPrepareOrakki"
 	MsgSetupWithNewOffer  = "MsgSetupWithNewOffer"
 	MsgRemoteIceCandidate = "MsgRemoteIceCandidate"
@@ -11,7 +16,7 @@ const (
 )
 
 const (
-	OrakkiStateInit = iota
+	OrakkiStateInit = iota + 1
 	OrakkiStateReady
 	OrakkiStatePause
 	OrakkiStatePlay
