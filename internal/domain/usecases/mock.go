@@ -16,8 +16,8 @@ func (r *MockPackRepository) GetById(id int) (*models.Pack, error) {
 	return args.Get(0).(*models.Pack), args.Error(1)
 }
 
-func (r *MockPackRepository) Find(offset, limit int) []*models.Pack {
-	args := r.Called(offset, limit)
+func (r *MockPackRepository) FindByStatus(status, offset, limit int) []*models.Pack {
+	args := r.Called(status, offset, limit)
 	return args.Get(0).([]*models.Pack)
 }
 
@@ -30,11 +30,6 @@ func (r *MockGameRepository) GetById(id int64) (*models.Game, error) {
 	return args.Get(0).(*models.Game), args.Error(1)
 }
 
-func (r *MockGameRepository) Find(offset, limit int) []*models.Game {
-	args := r.Called(offset, limit)
-	return args.Get(0).([]*models.Game)
-}
-
 func (r *MockGameRepository) Save(game *models.Game) (*models.Game, error) {
 	args := r.Called(game)
 	game.Id = 1
@@ -45,7 +40,7 @@ type MockSignalingRepository struct {
 	mock.Mock
 }
 
-func (m *MockSignalingRepository) Find(token string, sinceId int64) ([]*models.Signaling, error) {
+func (m *MockSignalingRepository) FindByToken(token string, sinceId int64) ([]*models.Signaling, error) {
 	args := m.Called(token, sinceId)
 	return args.Get(0).([]*models.Signaling), args.Error(1)
 }

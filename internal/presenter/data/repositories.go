@@ -71,11 +71,13 @@ func (r *PackRepositoryMySqlImpl) GetById(id int) (*models.Pack, error) {
 	return pack, nil
 }
 
-func (r *PackRepositoryMySqlImpl) Find(offset, limit int) []*models.Pack {
+func (r *PackRepositoryMySqlImpl) FindByStatus(status, offset, limit int) []*models.Pack {
 	var packs []*models.Pack
 
 	result := []dto.PackData{}
-	err := r.DB.Select(&result, "SELECT * FROM pack LIMIT ? OFFSET ?", limit, offset)
+
+	query := "SELECT * FROM pack WHERE status = ? LIMIT ? OFFSET ?"
+	err := r.DB.Select(&result, query, status, limit, offset)
 	if err != nil {
 		return packs
 	}
@@ -83,6 +85,7 @@ func (r *PackRepositoryMySqlImpl) Find(offset, limit int) []*models.Pack {
 	mapstructure.Decode(result, &packs)
 
 	return packs
+
 }
 
 type GameRepositoryMySqlImpl struct {
@@ -118,10 +121,6 @@ func (r *GameRepositoryMySqlImpl) GetById(id int64) (*models.Game, error) {
 	}
 
 	return &game, nil
-}
-
-func (r *GameRepositoryMySqlImpl) Find(offset, limit int) []*models.Game {
-	return nil
 }
 
 func (r *GameRepositoryMySqlImpl) Save(game *models.Game) (*models.Game, error) {
@@ -191,7 +190,7 @@ type SignalingRepositoryMySqlImpl struct {
 	DB *sqlx.DB
 }
 
-func (r *SignalingRepositoryMySqlImpl) Find(token string, sinceId int64) ([]*models.Signaling, error) {
+func (r *SignalingRepositoryMySqlImpl) FindByToken(token string, sinceId int64) ([]*models.Signaling, error) {
 	var signalings []*models.Signaling
 
 	result := []*dto.SignalingData{}

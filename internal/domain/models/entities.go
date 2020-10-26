@@ -4,6 +4,7 @@ import "time"
 
 type Pack struct {
 	Id          int
+	Status      int
 	Title       string
 	Maker       string
 	Description string
@@ -61,16 +62,15 @@ type PlayerRepository interface {
 
 type PackRepository interface {
 	GetById(id int) (*Pack, error)
-	Find(offset, limit int) []*Pack
+	FindByStatus(status, offset, limit int) []*Pack
 }
 
 type GameRepository interface {
 	GetById(id int64) (*Game, error)
-	Find(offset, limit int) []*Game
 	Save(game *Game) (*Game, error)
 }
 
 type SignalingRepository interface {
-	Find(token string, sinceId int64) ([]*Signaling, error)
+	FindByToken(token string, sinceId int64) ([]*Signaling, error)
 	Save(signaling *Signaling) (*Signaling, error)
 }
