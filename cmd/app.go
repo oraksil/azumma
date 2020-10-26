@@ -21,5 +21,6 @@ func main() {
 	webSvc.AddController(di.InjectPlayerController())
 	webSvc.AddController(di.InjectGameController())
 	webSvc.AddController(di.InjectSignalingController())
+	webSvc.AddController(di.InjectUserFeedbackController())
 	webSvc.Run("8000")
 }

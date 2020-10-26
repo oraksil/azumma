@@ -42,3 +42,13 @@ CREATE TABLE signaling (
     PRIMARY KEY (id),
     FOREIGN KEY (game_id) REFERENCES game(id)
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+CREATE TABLE feedback (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    content VARCHAR(512) NOT NULL,
+    created_at TIMESTAMP,
+
+    PRIMARY KEY (id)
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+

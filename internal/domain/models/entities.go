@@ -66,6 +66,12 @@ type Signaling struct {
 	Data     string
 }
 
+type UserFeedback struct {
+	Id        int64
+	Content   string
+	CreatedAt time.Time
+}
+
 type PlayerRepository interface {
 	GetById(id int64) (*Player, error)
 	Save(player *Player) (*Player, error)
@@ -85,4 +91,8 @@ type GameRepository interface {
 type SignalingRepository interface {
 	FindByToken(token string, sinceId int64) ([]*Signaling, error)
 	Save(signaling *Signaling) (*Signaling, error)
+}
+
+type UserFeedbackRepository interface {
+	Save(feedback *UserFeedback) (*UserFeedback, error)
 }

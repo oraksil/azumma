@@ -20,6 +20,7 @@ func InitContainer() {
 	container.Singleton(newPackRepository)
 	container.Singleton(newGameRepository)
 	container.Singleton(newSignalingRepository)
+	container.Singleton(newUserFeedbackRepository)
 	container.Singleton(newPlayerUseCase)
 	container.Singleton(newPlayerController)
 	container.Singleton(newGameFetchUseCase)
@@ -29,6 +30,8 @@ func InitContainer() {
 	container.Singleton(newSignalingUseCases)
 	container.Singleton(newSignalingHandler)
 	container.Singleton(newSignalingController)
+	container.Singleton(newUserFeedbackUseCase)
+	container.Singleton(newUserFeedbackController)
 }
 
 func InjectServiceConfig() *services.ServiceConfig {
@@ -75,6 +78,12 @@ func InjectGameController() *ctrls.GameController {
 
 func InjectSignalingController() *ctrls.SignalingController {
 	var ctrl *ctrls.SignalingController
+	container.Make(&ctrl)
+	return ctrl
+}
+
+func InjectUserFeedbackController() *ctrls.UserFeedbackController {
+	var ctrl *ctrls.UserFeedbackController
 	container.Make(&ctrl)
 	return ctrl
 }

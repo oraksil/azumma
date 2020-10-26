@@ -120,6 +120,13 @@ func newSignalingRepository() models.SignalingRepository {
 	return &data.SignalingRepositoryMySqlImpl{DB: db}
 }
 
+func newUserFeedbackRepository() models.UserFeedbackRepository {
+	var db *sqlx.DB
+	container.Make(&db)
+
+	return &data.UserFeedbackRepositoryMySqlImpl{DB: db}
+}
+
 func newGameFetchUseCase() *usecases.GameFetchUseCase {
 	var packRepo models.PackRepository
 	container.Make(&packRepo)
@@ -232,5 +239,23 @@ func newPlayerController() *ctrls.PlayerController {
 
 	return &ctrls.PlayerController{
 		PlayerUseCase: playerUseCase,
+	}
+}
+
+func newUserFeedbackUseCase() *usecases.UserFeedbackUseCase {
+	var feedbackRepo models.UserFeedbackRepository
+	container.Make(&feedbackRepo)
+
+	return &usecases.UserFeedbackUseCase{
+		FeedbackRepo: feedbackRepo,
+	}
+}
+
+func newUserFeedbackController() *ctrls.UserFeedbackController {
+	var feedbackUseCase *usecases.UserFeedbackUseCase
+	container.Make(&feedbackUseCase)
+
+	return &ctrls.UserFeedbackController{
+		UserFeedbackUseCase: feedbackUseCase,
 	}
 }
