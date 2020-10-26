@@ -12,9 +12,22 @@ func PlayerToDto(src *models.Player) *PlayerDto {
 	return &playerDto
 }
 
-func PackToDto(src []*models.Pack) []*PackDto {
-	var packsDto []*PackDto
-	mapstructure.Decode(src, &packsDto)
+func PackToDto(src *models.Pack) *PackDto {
+	var packDto PackDto
+	mapstructure.Decode(src, &packDto)
+
+	packDto.Status = src.GetStatusAsString()
+
+	return &packDto
+}
+
+func PacksToDto(src []*models.Pack) []*PackDto {
+	packsDto := make([]*PackDto, 0)
+
+	for _, pack := range src {
+		packDto := PackToDto(pack)
+		packsDto = append(packsDto, packDto)
+	}
 
 	return packsDto
 }

@@ -9,6 +9,7 @@ type PlayerDto struct {
 
 type PackDto struct {
 	Id         int    `json:"id"`
+	Status     string `json:"status"`
 	Title      string `json:"title"`
 	Maker      string `json:"maker"`
 	Desc       string `mapstructure:"Description" json:"description"`
