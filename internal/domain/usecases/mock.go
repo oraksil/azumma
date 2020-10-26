@@ -16,6 +16,11 @@ func (r *MockPackRepository) GetById(id int) (*models.Pack, error) {
 	return args.Get(0).(*models.Pack), args.Error(1)
 }
 
+func (r *MockPackRepository) FindAll(offset, limit int) []*models.Pack {
+	args := r.Called(offset, limit)
+	return args.Get(0).([]*models.Pack)
+}
+
 func (r *MockPackRepository) FindByStatus(status, offset, limit int) []*models.Pack {
 	args := r.Called(status, offset, limit)
 	return args.Get(0).([]*models.Pack)

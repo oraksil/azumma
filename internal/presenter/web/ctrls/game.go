@@ -30,11 +30,14 @@ func (ctrl *GameController) getPacks(c *gin.Context) {
 
 	var packs []*models.Pack
 	switch queryParams.Status {
+	case "ready":
+		packs = ctrl.GameFetchUseCase.GetPacksByStatus(models.PackStatusReady, p.Page, p.Size)
+		break
 	case "prepare":
-		packs = ctrl.GameFetchUseCase.GetPreparingPacks(p.Page, p.Size)
+		packs = ctrl.GameFetchUseCase.GetPacksByStatus(models.PackStatusPreparing, p.Page, p.Size)
 		break
 	default:
-		packs = ctrl.GameFetchUseCase.GetAvailablePacks(p.Page, p.Size)
+		packs = ctrl.GameFetchUseCase.GetAllPacks(p.Page, p.Size)
 	}
 
 	c.JSON(http.StatusOK, jsend.New(dto.PackToDto(packs)))
