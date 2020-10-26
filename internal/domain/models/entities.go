@@ -11,6 +11,17 @@ type Pack struct {
 	MaxPlayers  int
 }
 
+func (p *Pack) GetStatusAsString() string {
+	switch p.Status {
+	case PackStatusReady:
+		return "ready"
+	case PackStatusPreparing:
+		return "prepare"
+	default:
+		return "invalid"
+	}
+}
+
 type Player struct {
 	Id         int64
 	Name       string

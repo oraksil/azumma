@@ -40,7 +40,7 @@ func (ctrl *GameController) getPacks(c *gin.Context) {
 		packs = ctrl.GameFetchUseCase.GetAllPacks(p.Page, p.Size)
 	}
 
-	c.JSON(http.StatusOK, jsend.New(dto.PackToDto(packs)))
+	c.JSON(http.StatusOK, jsend.New(dto.PacksToDto(packs)))
 }
 
 func (ctrl *GameController) createNewGame(c *gin.Context) {
