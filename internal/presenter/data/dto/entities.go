@@ -21,6 +21,8 @@ type PackData struct {
 	Maker       string `db:"maker"`
 	Description string `db:"description"`
 	MaxPlayers  int    `db:"max_players"`
+	PosterUrl   string `db:"poster_url"`
+	RomName     string `db:"rom_name"`
 }
 
 type GameData struct {
