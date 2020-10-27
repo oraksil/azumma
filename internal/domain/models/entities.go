@@ -9,6 +9,8 @@ type Pack struct {
 	Maker       string
 	Description string
 	MaxPlayers  int
+	PosterUrl   string
+	RomName     string
 }
 
 func (p *Pack) GetStatusAsString() string {

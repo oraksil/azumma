@@ -5,6 +5,8 @@ CREATE TABLE pack (
     maker VARCHAR(64) NOT NULL,
     description text,
     max_players INT, 
+    poster_url text,
+    rom_name VARCHAR(16),
 
     PRIMARY KEY (id)
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;

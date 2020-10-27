@@ -14,6 +14,8 @@ type PackDto struct {
 	Maker      string `json:"maker"`
 	Desc       string `mapstructure:"Description" json:"description"`
 	MaxPlayers int    `json:"max_players"`
+	PosterUrl  string `json:"poster_url"`
+	RomName    string `json:"rom_name"`
 }
 
 type GameDto struct {
