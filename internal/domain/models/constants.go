@@ -1,8 +1,8 @@
 package models
 
 const (
-	PackStatusReady = iota + 1
-	PackStatusPreparing
+	PackStatusPreparing = iota
+	PackStatusReady
 )
 
 const (
@@ -16,7 +16,7 @@ const (
 )
 
 const (
-	OrakkiStateInit = iota + 1
+	OrakkiStateInit = iota
 	OrakkiStateReady
 	OrakkiStatePause
 	OrakkiStatePlay
