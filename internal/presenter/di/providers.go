@@ -23,7 +23,9 @@ func newServiceConfig() *services.ServiceConfig {
 	hostname, _ := os.Hostname()
 
 	return &services.ServiceConfig{
-		MqRpcUri:        utils.GetStrEnv("MQRPC_URI", "amqp://oraksil:oraksil@oraksil-mq-svc:5672/"),
+		DbUri: utils.GetStrEnv("DB_URI", "oraksil:oraksil@(localhost:3306)/oraksil?parseTime=true"),
+
+		MqRpcUri:        utils.GetStrEnv("MQRPC_URI", "amqp://oraksil:oraksil@localhost:5672/"),
 		MqRpcNamespace:  utils.GetStrEnv("MQRPC_NAMESPACE", "oraksil"),
 		MqRpcIdentifier: utils.GetStrEnv("MQRPC_IDENTIFIER", hostname),
 
@@ -89,7 +91,10 @@ func newMessageService() services.MessageService {
 }
 
 func newMySqlDb() *sqlx.DB {
-	db, err := sqlx.Open("mysql", "oraksil:oraksil@(localhost:3306)/oraksil?parseTime=true")
+	var serviceConf *services.ServiceConfig
+	container.Make(&serviceConf)
+
+	db, err := sqlx.Open("mysql", serviceConf.DbUri)
 	if err != nil {
 		panic(err)
 	}

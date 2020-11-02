@@ -7,4 +7,5 @@ FROM alpine:latest
 RUN apk --no-cache add ca-certificates
 WORKDIR /deploy
 COPY --from=builder /build/app .
+COPY --from=builder /build/configs ./configs
 CMD ["./app"]  

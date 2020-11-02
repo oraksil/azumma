@@ -3,6 +3,8 @@ package services
 import "time"
 
 type ServiceConfig struct {
+	DbUri string
+
 	MqRpcUri        string
 	MqRpcNamespace  string
 	MqRpcIdentifier string
