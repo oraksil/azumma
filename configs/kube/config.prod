@@ -1,0 +1,27 @@
+apiVersion: v1
+clusters:
+- cluster:
+    certificate-authority-data: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURLakNDQWhLZ0F3SUJBZ0lRRDErQmI2Vi9CZ3NDS2ZSZVhZSk13REFOQmdrcWhraUc5dzBCQVFzRkFEQXYKTVMwd0t3WURWUVFERXlRMU5UaGtaRGhoWVMwMk9EWTRMVFJpWXpndE9UaGhZaTFtWWpnNU5UbGpNV1U1TUdJdwpIaGNOTWpBeE1UQXhNREEwTkRVMFdoY05NalV4TURNeE1ERTBORFUwV2pBdk1TMHdLd1lEVlFRREV5UTFOVGhrClpEaGhZUzAyT0RZNExUUmlZemd0T1RoaFlpMW1Zamc1TlRsak1XVTVNR0l3Z2dFaU1BMEdDU3FHU0liM0RRRUIKQVFVQUE0SUJEd0F3Z2dFS0FvSUJBUURZOGwrTWxOL1RGVURxMnlsL0tQTVlibmlGUnVTZE94cm1jVHhTUXF5bApxcGZBLy9GMy83TENKUGpHM256RGxSRHRyQ1daYXY4WDU0WXNRS1ZYMXoxSGduZU42dVo0Nk5QQ2xNUTZJeW1vCjNCem8zSTBHMFMrNjdGbm81eXYzQytXcGpINTlKMlE4QnpDRW5leTFMM0pPRFdVcUxSQlFxbTNMSlNDM3U3cEwKUk5Hd2JmRDZsWmw1M2dOOEc0bEhUUFFoUEkrbjVpN0FPQ1BXNlM2a0g3dWV6VmpzSHk4V3kyUm5SWmNwRGRPNQpQbzlDZGZLTEw1YTMrb3dxOEFQbmxTZGFIYWthM1psWHZiQkx3T0htUFpydUdIYnlmQnZROGJCaXZhZnBocGhICm1GZVNUYmNuUGY2bnhvY2NtZHFSYnBXdXFmcms1b1BCV2lSeGNvOUpISCtsQWdNQkFBR2pRakJBTUE0R0ExVWQKRHdFQi93UUVBd0lDQkRBUEJnTlZIUk1CQWY4RUJUQURBUUgvTUIwR0ExVWREZ1FXQkJUR1lGRUp0bDI5YjkxQgpwcUduTzd4ODVlZHR0ekFOQmdrcWhraUc5dzBCQVFzRkFBT0NBUUVBMUR0dyttOVRiWEZ4V1NmRmlNbmRXdnZYClVTZkhJalNlTzZaRjd1aFFvcU5LMEJoNDFJbUovR3dLVE5zTEJiSUVsOXp3b012dXc3WjFzUExwOEFqLzA2WWsKQ2hmaXJKMDZyNmE1cW9RM2s4Z2ovVEdKOC8xUlVhR3FGb3ZNYS9mTVdFbVByQnZxVlBDNXJpS3d2WG9vZXY3dApON0FGR0RQei84Y1MyVTFSNkRDVkRISUVIVlIwQTZlUjRwRG1lcU9XUmhCbmVRY05NMHFVTDFQempPckhGeHV2ClFIdlFzU1BQZHJ3VjhoZXBVNlM1bEw5cHZIbzNWRWVtMmNVWVoybmYwVXRDYWNaeVRxRlFPa1A4K0M0ODRtcXcKZzI4L0d0WVBveVNodjVTZUR2TnJ0alhBT0JnejR0KzR5d2QrY21iSTR3aGJaV05ZQ1ZaRk94MS83cURSb0E9PQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==
+    server: https://34.64.193.48
+  name: gke_oraksil_asia-northeast3-a_oraksil-prod
+contexts:
+- context:
+    cluster: gke_oraksil_asia-northeast3-a_oraksil-prod
+    namespace: oraksil-prod
+    user: gke_oraksil_asia-northeast3-a_oraksil-prod
+  name: gke_oraksil_asia-northeast3-a_oraksil-prod
+current-context: gke_oraksil_asia-northeast3-a_oraksil-prod
+kind: Config
+preferences: {}
+users:
+- name: gke_oraksil_asia-northeast3-a_oraksil-prod
+  user:
+    auth-provider:
+      config:
+        access-token: ya29.a0AfH6SMBoWH1e0wQNffJP9aZv4t1M9SPcQEyMKZ_mfoZVRnRt49VrlkNyApWUgkKLRff8X0rQAslrr5d_pA175Yosf_o8m6_7riCIaEjYGT_OGmwhE_oCjqlDsnaowlXBzcIxgcZZKTE2vRPV2xUY4Y-5WjOFWkbTUwhcU3aongwL
+        cmd-args: config config-helper --format=json
+        cmd-path: /usr/lib/google-cloud-sdk/bin/gcloud
+        expiry: "2020-11-01T14:12:52Z"
+        expiry-key: '{.credential.token_expiry}'
+        token-key: '{.credential.access_token}'
+      name: gcp

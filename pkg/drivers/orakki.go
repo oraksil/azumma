@@ -1,8 +1,8 @@
 package drivers
 
 import (
+	"errors"
 	"fmt"
-	"path/filepath"
 
 	gonanoid "github.com/matoous/go-nanoid"
 	core "k8s.io/api/core/v1"
@@ -10,13 +10,15 @@ import (
 	"k8s.io/client-go/kubernetes"
 	restclient "k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
-	"k8s.io/client-go/util/homedir"
 )
 
 type K8SOrakkiDriver struct {
 	kubeConfigPath string
-	namespace      string
-	baseAppName    string
+
+	namespace         string
+	baseAppName       string
+	nodeSelectorKey   string
+	nodeSelectorValue string
 
 	orakkiImage string
 	gipanImage  string
@@ -64,7 +66,7 @@ func (d *K8SOrakkiDriver) newOrakkiPodName() string {
 }
 
 func (d *K8SOrakkiDriver) createOrakkiPod(podName string) *core.Pod {
-	return &core.Pod{
+	pod := &core.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      podName,
 			Namespace: d.namespace,
@@ -143,10 +145,21 @@ func (d *K8SOrakkiDriver) createOrakkiPod(podName string) *core.Pod {
 			},
 		},
 	}
+
+	if d.nodeSelectorKey != "" && d.nodeSelectorValue != "" {
+		pod.Spec.NodeSelector = map[string]string{
+			d.nodeSelectorKey: d.nodeSelectorValue,
+		}
+	}
+
+	return pod
 }
 
 func NewK8SOrakkiDriver(
 	kubeConfigPath,
+	namespace,
+	nodeSelectorKey,
+	nodeSelectorValue,
 	orakkiImage,
 	gipanImage,
 	mqRpcUri,
@@ -156,7 +169,7 @@ func NewK8SOrakkiDriver(
 	turnPassword string) (*K8SOrakkiDriver, error) {
 
 	if kubeConfigPath == "" {
-		kubeConfigPath = filepath.Join(homedir.HomeDir(), ".kube", "config")
+		return nil, errors.New("invalid kube config path")
 	}
 
 	config, err := clientcmd.BuildConfigFromFlags("", kubeConfigPath)
@@ -170,17 +183,19 @@ func NewK8SOrakkiDriver(
 	}
 
 	return &K8SOrakkiDriver{
-		kubeConfigPath: kubeConfigPath,
-		namespace:      "oraksil-dev",
-		baseAppName:    "orakki",
-		kubeConfig:     config,
-		kubeOpSet:      clientset,
-		orakkiImage:    orakkiImage,
-		gipanImage:     gipanImage,
-		mqRpcUri:       mqRpcUri,
-		mqRpcNs:        mqRpcNs,
-		turnUri:        turnUri,
-		turnUsername:   turnUsername,
-		turnPassword:   turnPassword,
+		kubeConfigPath:    kubeConfigPath,
+		namespace:         namespace,
+		nodeSelectorKey:   nodeSelectorKey,
+		nodeSelectorValue: nodeSelectorValue,
+		baseAppName:       "orakki",
+		kubeConfig:        config,
+		kubeOpSet:         clientset,
+		orakkiImage:       orakkiImage,
+		gipanImage:        gipanImage,
+		mqRpcUri:          mqRpcUri,
+		mqRpcNs:           mqRpcNs,
+		turnUri:           turnUri,
+		turnUsername:      turnUsername,
+		turnPassword:      turnPassword,
 	}, nil
 }

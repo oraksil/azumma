@@ -12,6 +12,11 @@ type ServiceConfig struct {
 	GipanContainerImage  string
 	ProvisionMaxWait     time.Duration
 
+	OrakkiDriverK8SConfigPath        string
+	OrakkiDriverK8SNamespace         string
+	OrakkiDriverK8SNodeSelectorKey   string
+	OrakkiDriverK8SNodeSelectorValue string
+
 	TurnServerUri      string
 	TurnServerUsername string
 	TurnServerPassword string

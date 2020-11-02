@@ -27,11 +27,15 @@ func newServiceConfig() *services.ServiceConfig {
 		MqRpcNamespace:  utils.GetStrEnv("MQRPC_NAMESPACE", "oraksil"),
 		MqRpcIdentifier: utils.GetStrEnv("MQRPC_IDENTIFIER", hostname),
 
-		StaticOrakkiId: utils.GetStrEnv("STATIC_ORAKKI_ID", ""),
-
+		StaticOrakkiId:       utils.GetStrEnv("STATIC_ORAKKI_ID", ""),
 		OrakkiContainerImage: utils.GetStrEnv("ORAKKI_CONTAINER_IMAGE", "oraksil/orakki:latest"),
 		GipanContainerImage:  utils.GetStrEnv("GIPAN_CONTAINER_IMAGE", "oraksil/gipan:latest"),
 		ProvisionMaxWait:     time.Duration(utils.GetIntEnv("PROVISION_MAX_WAIT", 30)),
+
+		OrakkiDriverK8SConfigPath:        utils.GetStrEnv("ORAKKI_DRIVER_K8S_CONFIG_PATH", ""),
+		OrakkiDriverK8SNamespace:         utils.GetStrEnv("ORAKKI_DRIVER_K8S_NAMESPACE", ""),
+		OrakkiDriverK8SNodeSelectorKey:   utils.GetStrEnv("ORAKKI_DRIVER_K8S_NODE_SELECTOR_KEY", ""),
+		OrakkiDriverK8SNodeSelectorValue: utils.GetStrEnv("ORAKKI_DRIVER_K8S_NODE_SELECTOR_VALUE", ""),
 
 		TurnServerUri:      utils.GetStrEnv("TURN_URI", ""),
 		TurnServerUsername: utils.GetStrEnv("TURN_USERNAME", ""),
@@ -44,7 +48,10 @@ func newOrakkiDriver() services.OrakkiDriver {
 	container.Make(&serviceConf)
 
 	drv, err := drivers.NewK8SOrakkiDriver(
-		"",
+		serviceConf.OrakkiDriverK8SConfigPath,
+		serviceConf.OrakkiDriverK8SNamespace,
+		serviceConf.OrakkiDriverK8SNodeSelectorKey,
+		serviceConf.OrakkiDriverK8SNodeSelectorValue,
 		serviceConf.OrakkiContainerImage,
 		serviceConf.GipanContainerImage,
 		serviceConf.MqRpcUri,
