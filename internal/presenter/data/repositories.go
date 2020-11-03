@@ -140,22 +140,28 @@ func (r *GameRepositoryMySqlImpl) GetById(id int64) (*models.Game, error) {
 func (r *GameRepositoryMySqlImpl) Save(game *models.Game) (*models.Game, error) {
 	// map models to dto
 	data := dto.GameData{
-		PackId:      game.Pack.Id,
-		OrakkiId:    game.Orakki.Id,
-		OrakkiState: game.Orakki.State,
-		CreatedAt:   time.Now(),
+		PackId:    game.Pack.Id,
+		CreatedAt: time.Now(),
 	}
+
+	if game.Orakki != nil {
+		data.OrakkiId = game.Orakki.Id
+		data.OrakkiState = game.Orakki.State
+	}
+
 	data.SetJoinedPlayers(game.Players)
 
 	if game.Id > 0 {
 		updateQuery := `
 			UPDATE game
-				SET orakki_state = ?,
+				SET orakki_id = ?,
+				orakki_state = ?,
 				joined_player_ids = ?
 			WHERE id = ?`
 
 		_, err := r.DB.Exec(
 			updateQuery,
+			data.OrakkiId,
 			data.OrakkiState,
 			data.JoinedPlayerIds,
 			game.Id,

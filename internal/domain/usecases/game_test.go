@@ -70,7 +70,7 @@ func TestGameCtrlUseCaseCreateNewGame(t *testing.T) {
 
 	mockPackRepo.On("GetById", 1).Return(&mockPack, nil)
 	mockGameRepo.On("Save", mock.Anything).Return(mock.Anything, nil)
-	mockDriver.On("RunInstance").Return(serviceConf.StaticOrakkiId, nil)
+	mockDriver.On("RunInstance", "oraksil-orakki-1").Return(serviceConf.StaticOrakkiId, nil)
 	mockSessionCtx.On("GetSession").Return(&mockSession, nil)
 
 	// when

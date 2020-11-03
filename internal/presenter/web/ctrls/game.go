@@ -71,7 +71,7 @@ func (ctrl *GameController) createNewGame(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusOK, jsend.NewFail(map[string]interface{}{
 			"code":    400,
-			"message": "failed to create a new game",
+			"message": err.Error(),
 		}))
 		return
 	}

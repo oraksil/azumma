@@ -9,6 +9,7 @@ import (
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
+	"github.com/oraksil/azumma/pkg/utils"
 )
 
 type Controller interface {
@@ -20,9 +21,27 @@ type WebService struct {
 	controllers []Controller
 }
 
+func getAllowOrigins() []string {
+	ginMode := utils.GetStrEnv("GIN_MODE", "")
+	if ginMode == "release" {
+		return []string{
+			"http://oraksil.fun",
+			"http://beta.oraksil.fun",
+		}
+	}
+
+	return []string{
+		"http://localhost:3000",
+	}
+}
+
 func NewWebService() *WebService {
 	routes := gin.Default()
-	routes.Use(cors.Default())
+
+	corsConfig := cors.DefaultConfig()
+	corsConfig.AllowCredentials = true
+	corsConfig.AllowOrigins = getAllowOrigins()
+	routes.Use(cors.New(corsConfig))
 
 	// cookie-based session
 	store := cookie.NewStore([]byte("423F4528482B4D62"))

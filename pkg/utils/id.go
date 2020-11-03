@@ -7,7 +7,7 @@ import (
 )
 
 func NewId(prefix string) string {
-	id, _ := gonanoid.Generate("abcdef", 7)
+	id, _ := gonanoid.Nanoid(7)
 	if prefix != "" {
 		return fmt.Sprintf("%s-%s", prefix, id)
 	}

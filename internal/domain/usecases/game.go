@@ -2,6 +2,7 @@ package usecases
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/mitchellh/mapstructure"
@@ -41,20 +42,27 @@ func (uc *GameCtrlUseCase) CreateNewGame(packId int, sessionCtx services.Session
 		return nil, err
 	}
 
+	// try to create new game
+	session, _ := sessionCtx.GetSession()
+	game := models.Game{
+		Pack:    pack,
+		Players: []*models.Player{session.Player},
+	}
+	saved, err := uc.GameRepo.Save(&game)
+	if err != nil {
+		return nil, err
+	}
+
 	// provision orakki
-	newOrakki, err := uc.provisionOrakki()
+	orakkiId := fmt.Sprintf("oraksil-orakki-%d", saved.Id)
+	newOrakki, err := uc.provisionOrakki(orakkiId)
 	if err != nil {
 		return nil, err
 	}
 
 	// persist orakki context
-	session, _ := sessionCtx.GetSession()
-	game := models.Game{
-		Orakki:  newOrakki,
-		Pack:    pack,
-		Players: []*models.Player{session.Player},
-	}
-	saved, err := uc.GameRepo.Save(&game)
+	saved.Orakki = newOrakki
+	saved, err = uc.GameRepo.Save(&game)
 	if err != nil {
 		uc.OrakkiDriver.DeleteInstance(newOrakki.Id)
 		return nil, err
@@ -66,21 +74,20 @@ func (uc *GameCtrlUseCase) CreateNewGame(packId int, sessionCtx services.Session
 	return saved, nil
 }
 
-func (uc *GameCtrlUseCase) provisionOrakki() (*models.Orakki, error) {
-	var newOrakkiId string
+func (uc *GameCtrlUseCase) provisionOrakki(orakkiId string) (*models.Orakki, error) {
 	var err error
 
 	if uc.ServiceConfig.StaticOrakkiId != "" {
-		newOrakkiId = uc.ServiceConfig.StaticOrakkiId
+		orakkiId = uc.ServiceConfig.StaticOrakkiId
 	} else {
-		newOrakkiId, err = uc.OrakkiDriver.RunInstance()
+		orakkiId, err = uc.OrakkiDriver.RunInstance(orakkiId)
 		if err != nil {
 			return nil, err
 		}
 	}
 
 	return &models.Orakki{
-		Id:    newOrakkiId,
+		Id:    orakkiId,
 		State: models.OrakkiStateInit,
 	}, nil
 }

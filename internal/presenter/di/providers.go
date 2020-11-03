@@ -23,25 +23,31 @@ func newServiceConfig() *services.ServiceConfig {
 	hostname, _ := os.Hostname()
 
 	return &services.ServiceConfig{
+		// Azumma
 		DbUri: utils.GetStrEnv("DB_URI", "oraksil:oraksil@(localhost:3306)/oraksil?parseTime=true"),
 
 		MqRpcUri:        utils.GetStrEnv("MQRPC_URI", "amqp://oraksil:oraksil@localhost:5672/"),
 		MqRpcNamespace:  utils.GetStrEnv("MQRPC_NAMESPACE", "oraksil"),
 		MqRpcIdentifier: utils.GetStrEnv("MQRPC_IDENTIFIER", hostname),
 
-		StaticOrakkiId:       utils.GetStrEnv("STATIC_ORAKKI_ID", ""),
+		StaticOrakkiId:   utils.GetStrEnv("STATIC_ORAKKI_ID", ""),
+		ProvisionMaxWait: time.Duration(utils.GetIntEnv("PROVISION_MAX_WAIT", 30)),
+
+		// For Orakki
+		OrakkiMqRpcUri:       utils.GetStrEnv("ORAKKI_MQRPC_URI", "amqp://oraksil:oraksil@localhost:5672/"),
+		OrakkiMqRpcNamespace: utils.GetStrEnv("ORAKKI_MQRPC_NAMESPACE", "oraksil"),
+
 		OrakkiContainerImage: utils.GetStrEnv("ORAKKI_CONTAINER_IMAGE", "oraksil/orakki:latest"),
 		GipanContainerImage:  utils.GetStrEnv("GIPAN_CONTAINER_IMAGE", "oraksil/gipan:latest"),
-		ProvisionMaxWait:     time.Duration(utils.GetIntEnv("PROVISION_MAX_WAIT", 30)),
+
+		TurnServerUri:      utils.GetStrEnv("TURN_URI", ""),
+		TurnServerUsername: utils.GetStrEnv("TURN_USERNAME", ""),
+		TurnServerPassword: utils.GetStrEnv("TURN_PASSWORD", ""),
 
 		OrakkiDriverK8SConfigPath:        utils.GetStrEnv("ORAKKI_DRIVER_K8S_CONFIG_PATH", ""),
 		OrakkiDriverK8SNamespace:         utils.GetStrEnv("ORAKKI_DRIVER_K8S_NAMESPACE", ""),
 		OrakkiDriverK8SNodeSelectorKey:   utils.GetStrEnv("ORAKKI_DRIVER_K8S_NODE_SELECTOR_KEY", ""),
 		OrakkiDriverK8SNodeSelectorValue: utils.GetStrEnv("ORAKKI_DRIVER_K8S_NODE_SELECTOR_VALUE", ""),
-
-		TurnServerUri:      utils.GetStrEnv("TURN_URI", ""),
-		TurnServerUsername: utils.GetStrEnv("TURN_USERNAME", ""),
-		TurnServerPassword: utils.GetStrEnv("TURN_PASSWORD", ""),
 	}
 }
 
@@ -56,8 +62,8 @@ func newOrakkiDriver() services.OrakkiDriver {
 		serviceConf.OrakkiDriverK8SNodeSelectorValue,
 		serviceConf.OrakkiContainerImage,
 		serviceConf.GipanContainerImage,
-		serviceConf.MqRpcUri,
-		serviceConf.MqRpcNamespace,
+		serviceConf.OrakkiMqRpcUri,
+		serviceConf.OrakkiMqRpcNamespace,
 		serviceConf.TurnServerUri,
 		serviceConf.TurnServerUsername,
 		serviceConf.TurnServerPassword,

@@ -35,8 +35,8 @@ type K8SOrakkiDriver struct {
 	kubeOpSet  *kubernetes.Clientset
 }
 
-func (d *K8SOrakkiDriver) RunInstance() (string, error) {
-	podName := d.newOrakkiPodName()
+func (d *K8SOrakkiDriver) RunInstance(id string) (string, error) {
+	podName := d.newOrakkiPodName(id)
 	podObj := d.createOrakkiPod(podName)
 
 	_, err := d.kubeOpSet.CoreV1().Pods(d.namespace).Create(podObj)
@@ -61,9 +61,13 @@ func (d *K8SOrakkiDriver) DeleteInstance(id string) error {
 	return nil
 }
 
-func (d *K8SOrakkiDriver) newOrakkiPodName() string {
-	id, _ := gonanoid.Generate("abcdef", 7)
-	return fmt.Sprintf("%s-%s", d.baseAppName, id)
+func (d *K8SOrakkiDriver) newOrakkiPodName(id string) string {
+	if id != "" {
+		return id
+	}
+
+	seedId, _ := gonanoid.Nanoid(7)
+	return fmt.Sprintf("%s-%s", d.baseAppName, seedId)
 }
 
 func (d *K8SOrakkiDriver) createOrakkiPod(podName string) *core.Pod {
