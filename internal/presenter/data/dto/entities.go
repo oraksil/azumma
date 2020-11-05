@@ -44,7 +44,7 @@ func (d *GameData) SetJoinedPlayers(players []*models.Player) {
 }
 
 func (d *GameData) GetJoinedPlayers() []*models.Player {
-	playerIds := strings.Split(d.JoinedPlayerIds, ",")
+	playerIds := strings.FieldsFunc(d.JoinedPlayerIds, func(c rune) bool { return c == ',' })
 	players := make([]*models.Player, 0)
 	for _, pIdString := range playerIds {
 		pId, _ := strconv.ParseInt(pIdString, 10, 0)
