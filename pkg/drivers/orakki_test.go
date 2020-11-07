@@ -15,7 +15,7 @@ func TestOrakkiPodObject(t *testing.T) {
 	assert.NotNil(t, drv)
 	assert.Equal(t, "orakki", drv.baseAppName)
 
-	po := drv.createOrakkiPod(drv.baseAppName)
+	po := drv.createOrakkiPod(drv.baseAppName, "dino")
 	assert.True(t, strings.HasPrefix(po.ObjectMeta.Name, drv.baseAppName))
 	assert.Equal(t, drv.namespace, po.Namespace)
 
