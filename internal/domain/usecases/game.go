@@ -54,8 +54,11 @@ func (uc *GameCtrlUseCase) CreateNewGame(packId int, sessionCtx services.Session
 	}
 
 	// provision orakki
-	orakkiId := fmt.Sprintf("oraksil-orakki-%d", saved.Id)
-	newOrakki, err := uc.provisionOrakki(orakkiId)
+	provisionInfo := &models.ProvisionInfo{
+		OrakkiId: fmt.Sprintf("oraksil-orakki-%d", saved.Id),
+		Pack:     pack,
+	}
+	newOrakki, err := uc.provisionOrakki(provisionInfo)
 	if err != nil {
 		return nil, err
 	}
@@ -74,13 +77,13 @@ func (uc *GameCtrlUseCase) CreateNewGame(packId int, sessionCtx services.Session
 	return saved, nil
 }
 
-func (uc *GameCtrlUseCase) provisionOrakki(orakkiId string) (*models.Orakki, error) {
+func (uc *GameCtrlUseCase) provisionOrakki(info *models.ProvisionInfo) (*models.Orakki, error) {
 	var err error
-
+	var orakkiId string
 	if uc.ServiceConfig.StaticOrakkiId != "" {
 		orakkiId = uc.ServiceConfig.StaticOrakkiId
 	} else {
-		orakkiId, err = uc.OrakkiDriver.RunInstance(orakkiId)
+		orakkiId, err = uc.OrakkiDriver.RunInstance(info.OrakkiId, info.Pack.RomName)
 		if err != nil {
 			return nil, err
 		}
