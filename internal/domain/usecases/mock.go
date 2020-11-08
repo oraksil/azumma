@@ -78,7 +78,7 @@ type MockK8SOrakkiDriver struct {
 	mock.Mock
 }
 
-func (d *MockK8SOrakkiDriver) RunInstance(id string) (string, error) {
+func (d *MockK8SOrakkiDriver) RunInstance(id string, romName string) (string, error) {
 	args := d.Called(id)
 	return args.String(0), args.Error(1)
 }

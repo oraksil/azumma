@@ -8,6 +8,11 @@ type PrepareOrakki struct {
 	GameId int64
 }
 
+type ProvisionInfo struct {
+	OrakkiId string
+	Pack     *Pack
+}
+
 type GameInfo struct {
 	GameId     int64
 	MaxPlayers int

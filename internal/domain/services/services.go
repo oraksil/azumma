@@ -21,6 +21,6 @@ type MessageService interface {
 }
 
 type OrakkiDriver interface {
-	RunInstance(id string) (string, error)
+	RunInstance(id string, romName string) (string, error)
 	DeleteInstance(id string) error
 }
