@@ -7,10 +7,10 @@ clusters:
 contexts:
 - context:
     cluster: oraksil-prod-cluster
-    namespace: oraksil-prod
+    namespace: orakki-prod
     user: orakki-driver
-  name: oraksil-prod-context
-current-context: oraksil-prod-context
+  name: orakki-prod-context
+current-context: orakki-prod-context
 kind: Config
 preferences: {}
 users:

@@ -55,7 +55,7 @@ func (uc *GameCtrlUseCase) CreateNewGame(packId int, sessionCtx services.Session
 
 	// provision orakki
 	provisionInfo := &models.ProvisionInfo{
-		OrakkiId: fmt.Sprintf("oraksil-orakki-%d", saved.Id),
+		OrakkiId: fmt.Sprintf("orakki-%d", saved.Id),
 		Pack:     pack,
 	}
 	newOrakki, err := uc.provisionOrakki(provisionInfo)
