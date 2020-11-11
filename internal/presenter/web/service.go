@@ -30,9 +30,7 @@ func getAllowOrigins() []string {
 		}
 	}
 
-	return []string{
-		"http://localhost:3000",
-	}
+	return []string{"*"}
 }
 
 func NewWebService() *WebService {
