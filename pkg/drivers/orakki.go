@@ -75,6 +75,9 @@ func (d *K8SOrakkiDriver) newOrakkiPodName(id string) string {
 }
 
 func (d *K8SOrakkiDriver) createOrakkiPod(podName string, romName string) *core.Pod {
+	termGracePeriod := new(int64)
+	*termGracePeriod = 10
+
 	pod := &core.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      podName,
@@ -84,6 +87,8 @@ func (d *K8SOrakkiDriver) createOrakkiPod(podName string, romName string) *core.
 			},
 		},
 		Spec: core.PodSpec{
+			RestartPolicy:                 core.RestartPolicyNever,
+			TerminationGracePeriodSeconds: termGracePeriod,
 			Containers: []core.Container{
 				{
 					Name:            "orakki",
