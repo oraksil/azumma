@@ -69,3 +69,10 @@ type UserFeedbackData struct {
 	Content   string    `db:"content"`
 	CreatedAt time.Time `db:"created_at"`
 }
+
+type TurnConfigData struct {
+	Id        int64     `db:"id"`
+	SecretKey string    `db:"secret_key"`
+	TTL       int64     `db:"ttl"`
+	CreatedAt time.Time `db:"created_at"`
+}

@@ -2,12 +2,16 @@ package usecases
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/mitchellh/mapstructure"
 	"github.com/oraksil/azumma/internal/domain/models"
 	"github.com/oraksil/azumma/internal/domain/services"
 	"github.com/oraksil/azumma/pkg/utils"
 
+	"crypto/hmac"
+	"crypto/sha1"
+	"encoding/base64"
 	"time"
 )
 
@@ -139,4 +143,26 @@ func (uc *SignalingUseCase) OnPlayerIceCandidate(
 	}
 
 	return nil
+}
+
+func (uc *SignalingUseCase) CreateUserAuth(userid string) (*models.TurnAuth, error) {
+	turnConfigData, err := uc.SignalingRepo.GetTurnConfig()
+
+	if err != nil {
+		return nil, err
+	}
+
+	timestamp := time.Now().Unix() + turnConfigData.TTL
+	username := fmt.Sprintf("%d:%s", timestamp, userid)
+	h := hmac.New(sha1.New, []byte(turnConfigData.SecretKey))
+
+	h.Write([]byte(username))
+
+	password := base64.StdEncoding.EncodeToString(h.Sum(nil))
+
+	return &models.TurnAuth{
+		UserName: username,
+		Password: password,
+		TTL:      turnConfigData.TTL,
+	}, nil
 }
