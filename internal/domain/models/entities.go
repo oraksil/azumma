@@ -68,6 +68,17 @@ type Signaling struct {
 	Data     string
 }
 
+type TurnAuth struct {
+	UserName string
+	Password string
+	TTL      int64
+}
+
+type TurnConfig struct {
+	SecretKey string
+	TTL       int64
+}
+
 type UserFeedback struct {
 	Id        int64
 	Content   string
@@ -93,6 +104,7 @@ type GameRepository interface {
 type SignalingRepository interface {
 	FindByToken(token string, sinceId int64) ([]*Signaling, error)
 	Save(signaling *Signaling) (*Signaling, error)
+	GetTurnConfig() (*TurnConfig, error)
 }
 
 type UserFeedbackRepository interface {

@@ -136,10 +136,36 @@ func (ctrl *SignalingController) postPlayerIceCandidate(c *gin.Context) {
 	c.JSON(http.StatusOK, jsend.New(dto.Empty()))
 }
 
+func (ctrl *SignalingController) getTurnAuthInfo(c *gin.Context) {
+	type QueryParams struct {
+		Token string `form:"token"`
+	}
+
+	var queryParams QueryParams
+	c.BindQuery(&queryParams)
+
+	userAuth, err := ctrl.SignalingUseCase.CreateUserAuth(queryParams.Token)
+
+	if err != nil {
+		c.JSON(http.StatusOK, jsend.NewFail(map[string]interface{}{
+			"code":    400,
+			"message": err.Error(),
+		}))
+		return
+	}
+
+	c.JSON(http.StatusOK, jsend.New(map[string]interface{}{
+		"username": userAuth.UserName,
+		"password": userAuth.Password,
+		"TTL":      userAuth.TTL,
+	}))
+}
+
 func (ctrl *SignalingController) Routes() []web.Route {
 	return []web.Route{
 		{Spec: "POST /api/v1/games/:game_id/signaling/sdp", Handler: ctrl.handleSdpExchange},
 		{Spec: "GET /api/v1/games/:game_id/signaling/ice", Handler: ctrl.getOrakkiIceCandidates},
 		{Spec: "POST /api/v1/games/:game_id/signaling/ice", Handler: ctrl.postPlayerIceCandidate},
+		{Spec: "GET /api/v1/turn/authinfo", Handler: ctrl.getTurnAuthInfo},
 	}
 }
