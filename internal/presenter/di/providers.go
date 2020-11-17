@@ -44,6 +44,10 @@ func newServiceConfig() *services.ServiceConfig {
 		TurnServerUsername: utils.GetStrEnv("TURN_USERNAME", ""),
 		TurnServerPassword: utils.GetStrEnv("TURN_PASSWORD", ""),
 
+		GipanResolution:       utils.GetStrEnv("GIPAN_RESOLUTION", "640x480"),
+		GipanFps:              utils.GetStrEnv("GIPAN_FPS", "25"),
+		GipanKeyframeInterval: utils.GetStrEnv("GIPAN_KEYFRAME_INTERVAL", "150"),
+
 		OrakkiDriverK8SConfigPath:        utils.GetStrEnv("ORAKKI_DRIVER_K8S_CONFIG_PATH", ""),
 		OrakkiDriverK8SNamespace:         utils.GetStrEnv("ORAKKI_DRIVER_K8S_NAMESPACE", ""),
 		OrakkiDriverK8SNodeSelectorKey:   utils.GetStrEnv("ORAKKI_DRIVER_K8S_NODE_SELECTOR_KEY", ""),
@@ -67,6 +71,9 @@ func newOrakkiDriver() services.OrakkiDriver {
 		serviceConf.TurnServerUri,
 		serviceConf.TurnServerUsername,
 		serviceConf.TurnServerPassword,
+		serviceConf.GipanResolution,
+		serviceConf.GipanFps,
+		serviceConf.GipanKeyframeInterval,
 	)
 	if err != nil {
 		panic(err)

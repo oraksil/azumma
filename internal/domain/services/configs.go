@@ -24,6 +24,10 @@ type ServiceConfig struct {
 	TurnServerUsername string
 	TurnServerPassword string
 
+	GipanResolution       string
+	GipanFps              string
+	GipanKeyframeInterval string
+
 	OrakkiDriverK8SConfigPath        string
 	OrakkiDriverK8SNamespace         string
 	OrakkiDriverK8SNodeSelectorKey   string

@@ -31,6 +31,10 @@ type K8SOrakkiDriver struct {
 	turnUsername string
 	turnPassword string
 
+	gipanResolution       string
+	gipanFps              string
+	gipanKeyframeInterval string
+
 	kubeConfig *restclient.Config
 	kubeOpSet  *kubernetes.Clientset
 }
@@ -107,7 +111,7 @@ func (d *K8SOrakkiDriver) createOrakkiPod(podName string, romName string) *core.
 							Value: "tcp://127.0.0.1:8766",
 						},
 						{
-							Name:  "IPC_KEY_INPUTS",
+							Name:  "IPC_CMD_INPUTS",
 							Value: "tcp://127.0.0.1:8767",
 						},
 						{
@@ -142,8 +146,20 @@ func (d *K8SOrakkiDriver) createOrakkiPod(podName string, romName string) *core.
 							Value: "tcp://127.0.0.1:8766",
 						},
 						{
-							Name:  "IPC_KEY_INPUTS",
+							Name:  "IPC_CMD_INPUTS",
 							Value: "tcp://127.0.0.1:8767",
+						},
+						{
+							Name:  "RESOLUTION",
+							Value: d.gipanResolution,
+						},
+						{
+							Name:  "FPS",
+							Value: d.gipanFps,
+						},
+						{
+							Name:  "KEYFRAME_INTERVAL",
+							Value: d.gipanKeyframeInterval,
 						},
 					},
 				},
@@ -171,7 +187,10 @@ func NewK8SOrakkiDriver(
 	mqRpcNs,
 	turnUri,
 	turnUsername,
-	turnPassword string) (*K8SOrakkiDriver, error) {
+	turnPassword,
+	gipanResolution,
+	gipanFps,
+	gipanKeyframeInterval string) (*K8SOrakkiDriver, error) {
 
 	if kubeConfigPath == "" {
 		return nil, errors.New("invalid kube config path")
@@ -188,19 +207,22 @@ func NewK8SOrakkiDriver(
 	}
 
 	return &K8SOrakkiDriver{
-		kubeConfigPath:    kubeConfigPath,
-		namespace:         namespace,
-		nodeSelectorKey:   nodeSelectorKey,
-		nodeSelectorValue: nodeSelectorValue,
-		baseAppName:       "orakki",
-		kubeConfig:        config,
-		kubeOpSet:         clientset,
-		orakkiImage:       orakkiImage,
-		gipanImage:        gipanImage,
-		mqRpcUri:          mqRpcUri,
-		mqRpcNs:           mqRpcNs,
-		turnUri:           turnUri,
-		turnUsername:      turnUsername,
-		turnPassword:      turnPassword,
+		kubeConfigPath:        kubeConfigPath,
+		namespace:             namespace,
+		nodeSelectorKey:       nodeSelectorKey,
+		nodeSelectorValue:     nodeSelectorValue,
+		baseAppName:           "orakki",
+		kubeConfig:            config,
+		kubeOpSet:             clientset,
+		orakkiImage:           orakkiImage,
+		gipanImage:            gipanImage,
+		mqRpcUri:              mqRpcUri,
+		mqRpcNs:               mqRpcNs,
+		turnUri:               turnUri,
+		turnUsername:          turnUsername,
+		turnPassword:          turnPassword,
+		gipanResolution:       gipanResolution,
+		gipanFps:              gipanFps,
+		gipanKeyframeInterval: gipanKeyframeInterval,
 	}, nil
 }
