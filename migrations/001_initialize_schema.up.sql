@@ -53,14 +53,3 @@ CREATE TABLE feedback (
     PRIMARY KEY (id)
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
-CREATE TABLE turnconfig (
-    id BIGINT NOT NULL AUTO_INCREMENT,
-    secret_key VARCHAR(64) NOT NULL,
-    ttl BIGINT NOT NULL,
-    created_at TIMESTAMP,
-
-    PRIMARY KEY (id)
-) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-
-
-

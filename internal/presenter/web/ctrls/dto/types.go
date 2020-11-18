@@ -36,5 +36,7 @@ type IceCandidateDto struct {
 }
 
 type JoinableDto struct {
-	Token string `json:"token"`
+	Token        string `json:"token"`
+	TurnUsername string `json:"username"`
+	TurnPassword string `json:"password"`
 }

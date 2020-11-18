@@ -44,3 +44,8 @@ type IceCandidate struct {
 	IceBase64Encoded string
 	Seq              int64
 }
+
+type TurnAuth struct {
+	Username string
+	Password string
+}

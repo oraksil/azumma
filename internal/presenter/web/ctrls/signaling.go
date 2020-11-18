@@ -13,6 +13,7 @@ import (
 )
 
 type SignalingController struct {
+	GameCtrlUseCase  *usecases.GameCtrlUseCase
 	SignalingUseCase *usecases.SignalingUseCase
 }
 
@@ -136,16 +137,31 @@ func (ctrl *SignalingController) postPlayerIceCandidate(c *gin.Context) {
 	c.JSON(http.StatusOK, jsend.New(dto.Empty()))
 }
 
-func (ctrl *SignalingController) getTurnAuthInfo(c *gin.Context) {
-	type QueryParams struct {
-		Token string `form:"token"`
+func (ctrl *SignalingController) canJoinGame(c *gin.Context) {
+	sessionCtx := helpers.NewSessionCtx(c)
+	if sessionCtx.Validate() != nil {
+		c.JSON(http.StatusOK, jsend.NewFail(map[string]interface{}{
+			"code":    400,
+			"message": "invalid session",
+		}))
+		return
 	}
 
-	var queryParams QueryParams
-	c.BindQuery(&queryParams)
+	type UriParams struct {
+		GameId int64 `uri:"game_id"`
+	}
 
-	userAuth, err := ctrl.SignalingUseCase.CreateUserAuth(queryParams.Token)
+	var uriParams UriParams
+	err := c.BindUri(&uriParams)
+	if err != nil {
+		c.JSON(http.StatusOK, jsend.NewFail(map[string]interface{}{
+			"code":    400,
+			"message": "invalid game id",
+		}))
+		return
+	}
 
+	joinToken, err := ctrl.GameCtrlUseCase.CanJoinGame(uriParams.GameId, sessionCtx)
 	if err != nil {
 		c.JSON(http.StatusOK, jsend.NewFail(map[string]interface{}{
 			"code":    400,
@@ -154,18 +170,27 @@ func (ctrl *SignalingController) getTurnAuthInfo(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, jsend.New(map[string]interface{}{
-		"username": userAuth.UserName,
-		"password": userAuth.Password,
-		"TTL":      userAuth.TTL,
+	turnAuth, err := ctrl.SignalingUseCase.CreateUserAuth(joinToken)
+	if err != nil {
+		c.JSON(http.StatusOK, jsend.NewFail(map[string]interface{}{
+			"code":    400,
+			"message": err.Error(),
+		}))
+		return
+	}
+
+	c.JSON(http.StatusOK, jsend.New(dto.JoinableDto{
+		Token:        joinToken,
+		TurnUsername: turnAuth.Username,
+		TurnPassword: turnAuth.Password,
 	}))
 }
 
 func (ctrl *SignalingController) Routes() []web.Route {
 	return []web.Route{
+		{Spec: "GET /api/v1/games/:game_id/joinable", Handler: ctrl.canJoinGame},
 		{Spec: "POST /api/v1/games/:game_id/signaling/sdp", Handler: ctrl.handleSdpExchange},
 		{Spec: "GET /api/v1/games/:game_id/signaling/ice", Handler: ctrl.getOrakkiIceCandidates},
 		{Spec: "POST /api/v1/games/:game_id/signaling/ice", Handler: ctrl.postPlayerIceCandidate},
-		{Spec: "GET /api/v1/turn/authinfo", Handler: ctrl.getTurnAuthInfo},
 	}
 }

@@ -55,13 +55,6 @@ func (m *MockSignalingRepository) Save(signaling *models.Signaling) (*models.Sig
 	return args.Get(0).(*models.Signaling), args.Error(1)
 }
 
-func (m *MockSignalingRepository) GetTurnConfig() (*models.TurnConfig, error) {
-	return &models.TurnConfig{
-		SecretKey: "test_key",
-		TTL:       3600,
-	}, nil
-}
-
 type MockSessionContext struct {
 	mock.Mock
 }
