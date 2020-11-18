@@ -9,7 +9,3 @@ VALUES
 INSERT INTO player (name, total_coins)
 VALUES
     ('gamz', 10);
-
-INSERT INTO turnconfig (secret_key, ttl)
-VALUES
-    ('oraksil_secret_key_1', 3600);

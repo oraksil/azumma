@@ -20,9 +20,9 @@ type ServiceConfig struct {
 	OrakkiContainerImage string
 	GipanContainerImage  string
 
-	TurnServerUri      string
-	TurnServerUsername string
-	TurnServerPassword string
+	TurnServerUri       string
+	TurnServerSecretKey string
+	TurnServerTTL       int
 
 	GipanResolution       string
 	GipanFps              string

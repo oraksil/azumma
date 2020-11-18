@@ -246,21 +246,6 @@ func (r *SignalingRepositoryMySqlImpl) Save(signaling *models.Signaling) (*model
 	return signaling, err
 }
 
-func (r *SignalingRepositoryMySqlImpl) GetTurnConfig() (*models.TurnConfig, error) {
-	turnConfigData := dto.TurnConfigData{}
-
-	query := "SELECT * FROM turnconfig ORDER BY id DESC LIMIT 1"
-	err := r.DB.Get(&turnConfigData, query)
-	if err != nil {
-		return nil, err
-	}
-
-	return &models.TurnConfig{
-		SecretKey: turnConfigData.SecretKey,
-		TTL:       turnConfigData.TTL,
-	}, nil
-}
-
 type UserFeedbackRepositoryMySqlImpl struct {
 	DB *sqlx.DB
 }

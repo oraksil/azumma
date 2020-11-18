@@ -2,24 +2,20 @@ package usecases
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/mitchellh/mapstructure"
 	"github.com/oraksil/azumma/internal/domain/models"
 	"github.com/oraksil/azumma/internal/domain/services"
 	"github.com/oraksil/azumma/pkg/utils"
 
-	"crypto/hmac"
-	"crypto/sha1"
-	"encoding/base64"
 	"time"
 )
 
 type SignalingUseCase struct {
-	GameRepo      models.GameRepository
-	SignalingRepo models.SignalingRepository
-
+	ServiceConfig  *services.ServiceConfig
 	MessageService services.MessageService
+	GameRepo       models.GameRepository
+	SignalingRepo  models.SignalingRepository
 }
 
 func (uc *SignalingUseCase) NewOffer(gameId int64, token, b64EncodedOffer string, sessionCtx services.SessionContext) (*models.SdpInfo, error) {
@@ -145,24 +141,15 @@ func (uc *SignalingUseCase) OnPlayerIceCandidate(
 	return nil
 }
 
-func (uc *SignalingUseCase) CreateUserAuth(userid string) (*models.TurnAuth, error) {
-	turnConfigData, err := uc.SignalingRepo.GetTurnConfig()
-
-	if err != nil {
-		return nil, err
-	}
-
-	timestamp := time.Now().Unix() + turnConfigData.TTL
-	username := fmt.Sprintf("%d:%s", timestamp, userid)
-	h := hmac.New(sha1.New, []byte(turnConfigData.SecretKey))
-
-	h.Write([]byte(username))
-
-	password := base64.StdEncoding.EncodeToString(h.Sum(nil))
+func (uc *SignalingUseCase) CreateUserAuth(userId string) (*models.TurnAuth, error) {
+	username, password := utils.NewTurnAuth(
+		userId,
+		uc.ServiceConfig.TurnServerSecretKey,
+		uc.ServiceConfig.TurnServerTTL,
+	)
 
 	return &models.TurnAuth{
-		UserName: username,
+		Username: username,
 		Password: password,
-		TTL:      turnConfigData.TTL,
 	}, nil
 }

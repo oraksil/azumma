@@ -40,9 +40,9 @@ func newServiceConfig() *services.ServiceConfig {
 		OrakkiContainerImage: utils.GetStrEnv("ORAKKI_CONTAINER_IMAGE", "oraksil/orakki:latest"),
 		GipanContainerImage:  utils.GetStrEnv("GIPAN_CONTAINER_IMAGE", "oraksil/gipan:latest"),
 
-		TurnServerUri:      utils.GetStrEnv("TURN_URI", ""),
-		TurnServerUsername: utils.GetStrEnv("TURN_USERNAME", ""),
-		TurnServerPassword: utils.GetStrEnv("TURN_PASSWORD", ""),
+		TurnServerUri:       utils.GetStrEnv("TURN_URI", ""),
+		TurnServerSecretKey: utils.GetStrEnv("TURN_SECRET_KEY", ""),
+		TurnServerTTL:       utils.GetIntEnv("TURN_TTL", 3600),
 
 		GipanResolution:       utils.GetStrEnv("GIPAN_RESOLUTION", "640x480"),
 		GipanFps:              utils.GetStrEnv("GIPAN_FPS", "25"),
@@ -69,8 +69,8 @@ func newOrakkiDriver() services.OrakkiDriver {
 		serviceConf.OrakkiMqRpcUri,
 		serviceConf.OrakkiMqRpcNamespace,
 		serviceConf.TurnServerUri,
-		serviceConf.TurnServerUsername,
-		serviceConf.TurnServerPassword,
+		serviceConf.TurnServerSecretKey,
+		serviceConf.TurnServerTTL,
 		serviceConf.GipanResolution,
 		serviceConf.GipanFps,
 		serviceConf.GipanKeyframeInterval,
@@ -215,27 +215,35 @@ func newGameHandler() *handlers.GameHandler {
 }
 
 func newSignalingUseCases() *usecases.SignalingUseCase {
+	var serviceConf *services.ServiceConfig
+	container.Make(&serviceConf)
+
+	var msgService services.MessageService
+	container.Make(&msgService)
+
 	var gameRepo models.GameRepository
 	container.Make(&gameRepo)
 
 	var signalingRepo models.SignalingRepository
 	container.Make(&signalingRepo)
 
-	var msgService services.MessageService
-	container.Make(&msgService)
-
 	return &usecases.SignalingUseCase{
+		ServiceConfig:  serviceConf,
+		MessageService: msgService,
 		GameRepo:       gameRepo,
 		SignalingRepo:  signalingRepo,
-		MessageService: msgService,
 	}
 }
 
 func newSignalingController() *ctrls.SignalingController {
+	var gameCtrlUseCase *usecases.GameCtrlUseCase
+	container.Make(&gameCtrlUseCase)
+
 	var signalingUseCase *usecases.SignalingUseCase
 	container.Make(&signalingUseCase)
 
 	return &ctrls.SignalingController{
+		GameCtrlUseCase:  gameCtrlUseCase,
 		SignalingUseCase: signalingUseCase,
 	}
 }

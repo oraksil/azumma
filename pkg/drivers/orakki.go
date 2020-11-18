@@ -3,6 +3,7 @@ package drivers
 import (
 	"errors"
 	"fmt"
+	"strconv"
 
 	gonanoid "github.com/matoous/go-nanoid"
 	core "k8s.io/api/core/v1"
@@ -27,9 +28,9 @@ type K8SOrakkiDriver struct {
 	mqRpcUri string
 	mqRpcNs  string
 
-	turnUri      string
-	turnUsername string
-	turnPassword string
+	turnUri       string
+	turnSecretKey string
+	turnTTL       int
 
 	gipanResolution       string
 	gipanFps              string
@@ -124,12 +125,12 @@ func (d *K8SOrakkiDriver) createOrakkiPod(podName string, romName string) *core.
 							Value: d.turnUri,
 						},
 						{
-							Name:  "TURN_USERNAME",
-							Value: d.turnUsername,
+							Name:  "TURN_SECRET_KEY",
+							Value: d.turnSecretKey,
 						},
 						{
-							Name:  "TURN_PASSWORD",
-							Value: d.turnPassword,
+							Name:  "TURN_TTL",
+							Value: strconv.Itoa(d.turnTTL),
 						},
 					},
 				},
@@ -191,8 +192,8 @@ func NewK8SOrakkiDriver(
 	mqRpcUri,
 	mqRpcNs,
 	turnUri,
-	turnUsername,
-	turnPassword,
+	turnSecretKey string,
+	turnTTL int,
 	gipanResolution,
 	gipanFps,
 	gipanKeyframeInterval string) (*K8SOrakkiDriver, error) {
@@ -224,8 +225,8 @@ func NewK8SOrakkiDriver(
 		mqRpcUri:              mqRpcUri,
 		mqRpcNs:               mqRpcNs,
 		turnUri:               turnUri,
-		turnUsername:          turnUsername,
-		turnPassword:          turnPassword,
+		turnSecretKey:         turnSecretKey,
+		turnTTL:               turnTTL,
 		gipanResolution:       gipanResolution,
 		gipanFps:              gipanFps,
 		gipanKeyframeInterval: gipanKeyframeInterval,
