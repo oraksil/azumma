@@ -25,8 +25,8 @@ func getAllowOrigins() []string {
 	ginMode := utils.GetStrEnv("GIN_MODE", "")
 	if ginMode == "release" {
 		return []string{
-			"http://oraksil.fun",
-			"http://beta.oraksil.fun",
+			"https://oraksil.fun",
+			"https://beta.oraksil.fun",
 		}
 	}
 
