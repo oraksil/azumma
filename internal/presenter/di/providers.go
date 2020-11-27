@@ -44,6 +44,9 @@ func newServiceConfig() *services.ServiceConfig {
 		TurnServerSecretKey: utils.GetStrEnv("TURN_SECRET_KEY", ""),
 		TurnServerTTL:       utils.GetIntEnv("TURN_TTL", 3600),
 
+		PlayerHealthCheckTimeout: utils.GetIntEnv("PLAYER_HEALTHCHECK_TIMEOUT", 20),
+		PlayerIdleCheckTimeout:   utils.GetIntEnv("PLAYER_IDLECHECK_TIMEOUT", 600),
+
 		GipanResolution:       utils.GetStrEnv("GIPAN_RESOLUTION", "640x480"),
 		GipanFps:              utils.GetStrEnv("GIPAN_FPS", "25"),
 		GipanKeyframeInterval: utils.GetStrEnv("GIPAN_KEYFRAME_INTERVAL", "150"),
@@ -71,6 +74,8 @@ func newOrakkiDriver() services.OrakkiDriver {
 		serviceConf.TurnServerUri,
 		serviceConf.TurnServerSecretKey,
 		serviceConf.TurnServerTTL,
+		serviceConf.PlayerHealthCheckTimeout,
+		serviceConf.PlayerIdleCheckTimeout,
 		serviceConf.GipanResolution,
 		serviceConf.GipanFps,
 		serviceConf.GipanKeyframeInterval,

@@ -24,6 +24,9 @@ type ServiceConfig struct {
 	TurnServerSecretKey string
 	TurnServerTTL       int
 
+	PlayerHealthCheckTimeout int
+	PlayerIdleCheckTimeout   int
+
 	GipanResolution       string
 	GipanFps              string
 	GipanKeyframeInterval string

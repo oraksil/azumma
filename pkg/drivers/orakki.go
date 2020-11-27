@@ -28,6 +28,9 @@ type K8SOrakkiDriver struct {
 	mqRpcUri string
 	mqRpcNs  string
 
+	playerHealthCheckTimeout int
+	playerIdleCheckTimeout   int
+
 	turnUri       string
 	turnSecretKey string
 	turnTTL       int
@@ -132,6 +135,14 @@ func (d *K8SOrakkiDriver) createOrakkiPod(podName string, romName string) *core.
 							Name:  "TURN_TTL",
 							Value: strconv.Itoa(d.turnTTL),
 						},
+						{
+							Name:  "PLAYER_HEALTHCHECK_TIMEOUT",
+							Value: strconv.Itoa(d.playerHealthCheckTimeout),
+						},
+						{
+							Name:  "PLAYER_IDLECHECK_TIMEOUT",
+							Value: strconv.Itoa(d.playerIdleCheckTimeout),
+						},
 					},
 				},
 				{
@@ -193,7 +204,9 @@ func NewK8SOrakkiDriver(
 	mqRpcNs,
 	turnUri,
 	turnSecretKey string,
-	turnTTL int,
+	turnTTL,
+	healthTimeout,
+	idleTimeout int,
 	gipanResolution,
 	gipanFps,
 	gipanKeyframeInterval string) (*K8SOrakkiDriver, error) {
@@ -213,22 +226,24 @@ func NewK8SOrakkiDriver(
 	}
 
 	return &K8SOrakkiDriver{
-		kubeConfigPath:        kubeConfigPath,
-		namespace:             namespace,
-		nodeSelectorKey:       nodeSelectorKey,
-		nodeSelectorValue:     nodeSelectorValue,
-		baseAppName:           "orakki",
-		kubeConfig:            config,
-		kubeOpSet:             clientset,
-		orakkiImage:           orakkiImage,
-		gipanImage:            gipanImage,
-		mqRpcUri:              mqRpcUri,
-		mqRpcNs:               mqRpcNs,
-		turnUri:               turnUri,
-		turnSecretKey:         turnSecretKey,
-		turnTTL:               turnTTL,
-		gipanResolution:       gipanResolution,
-		gipanFps:              gipanFps,
-		gipanKeyframeInterval: gipanKeyframeInterval,
+		kubeConfigPath:           kubeConfigPath,
+		namespace:                namespace,
+		nodeSelectorKey:          nodeSelectorKey,
+		nodeSelectorValue:        nodeSelectorValue,
+		baseAppName:              "orakki",
+		kubeConfig:               config,
+		kubeOpSet:                clientset,
+		orakkiImage:              orakkiImage,
+		gipanImage:               gipanImage,
+		mqRpcUri:                 mqRpcUri,
+		mqRpcNs:                  mqRpcNs,
+		turnUri:                  turnUri,
+		turnSecretKey:            turnSecretKey,
+		turnTTL:                  turnTTL,
+		playerHealthCheckTimeout: healthTimeout,
+		playerIdleCheckTimeout:   idleTimeout,
+		gipanResolution:          gipanResolution,
+		gipanFps:                 gipanFps,
+		gipanKeyframeInterval:    gipanKeyframeInterval,
 	}, nil
 }
