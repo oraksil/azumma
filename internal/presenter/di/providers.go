@@ -47,6 +47,8 @@ func newServiceConfig() *services.ServiceConfig {
 		PlayerHealthCheckTimeout: utils.GetIntEnv("PLAYER_HEALTHCHECK_TIMEOUT", 20),
 		PlayerIdleCheckTimeout:   utils.GetIntEnv("PLAYER_IDLECHECK_TIMEOUT", 600),
 
+		GipanResourceCpu:      utils.GetIntEnv("GIPAN_RESOURCE_CPU", 400),
+		GipanResourceMemory:   utils.GetIntEnv("GIPAN_RESOURCE_MEMORY", 896),
 		GipanResolution:       utils.GetStrEnv("GIPAN_RESOLUTION", "640x480"),
 		GipanFps:              utils.GetStrEnv("GIPAN_FPS", "25"),
 		GipanKeyframeInterval: utils.GetStrEnv("GIPAN_KEYFRAME_INTERVAL", "150"),
@@ -76,6 +78,8 @@ func newOrakkiDriver() services.OrakkiDriver {
 		serviceConf.TurnServerTTL,
 		serviceConf.PlayerHealthCheckTimeout,
 		serviceConf.PlayerIdleCheckTimeout,
+		serviceConf.GipanResourceCpu,
+		serviceConf.GipanResourceMemory,
 		serviceConf.GipanResolution,
 		serviceConf.GipanFps,
 		serviceConf.GipanKeyframeInterval,

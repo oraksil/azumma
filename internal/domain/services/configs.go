@@ -27,6 +27,8 @@ type ServiceConfig struct {
 	PlayerHealthCheckTimeout int
 	PlayerIdleCheckTimeout   int
 
+	GipanResourceCpu      int // in milli
+	GipanResourceMemory   int // in mib
 	GipanResolution       string
 	GipanFps              string
 	GipanKeyframeInterval string

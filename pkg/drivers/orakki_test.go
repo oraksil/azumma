@@ -24,6 +24,8 @@ func TestOrakkiPodObject(t *testing.T) {
 		60,
 		20,
 		600,
+		800,
+		1536,
 		"",
 		"",
 		"",

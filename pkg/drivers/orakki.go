@@ -7,6 +7,7 @@ import (
 
 	gonanoid "github.com/matoous/go-nanoid"
 	core "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
@@ -35,6 +36,8 @@ type K8SOrakkiDriver struct {
 	turnSecretKey string
 	turnTTL       int
 
+	gipanResourceCpu      int
+	gipanResourceMem      int
 	gipanResolution       string
 	gipanFps              string
 	gipanKeyframeInterval string
@@ -149,6 +152,12 @@ func (d *K8SOrakkiDriver) createOrakkiPod(podName string, romName string) *core.
 					Name:            "gipan",
 					Image:           d.gipanImage,
 					ImagePullPolicy: core.PullIfNotPresent,
+					Resources: core.ResourceRequirements{
+						Requests: core.ResourceList{
+							core.ResourceCPU:    *resource.NewMilliQuantity(int64(d.gipanResourceCpu), resource.DecimalSI),
+							core.ResourceMemory: *resource.NewQuantity(int64(d.gipanResourceMem*1024*1024), resource.BinarySI),
+						},
+					},
 					Env: []core.EnvVar{
 						{
 							Name:  "GAME",
@@ -206,7 +215,9 @@ func NewK8SOrakkiDriver(
 	turnSecretKey string,
 	turnTTL,
 	healthTimeout,
-	idleTimeout int,
+	idleTimeout,
+	gipanResCpu,
+	gipanResMem int,
 	gipanResolution,
 	gipanFps,
 	gipanKeyframeInterval string) (*K8SOrakkiDriver, error) {
@@ -242,6 +253,8 @@ func NewK8SOrakkiDriver(
 		turnTTL:                  turnTTL,
 		playerHealthCheckTimeout: healthTimeout,
 		playerIdleCheckTimeout:   idleTimeout,
+		gipanResourceCpu:         gipanResCpu,
+		gipanResourceMem:         gipanResMem,
 		gipanResolution:          gipanResolution,
 		gipanFps:                 gipanFps,
 		gipanKeyframeInterval:    gipanKeyframeInterval,
