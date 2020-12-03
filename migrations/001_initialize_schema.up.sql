@@ -29,7 +29,6 @@ CREATE TABLE game (
     created_at TIMESTAMP,
     
     PRIMARY KEY (id),
-    FOREIGN KEY (pack_id) REFERENCES pack(id),
     FOREIGN KEY (first_player_id) REFERENCES player(id)
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
