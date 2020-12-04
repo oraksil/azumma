@@ -4,8 +4,8 @@ type PlayerDto struct {
 	Id              int64  `json:"id"`
 	Name            string `json:"name"`
 	Hash            string `json:"hash"`
-	LastCoins       int    `json:"last_coins"`
-	LastCoinsUsedAt int64  `json:"last_coins_used_at"`
+	LastCoins       int    `json:"lastCoins"`
+	LastCoinsUsedAt int64  `json:"lastCoinsUsedAt"`
 }
 
 type PackDto struct {
@@ -14,9 +14,9 @@ type PackDto struct {
 	Title      string `json:"title"`
 	Maker      string `json:"maker"`
 	Desc       string `mapstructure:"Description" json:"description"`
-	MaxPlayers int    `json:"max_players"`
-	PosterUrl  string `json:"poster_url"`
-	RomName    string `json:"rom_name"`
+	MaxPlayers int    `json:"maxPlayers"`
+	PosterUrl  string `json:"posterUrl"`
+	RomName    string `json:"romName"`
 }
 
 type GameDto struct {
