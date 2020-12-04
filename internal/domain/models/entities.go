@@ -25,9 +25,10 @@ func (p *Pack) GetStatusAsString() string {
 }
 
 type Player struct {
-	Id         int64
-	Name       string
-	TotalCoins int
+	Id              int64
+	Name            string
+	LastCoins       int
+	LastCoinsUsedAt time.Time
 }
 
 func (p *Player) Hash() string {

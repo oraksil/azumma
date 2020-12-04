@@ -1,10 +1,11 @@
 package dto
 
 type PlayerDto struct {
-	Id         int64  `json:"id"`
-	Name       string `json:"name"`
-	Hash       string `json:"hash"`
-	TotalCoins int    `json:"total_coins"`
+	Id              int64  `json:"id"`
+	Name            string `json:"name"`
+	Hash            string `json:"hash"`
+	LastCoins       int    `json:"last_coins"`
+	LastCoinsUsedAt int64  `json:"last_coins_used_at"`
 }
 
 type PackDto struct {
@@ -20,8 +21,6 @@ type PackDto struct {
 
 type GameDto struct {
 	Id int64 `json:"id"`
-	// Orakki    *Orakki
-	// Game      *Game
 }
 
 type SdpDto struct {

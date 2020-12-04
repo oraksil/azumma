@@ -23,25 +23,27 @@ func (r *PlayerRepositoryMySqlImpl) GetById(id int64) (*models.Player, error) {
 	}
 
 	mapstructure.Decode(playerData, &player)
+	player.LastCoinsUsedAt = playerData.LastCoinsUsedAt
 
 	return player, nil
 }
 
 func (r *PlayerRepositoryMySqlImpl) Save(player *models.Player) (*models.Player, error) {
 	data := dto.PlayerData{
-		Name:       player.Name,
-		TotalCoins: player.TotalCoins,
+		Name:            player.Name,
+		LastCoins:       player.LastCoins,
+		LastCoinsUsedAt: player.LastCoinsUsedAt,
 	}
 
 	if player.Id > 0 {
-		updateQuery := `UPDATE player SET name = ?, total_coins = ? WHERE id = ?`
-		_, err := r.DB.Exec(updateQuery, data.Name, data.TotalCoins, player.Id)
+		updateQuery := `UPDATE player SET name = ?, last_coins = ?, last_coins_used_at = ? WHERE id = ?`
+		_, err := r.DB.Exec(updateQuery, data.Name, data.LastCoins, data.LastCoinsUsedAt, player.Id)
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		insertQuery := `INSERT INTO player (name, total_coins) VALUES (?, ?)`
-		result, err := r.DB.Exec(insertQuery, data.Name, data.TotalCoins)
+		insertQuery := `INSERT INTO player (name, last_coins, last_coins_used_at) VALUES (?, ?, ?)`
+		result, err := r.DB.Exec(insertQuery, data.Name, data.LastCoins, data.LastCoinsUsedAt)
 		if err != nil {
 			return nil, err
 		}
@@ -141,7 +143,7 @@ func (r *GameRepositoryMySqlImpl) Save(game *models.Game) (*models.Game, error) 
 	// map models to dto
 	data := dto.GameData{
 		PackId:    game.Pack.Id,
-		CreatedAt: time.Now(),
+		CreatedAt: time.Now().UTC(),
 	}
 
 	if game.Orakki != nil {
@@ -253,7 +255,7 @@ type UserFeedbackRepositoryMySqlImpl struct {
 func (r *UserFeedbackRepositoryMySqlImpl) Save(feedback *models.UserFeedback) (*models.UserFeedback, error) {
 	data := dto.UserFeedbackData{
 		Content:   feedback.Content,
-		CreatedAt: time.Now(),
+		CreatedAt: time.Now().UTC(),
 	}
 
 	var err error

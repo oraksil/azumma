@@ -2,10 +2,13 @@ package usecases
 
 import (
 	"errors"
+	"time"
 
 	"github.com/oraksil/azumma/internal/domain/models"
 	"github.com/oraksil/azumma/internal/domain/services"
 )
+
+const INITIAL_COINS = 10
 
 type PlayerUseCase struct {
 	PlayerRepo models.PlayerRepository
@@ -20,8 +23,9 @@ func (uc *PlayerUseCase) CreateNewPlayer(
 	}
 
 	newPlayer, err := uc.PlayerRepo.Save(&models.Player{
-		Name:       nickName,
-		TotalCoins: 10,
+		Name:            nickName,
+		LastCoins:       INITIAL_COINS,
+		LastCoinsUsedAt: time.Now().UTC(),
 	})
 	if err != nil {
 		return nil, err
@@ -42,5 +46,10 @@ func (uc *PlayerUseCase) GetPlayerFromSession(
 		return nil, err
 	}
 
-	return session.Player, nil
+	player, err := uc.PlayerRepo.GetById(session.Player.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	return player, nil
 }

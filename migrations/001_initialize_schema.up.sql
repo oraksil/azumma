@@ -14,7 +14,8 @@ CREATE TABLE pack (
 CREATE TABLE player (
     id BIGINT NOT NULL AUTO_INCREMENT,
     name VARCHAR(64) NOT NULL,
-    total_coins INT,
+    last_coins INT,
+    last_coins_used_at TIMESTAMP,
 
     PRIMARY KEY (id)
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;

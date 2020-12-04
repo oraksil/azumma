@@ -1,6 +1,8 @@
 package dto
 
 import (
+	"fmt"
+
 	"github.com/mitchellh/mapstructure"
 	"github.com/oraksil/azumma/internal/domain/models"
 )
@@ -8,6 +10,10 @@ import (
 func PlayerToDto(src *models.Player) *PlayerDto {
 	var playerDto PlayerDto
 	mapstructure.Decode(src, &playerDto)
+
+	fmt.Println(src.LastCoins)
+	fmt.Println(src.LastCoinsUsedAt)
+	playerDto.LastCoinsUsedAt = src.LastCoinsUsedAt.Unix()
 
 	return &playerDto
 }
