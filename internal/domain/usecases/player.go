@@ -8,8 +8,6 @@ import (
 	"github.com/oraksil/azumma/internal/domain/services"
 )
 
-const INITIAL_COINS = 10
-
 type PlayerUseCase struct {
 	PlayerRepo models.PlayerRepository
 }
@@ -24,7 +22,7 @@ func (uc *PlayerUseCase) CreateNewPlayer(
 
 	newPlayer, err := uc.PlayerRepo.Save(&models.Player{
 		Name:            nickName,
-		LastCoins:       INITIAL_COINS,
+		LastCoins:       models.INITIAL_COINS,
 		LastCoinsUsedAt: time.Now().UTC(),
 	})
 	if err != nil {
@@ -40,7 +38,29 @@ func (uc *PlayerUseCase) CreateNewPlayer(
 
 func (uc *PlayerUseCase) GetPlayerFromSession(
 	sessionCtx services.SessionContext) (*models.Player, error) {
+	return uc.playerFromSession(sessionCtx)
+}
 
+func (uc *PlayerUseCase) UseCoin(numCoins int, sessionCtx services.SessionContext) error {
+	player, err := uc.playerFromSession(sessionCtx)
+	if err != nil {
+		return err
+	}
+
+	player.UpdateCoins()
+
+	if player.LastCoins < numCoins {
+		return errors.New("not enough coins")
+	}
+
+	player.UseCoins(numCoins)
+
+	_, err = uc.PlayerRepo.Save(player)
+
+	return err
+}
+
+func (uc *PlayerUseCase) playerFromSession(sessionCtx services.SessionContext) (*models.Player, error) {
 	session, err := sessionCtx.GetSession()
 	if err != nil {
 		return nil, err

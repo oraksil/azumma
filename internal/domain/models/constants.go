@@ -23,3 +23,9 @@ const (
 	OrakkiStateExit
 	OrakkiStatePanic
 )
+
+const (
+	INITIAL_COINS          = 10
+	MAX_COINS              = 10
+	TIME_TO_A_COIN_IN_SECS = 10 * 60
+)

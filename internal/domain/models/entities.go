@@ -1,6 +1,8 @@
 package models
 
-import "time"
+import (
+	"time"
+)
 
 type Pack struct {
 	Id          int
@@ -33,6 +35,25 @@ type Player struct {
 
 func (p *Player) Hash() string {
 	return ""
+}
+
+func (p *Player) UpdateCoins() {
+	elapsedSecs := time.Since(p.LastCoinsUsedAt)
+	chargedCoins := int(elapsedSecs / TIME_TO_A_COIN_IN_SECS)
+
+	totalCoins := p.LastCoins + chargedCoins
+	if p.LastCoins = totalCoins; totalCoins > MAX_COINS {
+		p.LastCoins = MAX_COINS
+	}
+	p.LastCoinsUsedAt = time.Now().UTC()
+}
+
+func (p *Player) UseCoins(coins int) {
+	totalCoins := p.LastCoins - coins
+	if p.LastCoins = totalCoins; totalCoins < 0 {
+		p.LastCoins = 0
+	}
+	p.LastCoinsUsedAt = time.Now().UTC()
 }
 
 type Game struct {
