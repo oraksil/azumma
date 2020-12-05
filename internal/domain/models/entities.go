@@ -38,7 +38,8 @@ func (p *Player) Hash() string {
 }
 
 func (p *Player) UpdateCoins() {
-	elapsedSecs := time.Since(p.LastCoinsUsedAt)
+	nowSecs := time.Now().UTC().Unix()
+	elapsedSecs := nowSecs - p.LastCoinsUsedAt.Unix()
 	chargedCoins := int(elapsedSecs / TIME_TO_A_COIN_IN_SECS)
 
 	totalCoins := p.LastCoins + chargedCoins

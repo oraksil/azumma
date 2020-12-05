@@ -8,6 +8,11 @@ type PlayerDto struct {
 	LastCoinsUsedAt int64  `json:"lastCoinsUsedAt"`
 }
 
+type CoinDto struct {
+	LastCoins       int   `json:"lastCoins"`
+	LastCoinsUsedAt int64 `json:"lastCoinsUsedAt"`
+}
+
 type PackDto struct {
 	Id         int    `json:"id"`
 	Status     string `json:"status"`

@@ -41,23 +41,21 @@ func (uc *PlayerUseCase) GetPlayerFromSession(
 	return uc.playerFromSession(sessionCtx)
 }
 
-func (uc *PlayerUseCase) UseCoin(numCoins int, sessionCtx services.SessionContext) error {
+func (uc *PlayerUseCase) UseCoin(numCoins int, sessionCtx services.SessionContext) (*models.Player, error) {
 	player, err := uc.playerFromSession(sessionCtx)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	player.UpdateCoins()
-
 	if player.LastCoins < numCoins {
-		return errors.New("not enough coins")
+		return nil, errors.New("not enough coins")
 	}
 
 	player.UseCoins(numCoins)
 
-	_, err = uc.PlayerRepo.Save(player)
+	player, err = uc.PlayerRepo.Save(player)
 
-	return err
+	return player, err
 }
 
 func (uc *PlayerUseCase) playerFromSession(sessionCtx services.SessionContext) (*models.Player, error) {
@@ -70,6 +68,8 @@ func (uc *PlayerUseCase) playerFromSession(sessionCtx services.SessionContext) (
 	if err != nil {
 		return nil, err
 	}
+
+	player.UpdateCoins()
 
 	return player, nil
 }
