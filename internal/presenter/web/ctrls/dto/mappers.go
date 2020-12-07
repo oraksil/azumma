@@ -9,7 +9,16 @@ func PlayerToDto(src *models.Player) *PlayerDto {
 	var playerDto PlayerDto
 	mapstructure.Decode(src, &playerDto)
 
+	playerDto.ChargingStartedAt = src.ChargingStartedAt.Unix()
+
 	return &playerDto
+}
+
+func PlayerToCoinDto(src *models.Player) *CoinDto {
+	return &CoinDto{
+		CoinsUsedInCharging: src.CoinsUsedInCharging,
+		ChargingStartedAt:   src.ChargingStartedAt.Unix(),
+	}
 }
 
 func PackToDto(src *models.Pack) *PackDto {

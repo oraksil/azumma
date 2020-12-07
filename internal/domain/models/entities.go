@@ -1,6 +1,8 @@
 package models
 
-import "time"
+import (
+	"time"
+)
 
 type Pack struct {
 	Id          int
@@ -25,13 +27,44 @@ func (p *Pack) GetStatusAsString() string {
 }
 
 type Player struct {
-	Id         int64
-	Name       string
-	TotalCoins int
+	Id                  int64
+	Name                string
+	TotalCoinsUsed      int
+	CoinsUsedInCharging int
+	ChargingStartedAt   time.Time
 }
 
 func (p *Player) Hash() string {
 	return ""
+}
+
+func (p *Player) calcTotalCoins() int {
+	nowSecs := time.Now().UTC().Unix()
+	elapsedSecs := nowSecs - p.ChargingStartedAt.Unix()
+	chargedCoins := int(elapsedSecs / TIME_TO_A_COIN_IN_SECS)
+
+	totalCoins := MAX_COINS - p.CoinsUsedInCharging + chargedCoins
+	if totalCoins >= MAX_COINS {
+		totalCoins = MAX_COINS
+	}
+	return totalCoins
+}
+
+func (p *Player) UseCoins(coins int) bool {
+	totalCoins := p.calcTotalCoins()
+	if totalCoins <= 0 {
+		return false
+	}
+
+	if totalCoins >= MAX_COINS {
+		p.CoinsUsedInCharging = 0
+		p.ChargingStartedAt = time.Now().UTC()
+	}
+
+	p.CoinsUsedInCharging += 1
+	p.TotalCoinsUsed += 1
+
+	return true
 }
 
 type Game struct {

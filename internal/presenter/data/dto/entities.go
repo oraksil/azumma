@@ -9,9 +9,11 @@ import (
 )
 
 type PlayerData struct {
-	Id         int64  `db:"id"`
-	Name       string `db:"name"`
-	TotalCoins int    `db:"total_coins"`
+	Id                  int64     `db:"id"`
+	Name                string    `db:"name"`
+	TotalCoinsUsed      int       `db:"total_coins_used"`
+	CoinsUsedInCharging int       `db:"coins_used_in_charging"`
+	ChargingStartedAt   time.Time `db:"charging_started_at"`
 }
 
 type PackData struct {

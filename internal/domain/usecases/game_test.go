@@ -51,9 +51,9 @@ func TestGameCtrlUseCaseCreateNewGame(t *testing.T) {
 	serviceConf := newServiceConfig()
 
 	mockPlayer := models.Player{
-		Id:         1,
-		Name:       "player0123",
-		TotalCoins: 10,
+		Id:                  1,
+		Name:                "player0123",
+		CoinsUsedInCharging: 0,
 	}
 
 	mockPack := models.Pack{

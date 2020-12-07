@@ -1,10 +1,16 @@
 package dto
 
 type PlayerDto struct {
-	Id         int64  `json:"id"`
-	Name       string `json:"name"`
-	Hash       string `json:"hash"`
-	TotalCoins int    `json:"total_coins"`
+	Id                  int64  `json:"id"`
+	Name                string `json:"name"`
+	Hash                string `json:"hash"`
+	CoinsUsedInCharging int    `json:"coinsUsedInCharging"`
+	ChargingStartedAt   int64  `json:"chargingStartedAt"`
+}
+
+type CoinDto struct {
+	CoinsUsedInCharging int   `json:"coinsUsedInCharging"`
+	ChargingStartedAt   int64 `json:"chargingStartedAt"`
 }
 
 type PackDto struct {
@@ -13,15 +19,13 @@ type PackDto struct {
 	Title      string `json:"title"`
 	Maker      string `json:"maker"`
 	Desc       string `mapstructure:"Description" json:"description"`
-	MaxPlayers int    `json:"max_players"`
-	PosterUrl  string `json:"poster_url"`
-	RomName    string `json:"rom_name"`
+	MaxPlayers int    `json:"maxPlayers"`
+	PosterUrl  string `json:"posterUrl"`
+	RomName    string `json:"romName"`
 }
 
 type GameDto struct {
 	Id int64 `json:"id"`
-	// Orakki    *Orakki
-	// Game      *Game
 }
 
 type SdpDto struct {

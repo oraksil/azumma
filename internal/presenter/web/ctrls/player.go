@@ -52,9 +52,25 @@ func (ctrl *PlayerController) getPlayerFromSession(c *gin.Context) {
 	c.JSON(http.StatusOK, jsend.New(dto.PlayerToDto(player)))
 }
 
+func (ctrl *PlayerController) useCoin(c *gin.Context) {
+	sessionCtx := helpers.NewSessionCtx(c)
+
+	player, err := ctrl.PlayerUseCase.UseCoin(1, sessionCtx)
+	if err != nil {
+		c.JSON(http.StatusOK, jsend.NewFail(map[string]interface{}{
+			"code":    400,
+			"message": err.Error(),
+		}))
+		return
+	}
+
+	c.JSON(http.StatusOK, jsend.New(dto.PlayerToCoinDto(player)))
+}
+
 func (ctrl *PlayerController) Routes() []web.Route {
 	return []web.Route{
 		{Spec: "POST /api/v1/players/new", Handler: ctrl.createNewPlayer},
 		{Spec: "GET /api/v1/players/me", Handler: ctrl.getPlayerFromSession},
+		{Spec: "POST /api/v1/players/coins/use", Handler: ctrl.useCoin},
 	}
 }
