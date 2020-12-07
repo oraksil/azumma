@@ -21,9 +21,10 @@ func (uc *PlayerUseCase) CreateNewPlayer(
 	}
 
 	newPlayer, err := uc.PlayerRepo.Save(&models.Player{
-		Name:            nickName,
-		LastCoins:       models.INITIAL_COINS,
-		LastCoinsUsedAt: time.Now().UTC(),
+		Name:                nickName,
+		TotalCoinsUsed:      0,
+		CoinsUsedInCharging: 0,
+		ChargingStartedAt:   time.Now().UTC().Add(-(time.Second * time.Duration(models.TIME_TO_A_COIN_IN_SECS))),
 	})
 	if err != nil {
 		return nil, err
@@ -47,11 +48,10 @@ func (uc *PlayerUseCase) UseCoin(numCoins int, sessionCtx services.SessionContex
 		return nil, err
 	}
 
-	if player.LastCoins < numCoins {
+	ok := player.UseCoins(numCoins)
+	if !ok {
 		return nil, errors.New("not enough coins")
 	}
-
-	player.UseCoins(numCoins)
 
 	player, err = uc.PlayerRepo.Save(player)
 
@@ -68,8 +68,6 @@ func (uc *PlayerUseCase) playerFromSession(sessionCtx services.SessionContext) (
 	if err != nil {
 		return nil, err
 	}
-
-	player.UpdateCoins()
 
 	return player, nil
 }

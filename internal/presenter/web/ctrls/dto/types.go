@@ -1,16 +1,16 @@
 package dto
 
 type PlayerDto struct {
-	Id              int64  `json:"id"`
-	Name            string `json:"name"`
-	Hash            string `json:"hash"`
-	LastCoins       int    `json:"lastCoins"`
-	LastCoinsUsedAt int64  `json:"lastCoinsUsedAt"`
+	Id                  int64  `json:"id"`
+	Name                string `json:"name"`
+	Hash                string `json:"hash"`
+	CoinsUsedInCharging int    `json:"coinsUsedInCharging"`
+	ChargingStartedAt   int64  `json:"chargingStartedAt"`
 }
 
 type CoinDto struct {
-	LastCoins       int   `json:"lastCoins"`
-	LastCoinsUsedAt int64 `json:"lastCoinsUsedAt"`
+	CoinsUsedInCharging int   `json:"coinsUsedInCharging"`
+	ChargingStartedAt   int64 `json:"chargingStartedAt"`
 }
 
 type PackDto struct {

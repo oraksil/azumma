@@ -27,34 +27,44 @@ func (p *Pack) GetStatusAsString() string {
 }
 
 type Player struct {
-	Id              int64
-	Name            string
-	LastCoins       int
-	LastCoinsUsedAt time.Time
+	Id                  int64
+	Name                string
+	TotalCoinsUsed      int
+	CoinsUsedInCharging int
+	ChargingStartedAt   time.Time
 }
 
 func (p *Player) Hash() string {
 	return ""
 }
 
-func (p *Player) UpdateCoins() {
+func (p *Player) calcTotalCoins() int {
 	nowSecs := time.Now().UTC().Unix()
-	elapsedSecs := nowSecs - p.LastCoinsUsedAt.Unix()
+	elapsedSecs := nowSecs - p.ChargingStartedAt.Unix()
 	chargedCoins := int(elapsedSecs / TIME_TO_A_COIN_IN_SECS)
 
-	totalCoins := p.LastCoins + chargedCoins
-	if p.LastCoins = totalCoins; totalCoins > MAX_COINS {
-		p.LastCoins = MAX_COINS
+	totalCoins := MAX_COINS - p.CoinsUsedInCharging + chargedCoins
+	if totalCoins >= MAX_COINS {
+		totalCoins = MAX_COINS
 	}
-	p.LastCoinsUsedAt = time.Now().UTC()
+	return totalCoins
 }
 
-func (p *Player) UseCoins(coins int) {
-	totalCoins := p.LastCoins - coins
-	if p.LastCoins = totalCoins; totalCoins < 0 {
-		p.LastCoins = 0
+func (p *Player) UseCoins(coins int) bool {
+	totalCoins := p.calcTotalCoins()
+	if totalCoins <= 0 {
+		return false
 	}
-	p.LastCoinsUsedAt = time.Now().UTC()
+
+	if totalCoins >= MAX_COINS {
+		p.CoinsUsedInCharging = 0
+		p.ChargingStartedAt = time.Now().UTC()
+	}
+
+	p.CoinsUsedInCharging += 1
+	p.TotalCoinsUsed += 1
+
+	return true
 }
 
 type Game struct {

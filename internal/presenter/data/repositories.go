@@ -23,27 +23,28 @@ func (r *PlayerRepositoryMySqlImpl) GetById(id int64) (*models.Player, error) {
 	}
 
 	mapstructure.Decode(playerData, &player)
-	player.LastCoinsUsedAt = playerData.LastCoinsUsedAt
+	player.ChargingStartedAt = playerData.ChargingStartedAt
 
 	return player, nil
 }
 
 func (r *PlayerRepositoryMySqlImpl) Save(player *models.Player) (*models.Player, error) {
 	data := dto.PlayerData{
-		Name:            player.Name,
-		LastCoins:       player.LastCoins,
-		LastCoinsUsedAt: player.LastCoinsUsedAt,
+		Name:                player.Name,
+		TotalCoinsUsed:      player.TotalCoinsUsed,
+		CoinsUsedInCharging: player.CoinsUsedInCharging,
+		ChargingStartedAt:   player.ChargingStartedAt,
 	}
 
 	if player.Id > 0 {
-		updateQuery := `UPDATE player SET name = ?, last_coins = ?, last_coins_used_at = ? WHERE id = ?`
-		_, err := r.DB.Exec(updateQuery, data.Name, data.LastCoins, data.LastCoinsUsedAt, player.Id)
+		updateQuery := `UPDATE player SET name = ?, total_coins_used = ?, coins_used_in_charging = ?, charging_started_at = ? WHERE id = ?`
+		_, err := r.DB.Exec(updateQuery, data.Name, data.TotalCoinsUsed, data.CoinsUsedInCharging, data.ChargingStartedAt, player.Id)
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		insertQuery := `INSERT INTO player (name, last_coins, last_coins_used_at) VALUES (?, ?, ?)`
-		result, err := r.DB.Exec(insertQuery, data.Name, data.LastCoins, data.LastCoinsUsedAt)
+		insertQuery := `INSERT INTO player (name, total_coins_used, coins_used_in_charging, charging_started_at) VALUES (?, ?, ?, ?)`
+		result, err := r.DB.Exec(insertQuery, data.Name, data.TotalCoinsUsed, data.CoinsUsedInCharging, data.ChargingStartedAt)
 		if err != nil {
 			return nil, err
 		}

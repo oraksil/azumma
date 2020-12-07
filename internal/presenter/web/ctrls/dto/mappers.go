@@ -9,15 +9,15 @@ func PlayerToDto(src *models.Player) *PlayerDto {
 	var playerDto PlayerDto
 	mapstructure.Decode(src, &playerDto)
 
-	playerDto.LastCoinsUsedAt = src.LastCoinsUsedAt.Unix()
+	playerDto.ChargingStartedAt = src.ChargingStartedAt.Unix()
 
 	return &playerDto
 }
 
 func PlayerToCoinDto(src *models.Player) *CoinDto {
 	return &CoinDto{
-		LastCoins:       src.LastCoins,
-		LastCoinsUsedAt: src.LastCoinsUsedAt.Unix(),
+		CoinsUsedInCharging: src.CoinsUsedInCharging,
+		ChargingStartedAt:   src.ChargingStartedAt.Unix(),
 	}
 }
 
