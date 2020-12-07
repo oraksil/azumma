@@ -27,5 +27,5 @@ const (
 const (
 	MAX_COINS              = 5
 	INITIAL_COINS          = MAX_COINS
-	TIME_TO_A_COIN_IN_SECS = 30 // 10 * 60
+	TIME_TO_A_COIN_IN_SECS = 10 * 60
 )
