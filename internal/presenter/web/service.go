@@ -26,7 +26,6 @@ func getAllowOrigins() []string {
 	if ginMode == "release" {
 		return []string{
 			"https://oraksil.fun",
-			"https://beta.oraksil.fun",
 		}
 	}
 
