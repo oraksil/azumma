@@ -29,7 +29,9 @@ func getAllowOrigins() []string {
 		}
 	}
 
-	return []string{"*"}
+	origin := utils.GetStrEnv("CORS_ORIGIN", "http://localhost:3000")
+
+	return []string{origin}
 }
 
 func NewWebService() *WebService {
