@@ -5,7 +5,6 @@ import (
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/golobby/container"
 	"github.com/jmoiron/sqlx"
 	"github.com/oraksil/azumma/internal/domain/models"
 	"github.com/oraksil/azumma/internal/domain/services"
@@ -60,10 +59,7 @@ func newServiceConfig() *services.ServiceConfig {
 	}
 }
 
-func newOrakkiDriver() services.OrakkiDriver {
-	var serviceConf *services.ServiceConfig
-	container.Make(&serviceConf)
-
+func newOrakkiDriver(serviceConf *services.ServiceConfig) services.OrakkiDriver {
 	drv, err := drivers.NewK8SOrakkiDriver(
 		serviceConf.OrakkiDriverK8SConfigPath,
 		serviceConf.OrakkiDriverK8SNamespace,
@@ -94,10 +90,7 @@ func newWebService() *web.WebService {
 	return web.NewWebService()
 }
 
-func newMqService() *mqrpc.MqService {
-	var serviceConf *services.ServiceConfig
-	container.Make(&serviceConf)
-
+func newMqService(serviceConf *services.ServiceConfig) *mqrpc.MqService {
 	svc, err := mqrpc.NewMqService(serviceConf.MqRpcUri, serviceConf.MqRpcNamespace)
 	if err != nil {
 		panic(err)
@@ -105,17 +98,11 @@ func newMqService() *mqrpc.MqService {
 	return svc
 }
 
-func newMessageService() services.MessageService {
-	var mqService *mqrpc.MqService
-	container.Make(&mqService)
-
+func newMessageService(mqService *mqrpc.MqService) services.MessageService {
 	return &mqrpc.DefaultMessageServiceImpl{MqService: mqService}
 }
 
-func newMySqlDb() *sqlx.DB {
-	var serviceConf *services.ServiceConfig
-	container.Make(&serviceConf)
-
+func newMySqlDb(serviceConf *services.ServiceConfig) *sqlx.DB {
 	db, err := sqlx.Open("mysql", serviceConf.DbUri)
 	if err != nil {
 		panic(err)
@@ -126,73 +113,40 @@ func newMySqlDb() *sqlx.DB {
 	return db
 }
 
-func newPlayerRepository() models.PlayerRepository {
-	var db *sqlx.DB
-	container.Make(&db)
-
+func newPlayerRepository(db *sqlx.DB) models.PlayerRepository {
 	return &data.PlayerRepositoryMySqlImpl{DB: db}
 }
 
-func newPackRepository() models.PackRepository {
-	var db *sqlx.DB
-	container.Make(&db)
-
+func newPackRepository(db *sqlx.DB) models.PackRepository {
 	return &data.PackRepositoryMySqlImpl{DB: db}
 }
 
-func newGameRepository() models.GameRepository {
-	var db *sqlx.DB
-	container.Make(&db)
-
+func newGameRepository(db *sqlx.DB) models.GameRepository {
 	return &data.GameRepositoryMySqlImpl{DB: db}
 }
 
-func newSignalingRepository() models.SignalingRepository {
-	var db *sqlx.DB
-	container.Make(&db)
-
+func newSignalingRepository(db *sqlx.DB) models.SignalingRepository {
 	return &data.SignalingRepositoryMySqlImpl{DB: db}
 }
 
-func newUserFeedbackRepository() models.UserFeedbackRepository {
-	var db *sqlx.DB
-	container.Make(&db)
-
+func newUserFeedbackRepository(db *sqlx.DB) models.UserFeedbackRepository {
 	return &data.UserFeedbackRepositoryMySqlImpl{DB: db}
 }
 
-func newGameFetchUseCase() *usecases.GameFetchUseCase {
-	var packRepo models.PackRepository
-	container.Make(&packRepo)
-
-	var gameRepo models.GameRepository
-	container.Make(&gameRepo)
-
+func newGameFetchUseCase(packRepo models.PackRepository, gameRepo models.GameRepository) *usecases.GameFetchUseCase {
 	return &usecases.GameFetchUseCase{
 		PackRepo: packRepo,
 		GameRepo: gameRepo,
 	}
 }
 
-func newGameCtrlUseCase() *usecases.GameCtrlUseCase {
-	var serviceConf *services.ServiceConfig
-	container.Make(&serviceConf)
-
-	var packRepo models.PackRepository
-	container.Make(&packRepo)
-
-	var gameRepo models.GameRepository
-	container.Make(&gameRepo)
-
-	var playerRepo models.PlayerRepository
-	container.Make(&playerRepo)
-
-	var msgService services.MessageService
-	container.Make(&msgService)
-
-	var orakkiDrv services.OrakkiDriver
-	container.Make(&orakkiDrv)
-
+func newGameCtrlUseCase(
+	serviceConf *services.ServiceConfig,
+	packRepo models.PackRepository,
+	gameRepo models.GameRepository,
+	playerRepo models.PlayerRepository,
+	msgService services.MessageService,
+	orakkiDrv services.OrakkiDriver) *usecases.GameCtrlUseCase {
 	return &usecases.GameCtrlUseCase{
 		ServiceConfig:  serviceConf,
 		PackRepo:       packRepo,
@@ -203,39 +157,24 @@ func newGameCtrlUseCase() *usecases.GameCtrlUseCase {
 	}
 }
 
-func newGameController() *ctrls.GameController {
-	var gameFetchUseCase *usecases.GameFetchUseCase
-	container.Make(&gameFetchUseCase)
-
-	var gameCtrlUseCase *usecases.GameCtrlUseCase
-	container.Make(&gameCtrlUseCase)
-
+func newGameController(
+	gameFetchUseCase *usecases.GameFetchUseCase,
+	gameCtrlUseCase *usecases.GameCtrlUseCase) *ctrls.GameController {
 	return &ctrls.GameController{
 		GameFetchUseCase: gameFetchUseCase,
 		GameCtrlUseCase:  gameCtrlUseCase,
 	}
 }
 
-func newGameHandler() *handlers.GameHandler {
-	var gameCtrlUseCase *usecases.GameCtrlUseCase
-	container.Make(&gameCtrlUseCase)
-
+func newGameHandler(gameCtrlUseCase *usecases.GameCtrlUseCase) *handlers.GameHandler {
 	return &handlers.GameHandler{GameCtrlUseCase: gameCtrlUseCase}
 }
 
-func newSignalingUseCases() *usecases.SignalingUseCase {
-	var serviceConf *services.ServiceConfig
-	container.Make(&serviceConf)
-
-	var msgService services.MessageService
-	container.Make(&msgService)
-
-	var gameRepo models.GameRepository
-	container.Make(&gameRepo)
-
-	var signalingRepo models.SignalingRepository
-	container.Make(&signalingRepo)
-
+func newSignalingUseCases(
+	serviceConf *services.ServiceConfig,
+	msgService services.MessageService,
+	gameRepo models.GameRepository,
+	signalingRepo models.SignalingRepository) *usecases.SignalingUseCase {
 	return &usecases.SignalingUseCase{
 		ServiceConfig:  serviceConf,
 		MessageService: msgService,
@@ -244,59 +183,40 @@ func newSignalingUseCases() *usecases.SignalingUseCase {
 	}
 }
 
-func newSignalingController() *ctrls.SignalingController {
-	var gameCtrlUseCase *usecases.GameCtrlUseCase
-	container.Make(&gameCtrlUseCase)
-
-	var signalingUseCase *usecases.SignalingUseCase
-	container.Make(&signalingUseCase)
-
+func newSignalingController(
+	gameCtrlUseCase *usecases.GameCtrlUseCase,
+	signalingUseCase *usecases.SignalingUseCase) *ctrls.SignalingController {
 	return &ctrls.SignalingController{
 		GameCtrlUseCase:  gameCtrlUseCase,
 		SignalingUseCase: signalingUseCase,
 	}
 }
 
-func newSignalingHandler() *handlers.SignalingHandler {
-	var signalingUseCase *usecases.SignalingUseCase
-	container.Make(&signalingUseCase)
-
+func newSignalingHandler(signalingUseCase *usecases.SignalingUseCase) *handlers.SignalingHandler {
 	return &handlers.SignalingHandler{
 		SignalingUseCase: signalingUseCase,
 	}
 }
 
-func newPlayerUseCase() *usecases.PlayerUseCase {
-	var playerRepo models.PlayerRepository
-	container.Make(&playerRepo)
-
+func newPlayerUseCase(playerRepo models.PlayerRepository) *usecases.PlayerUseCase {
 	return &usecases.PlayerUseCase{
 		PlayerRepo: playerRepo,
 	}
 }
 
-func newPlayerController() *ctrls.PlayerController {
-	var playerUseCase *usecases.PlayerUseCase
-	container.Make(&playerUseCase)
-
+func newPlayerController(playerUseCase *usecases.PlayerUseCase) *ctrls.PlayerController {
 	return &ctrls.PlayerController{
 		PlayerUseCase: playerUseCase,
 	}
 }
 
-func newUserFeedbackUseCase() *usecases.UserFeedbackUseCase {
-	var feedbackRepo models.UserFeedbackRepository
-	container.Make(&feedbackRepo)
-
+func newUserFeedbackUseCase(feedbackRepo models.UserFeedbackRepository) *usecases.UserFeedbackUseCase {
 	return &usecases.UserFeedbackUseCase{
 		FeedbackRepo: feedbackRepo,
 	}
 }
 
-func newUserFeedbackController() *ctrls.UserFeedbackController {
-	var feedbackUseCase *usecases.UserFeedbackUseCase
-	container.Make(&feedbackUseCase)
-
+func newUserFeedbackController(feedbackUseCase *usecases.UserFeedbackUseCase) *ctrls.UserFeedbackController {
 	return &ctrls.UserFeedbackController{
 		UserFeedbackUseCase: feedbackUseCase,
 	}
