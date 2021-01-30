@@ -2,7 +2,12 @@ package main
 
 import (
 	"github.com/joho/godotenv"
+	"github.com/oraksil/azumma/internal/domain/services"
 	"github.com/oraksil/azumma/internal/presenter/di"
+	"github.com/oraksil/azumma/internal/presenter/mq/handlers"
+	"github.com/oraksil/azumma/internal/presenter/web"
+	"github.com/oraksil/azumma/internal/presenter/web/ctrls"
+	"github.com/sangwonl/mqrpc"
 )
 
 func main() {
@@ -10,17 +15,30 @@ func main() {
 
 	di.InitContainer()
 
-	mqSvc := di.InjectMqService()
-	mqSvc.AddHandler(di.InjectGameHandler())
-	mqSvc.AddHandler(di.InjectSignalingHandler())
+	di.Resolve(func(
+		mqSvc *mqrpc.MqService,
+		gameHandler *handlers.GameHandler,
+		signalingHandler *handlers.SignalingHandler,
+		serviceConf *services.ServiceConfig) {
 
-	conf := di.InjectServiceConfig()
-	go func() { mqSvc.Run(conf.MqRpcIdentifier, true) }()
+		mqSvc.AddHandler(gameHandler)
+		mqSvc.AddHandler(signalingHandler)
 
-	webSvc := di.InjectWebService()
-	webSvc.AddController(di.InjectPlayerController())
-	webSvc.AddController(di.InjectGameController())
-	webSvc.AddController(di.InjectSignalingController())
-	webSvc.AddController(di.InjectUserFeedbackController())
-	webSvc.Run("8000")
+		go func() { mqSvc.Run(serviceConf.MqRpcIdentifier, true) }()
+	})
+
+	di.Resolve(func(
+		webSvc *web.WebService,
+		playerCtrl *ctrls.PlayerController,
+		gameCtrl *ctrls.GameController,
+		signalingCtrl *ctrls.SignalingController,
+		userFeedbackCtrl *ctrls.UserFeedbackController) {
+
+		webSvc.AddController(playerCtrl)
+		webSvc.AddController(gameCtrl)
+		webSvc.AddController(signalingCtrl)
+		webSvc.AddController(userFeedbackCtrl)
+
+		webSvc.Run("8000")
+	})
 }
