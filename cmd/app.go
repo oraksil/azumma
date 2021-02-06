@@ -10,6 +10,13 @@ import (
 	"github.com/sangwonl/mqrpc"
 )
 
+func setupRoutes(mqSvc *mqrpc.MqService, routes []handlers.Route) {
+	for _, r := range routes {
+		err := mqSvc.AddHandler(r.MsgType, r.Handler)
+		panic(err)
+	}
+}
+
 func main() {
 	godotenv.Load(".env")
 
@@ -21,10 +28,10 @@ func main() {
 		signalingHandler *handlers.SignalingHandler,
 		serviceConf *services.ServiceConfig) {
 
-		mqSvc.AddHandler(gameHandler)
-		mqSvc.AddHandler(signalingHandler)
+		setupRoutes(mqSvc, gameHandler.Routes())
+		setupRoutes(mqSvc, signalingHandler.Routes())
 
-		go func() { mqSvc.Run(serviceConf.MqRpcIdentifier, true) }()
+		go func() { mqSvc.Run(true) }()
 	})
 
 	di.Resolve(func(

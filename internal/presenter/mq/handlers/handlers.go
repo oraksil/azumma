@@ -37,8 +37,8 @@ func (h *GameHandler) handlePlayerLeft(ctx *mqrpc.Context) interface{} {
 	return nil
 }
 
-func (h *GameHandler) Routes() []mqrpc.Route {
-	return []mqrpc.Route{
+func (h *GameHandler) Routes() []Route {
+	return []Route{
 		{MsgType: models.MsgPlayerJoined, Handler: h.handlePlayerJoined},
 		{MsgType: models.MsgPlayerLeft, Handler: h.handlePlayerLeft},
 	}
@@ -57,8 +57,8 @@ func (h *SignalingHandler) handleOrakkiIceCandidate(ctx *mqrpc.Context) interfac
 	return nil
 }
 
-func (h *SignalingHandler) Routes() []mqrpc.Route {
-	return []mqrpc.Route{
+func (h *SignalingHandler) Routes() []Route {
+	return []Route{
 		{MsgType: models.MsgRemoteIceCandidate, Handler: h.handleOrakkiIceCandidate},
 	}
 }
