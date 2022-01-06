@@ -60,7 +60,7 @@ func newServiceConfig() *services.ServiceConfig {
 }
 
 func newOrakkiDriver(serviceConf *services.ServiceConfig) services.OrakkiDriver {
-	drv, err := drivers.NewK8SOrakkiDriver(
+	drv, _ := drivers.NewK8SOrakkiDriver(
 		serviceConf.OrakkiDriverK8SConfigPath,
 		serviceConf.OrakkiDriverK8SNamespace,
 		serviceConf.OrakkiDriverK8SNodeSelectorKey,
@@ -80,9 +80,6 @@ func newOrakkiDriver(serviceConf *services.ServiceConfig) services.OrakkiDriver 
 		serviceConf.GipanFps,
 		serviceConf.GipanKeyframeInterval,
 	)
-	if err != nil {
-		panic(err)
-	}
 	return drv
 }
 
