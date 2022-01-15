@@ -46,6 +46,9 @@ func NewWebService() *WebService {
 	store := cookie.NewStore([]byte("423F4528482B4D62"))
 	routes.Use(sessions.Sessions("session", store))
 
+	// static files
+	routes.Static("/public", "./public")
+
 	return &WebService{routes: routes, controllers: nil}
 }
 
