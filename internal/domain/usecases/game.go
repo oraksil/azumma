@@ -1,11 +1,11 @@
 package usecases
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
 
-	"github.com/mitchellh/mapstructure"
 	"github.com/oraksil/azumma/internal/domain/models"
 	"github.com/oraksil/azumma/internal/domain/services"
 	"github.com/oraksil/azumma/pkg/utils"
@@ -110,7 +110,10 @@ func (uc *GameCtrlUseCase) postProvisionHandler(game *models.Game) {
 		)
 
 		var orakki models.Orakki
-		mapstructure.Decode(resp, &orakki)
+		respBytes, ok := resp.([]byte)
+		if ok {
+			json.Unmarshal(respBytes, &orakki)
+		}
 
 		if orakki.Id == game.Orakki.Id &&
 			orakki.State == models.OrakkiStateReady {

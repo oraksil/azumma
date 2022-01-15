@@ -1,9 +1,9 @@
 package usecases
 
 import (
+	"encoding/json"
 	"errors"
 
-	"github.com/mitchellh/mapstructure"
 	"github.com/oraksil/azumma/internal/domain/models"
 	"github.com/oraksil/azumma/internal/domain/services"
 	"github.com/oraksil/azumma/pkg/utils"
@@ -56,7 +56,10 @@ func (uc *SignalingUseCase) NewOffer(gameId int64, token, b64EncodedOffer string
 	)
 
 	var answerSdpInfo models.SdpInfo
-	mapstructure.Decode(resp, &answerSdpInfo)
+	respBytes, ok := resp.([]byte)
+	if ok {
+		json.Unmarshal(respBytes, &answerSdpInfo)
+	}
 
 	return &answerSdpInfo, err
 }

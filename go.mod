@@ -16,7 +16,7 @@ require (
 	github.com/json-iterator/go v1.1.10 // indirect
 	github.com/matoous/go-nanoid v1.4.1
 	github.com/mitchellh/mapstructure v1.3.2
-	github.com/sangwonl/mqrpc v0.1.2
+	github.com/sangwonl/mqrpc v0.1.3
 	github.com/stretchr/testify v1.6.1
 	golang.org/x/crypto v0.0.0-20200709230013-948cd5f35899 // indirect
 	golang.org/x/net v0.0.0-20200707034311-ab3426394381 // indirect
