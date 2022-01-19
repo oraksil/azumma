@@ -1,10 +1,8 @@
-## Setup
+# Azumma
 
-## Test
+Azumma is a REST API server that provides player creation, games catalog and WebRTC signaling proxy. In a cluster mode, it's responsible to provision Orakki instance on demand. It is built with Golang.
 
-```
-$ go test ./...
-```
+# Setup (Prerequites)
 
 ## Database
 
@@ -91,4 +89,10 @@ root@oraksil-mq:/# rabbitmqadmin -u oraksil -p oraksil list exchanges
 | mqrpc.oraksil.broadcast   | fanout  |
 | mqrpc.oraksil.p2p         | direct  |
 +---------------------------+---------+
+```
+
+# Run
+
+```bash
+$ go run cmd/app.go
 ```
