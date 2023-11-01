@@ -1,12 +1,30 @@
-FROM golang:1.14.3 AS builder
-WORKDIR /build
-COPY . /build
-RUN GOOS=linux GOARCH=386 go build -o app cmd/app.go
+FROM golang:1.14 AS builder
 
-FROM alpine:latest  
-RUN apk --no-cache add ca-certificates
-WORKDIR /deploy
-COPY --from=builder /build/app .
-COPY --from=builder /build/configs ./configs
-COPY --from=builder /build/public ./public
-CMD ["./app"]  
+ENV APP_USER oraksil
+ENV APP_HOME /go/src/app
+
+RUN groupadd $APP_USER && useradd -m -g $APP_USER -l $APP_USER
+RUN mkdir -p $APP_HOME && chown -R $APP_USER:$APP_USER $APP_HOME
+
+WORKDIR $APP_HOME
+USER $APP_USER
+COPY . .
+
+RUN go mod download
+RUN go mod verify
+RUN go build -o azumma cmd/app.go
+
+
+FROM debian:buster
+
+ENV APP_USER oraksil
+ENV APP_HOME /go/src/app
+
+RUN groupadd $APP_USER && useradd -m -g $APP_USER -l $APP_USER
+RUN mkdir -p $APP_HOME
+WORKDIR $APP_HOME
+
+COPY --chown=0:0 --from=builder $APP_HOME/azumma $APP_HOME
+
+USER $APP_USER
+CMD ["./azumma"]
