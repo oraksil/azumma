@@ -1,8 +1,5 @@
-.vscode
 .idea
-
 .next
-.env
 
 node_modules
 temp

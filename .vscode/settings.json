@@ -1,0 +1,24 @@
+{
+    "go.lintTool": "golint",
+    "go.lintFlags": [
+	    "--exclude=\"\bexported \\w+ (\\S*['.]*)([a-zA-Z'.*]*) should have comment or be unexported\b\""
+    ],
+    "sqltools.connections": [
+        {
+            "database": "oraksil",
+            "driver": "MariaDB",
+            "mysqlOptions": {
+                "authProtocol": "default"
+            },
+            "name": "oraksil-db",
+            "password": "oraksil",
+            "port": 3306,
+            "previewLimit": 50,
+            "server": "localhost",
+            "username": "oraksil"
+        }
+    ],
+    "sqltools.results": {
+        "location": "current"
+    }
+}
